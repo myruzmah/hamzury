@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { X, MessageCircle } from "lucide-react";
 
-// Replace with HAMZURY's actual WhatsApp business number
-const WHATSAPP_NUMBER = "2348000000000";
+const WHATSAPP_NUMBER = "2349130700056";
 const WHATSAPP_MESSAGE = encodeURIComponent(
   "Hello HAMZURY, I'd like to learn more about your services."
 );

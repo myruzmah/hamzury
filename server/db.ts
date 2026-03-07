@@ -210,7 +210,48 @@ export async function getCommunicationsByClientRef(clientRef: string) {
     .orderBy(communications.createdAt);
 }
 
-// ─── Agents & Referrals ───────────────────────────────────────────────────────
+// ─── Staff management ─────────────────────────────────────────────────────────────
+export async function getAllStaff() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(users).where(or(eq(users.role, "staff"), eq(users.role, "admin"))).orderBy(users.name);
+}
+
+export async function upsertStaffUser(user: InsertUser): Promise<void> {
+  return upsertUser(user);
+}
+
+export async function updateClientStatusDb(
+  clientRef: string,
+  status: "Inquiry" | "Proposal" | "Active" | "Delivery" | "Closed",
+  invoiceStatus?: "Not Sent" | "Sent" | "Paid" | "Overdue"
+) {
+  const db = await getDb();
+  if (!db) return;
+  const set: Record<string, unknown> = { status, updatedAt: new Date() };
+  if (invoiceStatus) set.invoiceStatus = invoiceStatus;
+  await db.update(clients).set(set).where(eq(clients.clientRef, clientRef));
+}
+
+export async function addCommunication(clientRef: string, message: string, author: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(communications).values({ clientRef, message, author });
+}
+
+// ─── Agents & Referrals ─────────────────────────────────────────────────────────────
+export async function getAllAgents() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(agents).orderBy(agents.name);
+}
+
+export async function createAgentRecord(agent: { agentId: string; name: string; email: string; phone?: string }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(agents).values(agent).onDuplicateKeyUpdate({ set: { name: agent.name, phone: agent.phone } });
+}
+
 export async function getAgentByEmail(email: string) {
   const db = await getDb();
   if (!db) return undefined;

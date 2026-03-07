@@ -6,9 +6,13 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import {
+  addCommunication,
+  createAgentRecord,
   getAgentByEmail,
   getAgentByOpenId,
+  getAllAgents,
   getAllClients,
+  getAllStaff,
   getAllTasks,
   getClientByRef,
   getCommunicationsByClientRef,
@@ -17,8 +21,10 @@ import {
   getTasksByAssignee,
   getUpcomingTasks,
   getUserByEmail,
+  updateClientStatusDb,
   updateTaskStatus,
   upsertClient,
+  upsertStaffUser,
 } from "./db";
 import {
   getMockDeliverables,
@@ -311,23 +317,45 @@ const diagnosisRouter = router({
 });
 
 // ─── Admin router ─────────────────────────────────────────────────────────────
+function requireAdmin(role: string) {
+  if (role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required." });
+}
+
 const adminRouter = router({
+  // ── Overview stats ──────────────────────────────────────────────────────────
+  stats: protectedProcedure.query(async ({ ctx }) => {
+    requireAdmin(ctx.user.role);
+    const [allC, allT] = await Promise.all([getAllClients(), getAllTasks()]);
+    const allStaff = await getAllStaff();
+    const allAgents = await getAllAgents();
+    return {
+      totalClients: allC.length,
+      activeClients: allC.filter((c) => c.status === "Active").length,
+      totalTasks: allT.length,
+      completedTasks: allT.filter((t) => t.status === "Completed").length,
+      totalStaff: allStaff.length,
+      totalAgents: allAgents.length,
+    };
+  }),
+
+  // ── Clients ─────────────────────────────────────────────────────────────────
   allClients: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+    requireAdmin(ctx.user.role);
     return getAllClients();
   }),
 
   createClient: protectedProcedure
-    .input(
-      z.object({
-        clientRef: z.string(),
-        name: z.string(),
-        email: z.string().email().optional(),
-        servicePackage: z.string().optional(),
-      })
-    )
+    .input(z.object({
+      clientRef: z.string().min(1),
+      name: z.string().min(1),
+      email: z.string().email().optional(),
+      servicePackage: z.string().optional(),
+      status: z.enum(["Inquiry", "Proposal", "Active", "Delivery", "Closed"]).optional(),
+      startDate: z.string().optional(),
+      deadline: z.string().optional(),
+    }))
     .mutation(async ({ input, ctx }) => {
-      if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN" });
+      requireAdmin(ctx.user.role);
       const accessToken = nanoid(32);
       await upsertClient({
         clientRef: input.clientRef,
@@ -335,11 +363,93 @@ const adminRouter = router({
         email: input.email,
         servicePackage: input.servicePackage,
         accessToken,
-        status: "Inquiry",
+        status: (input.status ?? "Inquiry") as "Inquiry" | "Proposal" | "Active" | "Delivery" | "Closed",
         invoiceStatus: "Not Sent",
+        startDate: input.startDate ? new Date(input.startDate) : undefined,
+        deadline: input.deadline ? new Date(input.deadline) : undefined,
       });
-      return { accessToken, clientRef: input.clientRef };
+      return { accessToken, clientRef: input.clientRef, accessUrl: `/client/${input.clientRef}` };
     }),
+
+  updateClientStatus: protectedProcedure
+    .input(z.object({
+      clientRef: z.string(),
+      status: z.enum(["Inquiry", "Proposal", "Active", "Delivery", "Closed"]),
+      invoiceStatus: z.enum(["Not Sent", "Sent", "Paid", "Overdue"]).optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      requireAdmin(ctx.user.role);
+      await updateClientStatusDb(input.clientRef, input.status, input.invoiceStatus);
+      return { success: true };
+    }),
+
+  // ── Communications ──────────────────────────────────────────────────────────
+  postCommunication: protectedProcedure
+    .input(z.object({
+      clientRef: z.string().min(1),
+      message: z.string().min(1),
+      author: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      requireAdmin(ctx.user.role);
+      await addCommunication(input.clientRef, input.message, input.author ?? ctx.user.name ?? "Admin");
+      return { success: true };
+    }),
+
+  // ── Staff ───────────────────────────────────────────────────────────────────
+  allStaff: protectedProcedure.query(async ({ ctx }) => {
+    requireAdmin(ctx.user.role);
+    return getAllStaff();
+  }),
+
+  createStaff: protectedProcedure
+    .input(z.object({
+      name: z.string().min(1),
+      email: z.string().email(),
+      department: z.string().optional(),
+      staffId: z.string().optional(),
+      role: z.enum(["staff", "admin"]).default("staff"),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      requireAdmin(ctx.user.role);
+      const staffId = input.staffId ?? `STF-${nanoid(6).toUpperCase()}`;
+      await upsertStaffUser({
+        openId: `staff-${input.email}`,
+        name: input.name,
+        email: input.email,
+        department: input.department,
+        staffId,
+        role: input.role,
+        loginMethod: "password",
+        lastSignedIn: new Date(),
+      });
+      return { success: true, staffId };
+    }),
+
+  // ── Agents ──────────────────────────────────────────────────────────────────
+  allAgents: protectedProcedure.query(async ({ ctx }) => {
+    requireAdmin(ctx.user.role);
+    return getAllAgents();
+  }),
+
+  createAgent: protectedProcedure
+    .input(z.object({
+      name: z.string().min(1),
+      email: z.string().email(),
+      phone: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      requireAdmin(ctx.user.role);
+      const agentId = `AGT-${nanoid(6).toUpperCase()}`;
+      await createAgentRecord({ agentId, name: input.name, email: input.email, phone: input.phone });
+      return { success: true, agentId };
+    }),
+
+  // ── Tasks overview ──────────────────────────────────────────────────────────
+  allTasks: protectedProcedure.query(async ({ ctx }) => {
+    requireAdmin(ctx.user.role);
+    return getAllTasks();
+  }),
 });
 
 // ─── App router ───────────────────────────────────────────────────────────────
@@ -347,7 +457,7 @@ export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
   staff: staffRouter,
-  client: clientRouter,
+  clientPortal: clientRouter,
   agent: agentRouter,
   admin: adminRouter,
   diagnosis: diagnosisRouter,

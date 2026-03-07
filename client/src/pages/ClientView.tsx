@@ -28,7 +28,7 @@ export default function ClientView() {
   const params = useParams<{ clientRef: string }>();
   const clientRef = params.clientRef ?? "";
 
-  const { data, isLoading, error } = trpc.client.projectView.useQuery({ clientRef });
+  const { data, isLoading, error } = trpc.clientPortal.projectView.useQuery({ clientRef });
 
   if (isLoading) return <ClientViewSkeleton />;
   if (error || !data) return <ClientViewError message={error?.message ?? "Project not found."} />;

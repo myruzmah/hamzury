@@ -89,3 +89,12 @@
 - [ ] Update About HAMZURY with new copy
 - [ ] Update portal welcome messages with new copy
 - [ ] Update footer copy with new text
+
+## Phase 5 — Admin & Operations (March 2026)
+- [ ] Update WhatsApp number to 2349130700056
+- [ ] Build Admin Panel (/admin) — protected, admin-only
+- [ ] Admin: create/edit/deactivate staff accounts with department and role
+- [ ] Admin: generate client access URLs and manage client records
+- [ ] Admin: register agents and view referral summary
+- [ ] Admin: post communications log entries for clients
+- [ ] Admin: view all tasks across all staff

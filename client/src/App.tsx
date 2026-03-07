@@ -20,6 +20,7 @@ import Diagnosis from "./pages/Diagnosis";
 import StaffDashboard from "./pages/StaffDashboard";
 import ClientView from "./pages/ClientView";
 import AgentDashboard from "./pages/AgentDashboard";
+import AdminPanel from "./pages/AdminPanel";
 
 function Router() {
   return (
@@ -40,6 +41,9 @@ function Router() {
       <Route path="/client/:clientRef" component={ClientView} />
       <Route path="/agent" component={AgentDashboard} />
       <Route path="/agent/dashboard" component={AgentDashboard} />
+
+      {/* Admin */}
+      <Route path="/admin" component={AdminPanel} />
 
       {/* Fallback */}
       <Route path="/404" component={NotFound} />
