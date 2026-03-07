@@ -1,0 +1,17 @@
+{
+  "query": "SELECT id, openId, name, email, role FROM users LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3J9k2MXu4QeFXf3.d7e2c34337b4 --database i9aHLqTuJkXG4gxXzw9582 --execute SELECT id, openId, name, email, role FROM users LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "openId": "ToKodKhoFvQip28WrE4kXV",
+      "name": "HARUNA MUHAMMAD",
+      "email": "hamzurym@gmail.com",
+      "role": "admin"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\topenId\tname\temail\trole\n1\tToKodKhoFvQip28WrE4kXV\tHARUNA MUHAMMAD\thamzurym@gmail.com\tadmin\n",
+  "stderr": "",
+  "execution_time_ms": 124
+}

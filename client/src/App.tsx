@@ -44,6 +44,8 @@ function Router() {
 
       {/* Admin */}
       <Route path="/admin" component={AdminPanel} />
+      <Route path="/admin/:tab" component={AdminPanel} />
+      <Route path="/staff/dashboard/admin" component={AdminPanel} />
 
       {/* Fallback */}
       <Route path="/404" component={NotFound} />

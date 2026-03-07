@@ -90,6 +90,9 @@
 - [ ] Update portal welcome messages with new copy
 - [ ] Update footer copy with new text
 
+## Bug Fixes
+- [x] Fix 404 on /staff/dashboard/admin route
+
 ## Phase 5 — Admin & Operations (March 2026)
 - [ ] Update WhatsApp number to 2349130700056
 - [ ] Build Admin Panel (/admin) — protected, admin-only
