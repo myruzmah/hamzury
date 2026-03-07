@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -43,39 +44,49 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
+  /* Raven & Finch brand: dark green #1B4D3E */
+  --brand:              oklch(32% 0.07 160);
+  --brand-light:        oklch(42% 0.07 160);
+  --brand-muted:        oklch(95% 0.015 160);
+  --milk:               oklch(98.5% 0.008 80);
+  --charcoal:           oklch(25% 0.008 0);
+  --muted-text:         oklch(50% 0.008 0);
+  --overdue-bg:         oklch(97% 0.03 25);
+  --overdue-text:       oklch(55% 0.14 25);
+
+  --primary: var(--brand);
+  --primary-foreground: oklch(100% 0 0);
+  --sidebar-primary: var(--brand);
+  --sidebar-primary-foreground: oklch(100% 0 0);
+  --chart-1: var(--brand);
+  --chart-2: var(--brand-light);
+  --chart-3: oklch(55% 0.07 160);
+  --chart-4: oklch(65% 0.05 160);
+  --chart-5: oklch(75% 0.04 160);
+  --radius: 0.25rem;
+  --background: oklch(100% 0 0);
+  --foreground: var(--charcoal);
+  --card: oklch(100% 0 0);
+  --card-foreground: var(--charcoal);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: var(--charcoal);
+  --secondary: var(--brand-muted);
+  --secondary-foreground: var(--brand);
+  --muted: oklch(97% 0.003 0);
+  --muted-foreground: var(--muted-text);
+  --accent: var(--brand-muted);
+  --accent-foreground: var(--brand);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  --border: oklch(91% 0.003 0);
+  --input: oklch(91% 0.003 0);
+  --ring: var(--brand);
+  --sidebar: oklch(98.5% 0.005 160);
+  --sidebar-foreground: var(--charcoal);
+  --sidebar-accent: var(--brand-muted);
+  --sidebar-accent-foreground: var(--brand);
+  --sidebar-border: oklch(91% 0.003 0);
+  --sidebar-ring: var(--brand);
 }
 
 .dark {
@@ -119,7 +130,19 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: oklch(88% 0.003 0); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: oklch(70% 0.003 0); }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -169,9 +192,37 @@
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
     }
   }
+
+  /* Brand accent rule */
+  .brand-rule {
+    display: block;
+    width: 40px;
+    height: 2px;
+    background: var(--brand);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Luxury card */
+  .luxury-card {
+    background: white;
+    border: 1px solid oklch(91% 0.003 0);
+    border-radius: 2px;
+    padding: 2rem;
+    box-shadow: 0 1px 3px oklch(0% 0 0 / 0.04), 0 4px 16px oklch(0% 0 0 / 0.03);
+  }
+
+  /* Status badge colours */
+  .status-not-started   { background: oklch(96% 0 0); color: oklch(45% 0 0); }
+  .status-in-progress   { background: oklch(94% 0.04 240); color: oklch(40% 0.1 240); }
+  .status-completed     { background: oklch(94% 0.04 160); color: oklch(35% 0.08 160); }
+  .status-on-hold       { background: oklch(96% 0.06 80); color: oklch(45% 0.1 80); }
+  .status-cancelled     { background: oklch(96% 0.04 25); color: oklch(45% 0.12 25); }
+
+  .task-overdue { background-color: var(--overdue-bg) !important; }
+  .task-overdue td { color: var(--overdue-text) !important; }
 }
