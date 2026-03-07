@@ -38,13 +38,13 @@ const authRouter = router({
     return { success: true } as const;
   }),
 
-  // Staff login – email/password (demo: any @ravenandfinch.com email works)
+  // Staff login – email/password (demo: any @hamzury.com email works)
   staffLogin: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
       const user = await getUserByEmail(input.email);
-      // Demo mode: if no user found but email ends with @ravenandfinch.com, allow
-      const isDemo = !user && input.email.endsWith("@ravenandfinch.com");
+      // Demo mode: if no user found but email ends with @hamzury.com, allow
+      const isDemo = !user && input.email.endsWith("@hamzury.com");
       if (!user && !isDemo) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
       }

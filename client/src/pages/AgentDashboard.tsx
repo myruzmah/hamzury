@@ -67,10 +67,10 @@ export default function AgentDashboard() {
         <div className="h-16 flex items-center px-6 border-b border-border">
           <Link href="/" className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-sm flex items-center justify-center text-white text-xs font-bold" style={{ background: "var(--brand)" }}>
-              R
+              H
             </div>
             <span className="font-semibold text-xs tracking-widest uppercase" style={{ color: "var(--brand)" }}>
-              Raven &amp; Finch
+              HAMZURY
             </span>
           </Link>
           <button className="ml-auto md:hidden" onClick={() => setSidebarOpen(false)}>
@@ -229,9 +229,9 @@ function CommissionsSection() {
         ))}
       </div>
       <div className="p-5 rounded-sm border border-border text-sm text-muted-foreground" style={{ background: "var(--brand-muted)" }}>
-        Commission payments are processed monthly. For queries, contact{" "}
-        <a href="mailto:finance@ravenandfinch.com" className="underline" style={{ color: "var(--brand)" }}>
-          finance@ravenandfinch.com
+        Commission pool activates when monthly revenue exceeds the Finance-set threshold. Payments are processed monthly. For queries, contact{" "}
+        <a href="mailto:finance@hamzury.com" className="underline" style={{ color: "var(--brand)" }}>
+          finance@hamzury.com
         </a>
       </div>
     </div>
@@ -251,10 +251,10 @@ function ResourcesSection() {
   };
 
   const resources = [
-    { title: "Agent Handbook", description: "Complete guide to the referral programme, commission structure, and onboarding process.", href: "#" },
-    { title: "Brand Assets", description: "Approved logos, banners, and marketing materials for use in your referral activities.", href: "#" },
-    { title: "Service Overview Deck", description: "A presentation-ready overview of Raven & Finch services for prospective clients.", href: "#" },
-    { title: "Commission Rate Card", description: "Current commission rates by service package and deal size.", href: "#" },
+    { title: "Agent Handbook", description: "Complete guide to the HAMZURY referral programme, commission structure, and onboarding process.", href: "#" },
+    { title: "Brand Assets", description: "Approved HAMZURY logos, banners, and marketing materials for use in your referral activities.", href: "#" },
+    { title: "Service Overview Deck", description: "A presentation-ready overview of HAMZURY services — Systems, Studios, Bizdoc, and Innovation Hub.", href: "#" },
+    { title: "Commission Rate Card", description: "40% of net monthly profit forms the commission pool. Current rates by service package and deal size.", href: "#" },
   ];
 
   return (

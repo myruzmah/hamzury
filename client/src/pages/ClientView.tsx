@@ -47,10 +47,10 @@ export default function ClientView() {
               className="w-7 h-7 rounded-sm flex items-center justify-center text-white text-xs font-bold"
               style={{ background: "var(--brand)" }}
             >
-              R
+              H
             </div>
             <span className="font-semibold text-xs tracking-widest uppercase" style={{ color: "var(--brand)" }}>
-              Raven &amp; Finch
+              HAMZURY
             </span>
           </div>
           <span className="text-xs text-muted-foreground font-mono">{client.clientRef}</span>
@@ -68,7 +68,7 @@ export default function ClientView() {
             {client.name}
           </h1>
           <p className="text-muted-foreground text-sm">
-            A personal update on your project with Raven &amp; Finch.
+            A personal update on your project with HAMZURY.
           </p>
         </div>
       </section>
@@ -190,7 +190,7 @@ export default function ClientView() {
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ background: "var(--brand)" }}>
                       {(c.author ?? "R")[0]}
                     </div>
-                    <span className="text-xs font-semibold" style={{ color: "var(--charcoal)" }}>{c.author ?? "Raven & Finch"}</span>
+                    <span className="text-xs font-semibold" style={{ color: "var(--charcoal)" }}>{c.author ?? "HAMZURY"}</span>
                     <span className="text-xs text-muted-foreground ml-auto">{formatDate(c.createdAt)}</span>
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed">{c.message}</p>
@@ -213,8 +213,8 @@ export default function ClientView() {
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 For billing enquiries, contact{" "}
-                <a href="mailto:finance@ravenandfinch.com" className="underline" style={{ color: "var(--brand)" }}>
-                  finance@ravenandfinch.com
+                <a href="mailto:finance@hamzury.com" className="underline" style={{ color: "var(--brand)" }}>
+                  finance@hamzury.com
                 </a>
               </p>
             </div>
@@ -225,9 +225,9 @@ export default function ClientView() {
       {/* Footer */}
       <footer className="border-t border-border py-8 mt-12">
         <div className="container max-w-3xl flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">© Raven &amp; Finch 2026. Confidential project dashboard.</p>
-          <a href="mailto:info@ravenandfinch.com" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            info@ravenandfinch.com
+          <p className="text-xs text-muted-foreground">© HAMZURY 2026. Confidential project dashboard.</p>
+          <a href="mailto:cso@hamzury.com" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+            cso@hamzury.com
           </a>
         </div>
       </footer>

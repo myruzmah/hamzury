@@ -78,10 +78,10 @@ export default function StaffDashboard() {
               className="w-7 h-7 rounded-sm flex items-center justify-center text-white text-xs font-bold"
               style={{ background: "var(--brand)" }}
             >
-              R
+              H
             </div>
             <span className="font-semibold text-xs tracking-widest uppercase" style={{ color: "var(--brand)" }}>
-              Raven &amp; Finch
+              HAMZURY
             </span>
           </Link>
           <button className="ml-auto md:hidden" onClick={() => setSidebarOpen(false)}>
@@ -377,15 +377,17 @@ function DeliverablesSection() {
 // ─── Training Section ─────────────────────────────────────────────────────────
 function TrainingSection() {
   const modules = [
-    { title: "Brand Standards & Identity", progress: 100, status: "Completed" },
-    { title: "Client Communication Protocols", progress: 75, status: "In Progress" },
-    { title: "Systems Architecture Fundamentals", progress: 40, status: "In Progress" },
-    { title: "Quality Assurance Framework", progress: 0, status: "Not Started" },
+    { title: "HAMZURY Brand Kit & Quality Standards", progress: 100, status: "Completed" },
+    { title: "Central Master Tracker & Placeholder System", progress: 85, status: "In Progress" },
+    { title: "5-Point Quality Gate Checklist", progress: 100, status: "Completed" },
+    { title: "Internal Request Form & Handoff Protocols", progress: 60, status: "In Progress" },
+    { title: "RIDI Soul & Institutional Philosophy", progress: 100, status: "Completed" },
+    { title: "BizDev QA Process & Delivery Dossier", progress: 20, status: "In Progress" },
   ];
 
   return (
     <div>
-      <SectionHeader title="Training Progress" subtitle="Your current learning and development status." />
+      <SectionHeader title="Training Progress" subtitle="Your learning progress through HAMZURY's institutional training programme." />
       <div className="space-y-4">
         {modules.map((m) => (
           <div key={m.title} className="luxury-card">

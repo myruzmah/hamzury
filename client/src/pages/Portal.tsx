@@ -33,10 +33,10 @@ export default function Portal() {
               className="w-7 h-7 rounded-sm flex items-center justify-center text-white text-xs font-bold"
               style={{ background: "var(--brand)" }}
             >
-              R
+              H
             </div>
             <span className="font-semibold text-xs tracking-widest uppercase hidden sm:block" style={{ color: "var(--brand)" }}>
-              Raven &amp; Finch
+              HAMZURY
             </span>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function Portal() {
 
       <footer className="border-t border-border py-6">
         <p className="text-center text-xs text-muted-foreground">
-          © Raven &amp; Finch 2026 &nbsp;·&nbsp; Secure portal access
+          © HAMZURY 2026 &nbsp;·&nbsp; Secure portal access &nbsp;·&nbsp; Structure · Clarity · Calm Authority
         </p>
       </footer>
     </div>
@@ -120,7 +120,7 @@ function StaffLoginForm({ onSuccess }: { onSuccess: () => void }) {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@ravenandfinch.com"
+          placeholder="you@hamzury.com"
           required
           className="h-11 rounded-sm border-border focus:border-primary"
         />
@@ -151,8 +151,8 @@ function StaffLoginForm({ onSuccess }: { onSuccess: () => void }) {
       </Button>
       <p className="text-xs text-muted-foreground text-center pt-2">
         Forgot your password? Contact{" "}
-        <a href="mailto:it@ravenandfinch.com" className="underline" style={{ color: "var(--brand)" }}>
-          it@ravenandfinch.com
+        <a href="mailto:hr@hamzury.com" className="underline" style={{ color: "var(--brand)" }}>
+          hr@hamzury.com
         </a>
       </p>
     </form>
@@ -179,7 +179,7 @@ function ClientAccessForm({ onSuccess }: { onSuccess: (ref: string) => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="p-4 rounded-sm text-sm text-muted-foreground" style={{ background: "var(--brand-muted)" }}>
-        Enter your client reference number (e.g. <strong>CLT-001</strong>) to access your project dashboard.
+        Enter your HAMZURY client reference number (e.g. <strong>CLT-001</strong>) provided by your CSO contact to access your project dashboard.
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="client-ref" className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -207,8 +207,8 @@ function ClientAccessForm({ onSuccess }: { onSuccess: (ref: string) => void }) {
       </Button>
       <p className="text-xs text-muted-foreground text-center pt-2">
         Don't have a reference number?{" "}
-        <a href="mailto:info@ravenandfinch.com" className="underline" style={{ color: "var(--brand)" }}>
-          Contact us
+        <a href="mailto:cso@hamzury.com" className="underline" style={{ color: "var(--brand)" }}>
+          Contact CSO
         </a>
       </p>
     </form>
@@ -275,7 +275,7 @@ function AgentLoginForm({ onSuccess }: { onSuccess: () => void }) {
       </Button>
       <p className="text-xs text-muted-foreground text-center pt-2">
         Not yet an agent?{" "}
-        <a href="mailto:partnerships@ravenandfinch.com" className="underline" style={{ color: "var(--brand)" }}>
+        <a href="mailto:bizdev@hamzury.com" className="underline" style={{ color: "var(--brand)" }}>
           Apply to partner
         </a>
       </p>

@@ -6,7 +6,7 @@ import type { TrpcContext } from "./_core/context";
 // Mock the database helpers so tests don't need a real DB
 vi.mock("./db", () => ({
   getUserByEmail: vi.fn(async (email: string) => {
-    if (email === "staff@ravenandfinch.com") {
+    if (email === "staff@hamzury.com") {
       return {
         id: 1,
         openId: "staff-openid",
@@ -105,22 +105,22 @@ describe("auth.staffLogin", () => {
     const ctx = createCtx();
     const caller = appRouter.createCaller(ctx);
     await expect(
-      caller.auth.staffLogin({ email: "staff@ravenandfinch.com", password: "wrongpassword" })
+      caller.auth.staffLogin({ email: "staff@hamzury.com", password: "wrongpassword" })
     ).rejects.toThrow();
   });
 
   it("allows demo staff login with correct password", async () => {
     const ctx = createCtx();
     const caller = appRouter.createCaller(ctx);
-    const result = await caller.auth.staffLogin({ email: "staff@ravenandfinch.com", password: "demo" });
+    const result = await caller.auth.staffLogin({ email: "staff@hamzury.com", password: "demo" });
     expect(result.success).toBe(true);
     expect(result.role).toBe("staff");
   });
 
-  it("allows demo mode for @ravenandfinch.com emails", async () => {
+  it("allows demo mode for @hamzury.com emails", async () => {
     const ctx = createCtx();
     const caller = appRouter.createCaller(ctx);
-    const result = await caller.auth.staffLogin({ email: "newstaff@ravenandfinch.com", password: "demo" });
+    const result = await caller.auth.staffLogin({ email: "newstaff@hamzury.com", password: "demo" });
     expect(result.success).toBe(true);
   });
 });
