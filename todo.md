@@ -74,3 +74,18 @@
 - [x] CEO page (/ceo)
 - [x] Services overview page (/services)
 - [x] Update footer with correct emails (info@hamzury.com, innovation@hamzury.com)
+
+## Phase 4 — Design Red Flag Fixes + Copy Update (March 2026)
+
+- [ ] Fix green overuse — restrict brand green to accent-only (buttons, rules, active states)
+- [ ] Fix typography hierarchy — 3-level system: display (48–64px), body (14–16px), label (11–12px uppercase)
+- [ ] Fix logo size — increase to 40px+ with breathing room in nav
+- [ ] Add mobile navigation (hamburger menu)
+- [ ] Add subtle grain/texture to hero section
+- [ ] Reduce homepage departments to 5 featured + "View all" link
+- [ ] Update homepage copy with new minimal institutional text
+- [ ] Update all 11 department taglines and descriptions with new copy
+- [ ] Update RIDI statement with new copy
+- [ ] Update About HAMZURY with new copy
+- [ ] Update portal welcome messages with new copy
+- [ ] Update footer copy with new text

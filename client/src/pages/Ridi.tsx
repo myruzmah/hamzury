@@ -52,7 +52,7 @@ export default function Ridi() {
               className="w-7 h-7 rounded-sm flex items-center justify-center text-white text-xs font-bold"
               style={{ background: "var(--brand)" }}
             >
-              H
+              <span className="text-xs font-bold">H</span>
             </div>
             <span className="font-semibold text-xs tracking-widest uppercase" style={{ color: "var(--brand)" }}>
               HAMZURY
@@ -76,18 +76,16 @@ export default function Ridi() {
             RIDI · Rural Innovation &amp; Digital Literacy Development Initiative
           </p>
           <h1
-            className="text-3xl md:text-5xl font-semibold text-white mb-6 leading-tight"
+            className="text-3xl md:text-5xl font-light text-white mb-6 leading-tight"
             style={{ letterSpacing: "-0.03em" }}
           >
-            10% of every profit.
-            <br />
-            100% committed to impact.
+            Ten percent of profits<br />support rural development.
           </h1>
-          <p className="text-sm text-white/75 leading-relaxed max-w-xl">
-            HAMZURY is bound by the RIDI soul principle: 10% of net profits flow to community
-            impact programs. This is not a donation — it is a structural commitment embedded
-            in the Finance department's monthly rituals and reported to the Founder and the
-            RIDLDI board every single month.
+          <p className="text-sm text-white/70 leading-relaxed max-w-xl mb-2">
+            Programs focus on education and economic opportunity.
+          </p>
+          <p className="text-sm text-white/70 leading-relaxed max-w-xl">
+            Impact is tracked and reported.
           </p>
         </div>
       </section>
@@ -112,8 +110,8 @@ export default function Ridi() {
       <section className="section-padding" style={{ background: "white" }}>
         <div className="container max-w-3xl">
           <span className="brand-rule" />
-          <h2 className="text-2xl md:text-3xl font-semibold mb-6" style={{ color: "var(--charcoal)" }}>
-            What RIDI Is
+          <h2 className="text-2xl md:text-3xl font-light mb-6" style={{ color: "var(--charcoal)", letterSpacing: "-0.02em" }}>
+            What RIDI is.
           </h2>
           <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
             <p>
@@ -143,8 +141,8 @@ export default function Ridi() {
       <section className="section-padding" style={{ background: "var(--milk)" }}>
         <div className="container max-w-3xl">
           <span className="brand-rule" />
-          <h2 className="text-2xl md:text-3xl font-semibold mb-8" style={{ color: "var(--charcoal)" }}>
-            How the Allocation Works
+          <h2 className="text-2xl md:text-3xl font-light mb-8" style={{ color: "var(--charcoal)", letterSpacing: "-0.02em" }}>
+            How the allocation works.
           </h2>
           <div className="space-y-4">
             {[

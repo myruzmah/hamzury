@@ -20,9 +20,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   cso: {
     code: "01",
     name: "HAMZURY CSO",
-    tagline: "Your First Conversation",
+    tagline: "Client gateway",
     description:
-      "The Client Services Office is the gateway to HAMZURY. Every client relationship begins here — with a calm, structured intake process that qualifies needs, recommends the right package, and ensures clarity before any work begins.",
+      "Receives every inquiry and manages the client relationship from intake to delivery.",
     services: [
       { title: "Lead Intake & Qualification", desc: "Every inquiry is received, logged, and assessed against HAMZURY's service offerings." },
       { title: "Package Recommendation", desc: "CSO recommends the right combination of departments based on the client's needs and budget." },
@@ -37,9 +37,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   systems: {
     code: "02",
     name: "HAMZURY Systems",
-    tagline: "Digital Infrastructure That Lasts",
+    tagline: "Digital infrastructure",
     description:
-      "HAMZURY Systems builds the digital backbone that institutions run on. From business websites to CRM systems, AI workflows, and custom automation — every solution is built to last and maintained with institutional rigour.",
+      "Builds websites, dashboards, automation, and operational technology.",
     services: [
       { title: "Business Websites", desc: "Clean, fast, professionally designed websites that reflect institutional quality." },
       { title: "CRM Systems", desc: "Custom CRM setups on Airtable, Notion, or bespoke platforms configured for your workflow." },
@@ -54,9 +54,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   studios: {
     code: "03",
     name: "HAMZURY Studios",
-    tagline: "Brands Built to Endure",
+    tagline: "Brand architecture",
     description:
-      "HAMZURY Studios creates brand identities and content systems that stand the test of time. Every asset is built to the HAMZURY quality standard: Apple-level clean, properly branded, and ready to frame.",
+      "Creates identity systems, content structures, and visual assets.",
     services: [
       { title: "Brand Identity", desc: "Logo, colour palette, typography, and brand guidelines that reflect institutional quality." },
       { title: "Social Media Systems", desc: "Content calendars, templates, and production workflows for consistent brand presence." },
@@ -71,9 +71,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   bizdoc: {
     code: "04",
     name: "HAMZURY Bizdoc",
-    tagline: "Building Businesses on Solid Foundations",
+    tagline: "Regulatory structure",
     description:
-      "HAMZURY Bizdoc handles the compliance and documentation work that makes your institution legally sound and operationally credible. From CAC registration to annual returns, every filing is handled with precision.",
+      "Handles business registration, filings, and compliance documentation.",
     showBizdocLogo: true,
     services: [
       { title: "CAC Business Registration", desc: "Business name and company incorporation with the Corporate Affairs Commission." },
@@ -89,10 +89,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   innovation: {
     code: "05",
     name: "HAMZURY Innovation",
-    tagline: "Learn What Actually Works",
+    tagline: "Capability development",
     description:
-      "HAMZURY Innovation Hub is where knowledge becomes capability. Through cohort-based training, self-paced courses, and practical bootcamps, we develop the next generation of African professionals and entrepreneurs.",
-    philosophy: "Learn what actually works. Create with integrity. Build systems that dominate.",
+      "Designs structured training and practical learning programs.",
     services: [
       { title: "Cohort-Based Training", desc: "Structured 3-week cohorts covering digital skills, business systems, and professional development." },
       { title: "Self-Paced Courses", desc: "On-demand learning modules accessible anytime, anywhere." },
@@ -107,9 +106,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   growth: {
     code: "06",
     name: "HAMZURY Growth",
-    tagline: "Partnerships That Matter",
+    tagline: "Strategic partnerships",
     description:
-      "HAMZURY Growth (BizDev) builds the strategic relationships and revenue channels that sustain the institution. From partnership MOUs to grant applications and market research, every initiative is pursued with institutional discipline.",
+      "Leads partnerships, research, and institutional growth initiatives.",
     services: [
       { title: "Partnership Development", desc: "Identifying, approaching, and formalising strategic partnerships." },
       { title: "Grant Applications", desc: "Research, writing, and submission of grant applications to relevant funders." },
@@ -123,9 +122,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   people: {
     code: "07",
     name: "HAMZURY People",
-    tagline: "Where Talent Thrives",
+    tagline: "Talent systems",
     description:
-      "HAMZURY People (HR) builds and maintains the human infrastructure that makes every other department possible. From recruitment to performance management, every people process is documented and consistently applied.",
+      "Manages hiring, training, and staff performance.",
     services: [
       { title: "Recruitment & Hiring", desc: "Job descriptions, interview processes, and offer management." },
       { title: "Onboarding", desc: "Structured onboarding programme for every new staff member." },
@@ -139,9 +138,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   ledger: {
     code: "08",
     name: "HAMZURY Ledger",
-    tagline: "Clear Numbers, Calm Decisions",
+    tagline: "Financial clarity",
     description:
-      "HAMZURY Ledger (Finance) manages the numbers that keep the institution running. Transparent, precise, and always calm — every invoice, expense, and RIDI allocation is tracked and reported.",
+      "Tracks revenue, budgets, and financial compliance.",
     services: [
       { title: "Invoicing & Collections", desc: "Professional invoices, payment tracking, and collections management." },
       { title: "Expense Management", desc: "Expense claims, approvals, and budget tracking." },
@@ -155,9 +154,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   executive: {
     code: "09",
     name: "HAMZURY Executive",
-    tagline: "Operational Excellence",
+    tagline: "Operational leadership",
     description:
-      "The CEO office provides cross-departmental oversight, strategic alignment, and institutional governance. Every department is held to its highest standard through consistent monitoring, approvals, and weekly reporting.",
+      "Aligns departments, monitors performance, and resolves escalations.",
     services: [
       { title: "Department Health Monitoring", desc: "Real-time visibility into every department's performance metrics." },
       { title: "Approvals Management", desc: "Expense approvals (₦50k–₦200k), escalations, and strategic decisions." },
@@ -171,9 +170,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   founder: {
     code: "10",
     name: "HAMZURY Founder",
-    tagline: "Vision That Outlasts",
+    tagline: "Strategic oversight",
     description:
-      "Muhammad Hamzury's office holds the founding vision, institutional philosophy, and long-term strategy. The Founder's role is to set the direction, protect the culture, and ensure HAMZURY remains true to its values across every generation of leadership.",
+      "Sets vision and approves major institutional decisions.",
     services: [
       { title: "Institutional Vision", desc: "Long-term strategic direction and institutional philosophy." },
       { title: "Major Approvals", desc: "Final approval authority for decisions above ₦200,000." },
@@ -187,9 +186,9 @@ const DEPARTMENTS: Record<string, DeptInfo> = {
   ridi: {
     code: "11",
     name: "HAMZURY RIDI",
-    tagline: "10% Profits, 100% Impact",
+    tagline: "Profit to impact",
     description:
-      "The Rural Innovation & Digital Literacy Development Initiative is the soul of HAMZURY. 10% of every profit is structurally committed to rural education, digital literacy, and community development — not as charity, but as institutional obligation.",
+      "Ten percent of profits fund rural development programs.",
     services: [
       { title: "Digital Literacy Training", desc: "Free digital skills training for rural community members." },
       { title: "Scholarship Programme", desc: "Full scholarships for deserving candidates from underserved communities." },
