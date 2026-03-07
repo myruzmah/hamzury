@@ -1,5 +1,4 @@
-import { useParams } from "wouter";
-import { Link } from "wouter";
+import { useParams, Link } from "wouter";
 import { ArrowLeft, CheckCircle2, Circle, FileText, ExternalLink, MessageSquare, Receipt } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -26,8 +25,8 @@ function formatDate(d: Date | string | null | undefined) {
 }
 
 export default function ClientView() {
-  const params = useParams<{ id: string }>();
-  const clientRef = params.id ?? "";
+  const params = useParams<{ clientRef: string }>();
+  const clientRef = params.clientRef ?? "";
 
   const { data, isLoading, error } = trpc.client.projectView.useQuery({ clientRef });
 
