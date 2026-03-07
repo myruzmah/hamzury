@@ -54,3 +54,23 @@
 - [x] Vitest unit tests for auth and API procedures (11 tests passing)
 - [x] Final route wiring and navigation review
 - [x] Checkpoint save
+
+## Phase 3 — Full Specification Build (March 2026)
+
+- [x] Upload HAMZURY logo and BizDoc logo to CDN and integrate across all pages
+- [x] Update password system to accept hamzury2026
+- [x] All 11 department pages (CSO, Systems, Studios, Bizdoc, Innovation Hub, BizDev, HR, Finance, CEO, Founder, RIDI)
+- [x] Homepage services grid updated to show all 11 departments with taglines
+- [x] Department Resource Hub in staff dashboard sidebar
+- [x] CEO dashboard (cross-department health, approvals, revenue, risk register)
+- [x] Founder dashboard (strategic read-only view)
+- [x] Department Lead sub-admin view (team management, analytics, approvals)
+- [x] AI Diagnosis Tool page (/diagnosis) with multi-step questionnaire
+- [x] WhatsApp chat widget (bottom-right, all pages)
+- [x] Contact page (/contact)
+- [x] Privacy Policy page (/privacy)
+- [x] Terms of Service page (/terms)
+- [x] Founder page (/founder)
+- [x] CEO page (/ceo)
+- [x] Services overview page (/services)
+- [x] Update footer with correct emails (info@hamzury.com, innovation@hamzury.com)

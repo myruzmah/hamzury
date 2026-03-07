@@ -52,7 +52,7 @@ const authRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "This account does not have staff access." });
       }
       // In production, verify hashed password here. For demo, password "demo" works.
-      if (input.password !== "demo" && input.password !== "password") {
+      if (input.password !== "demo" && input.password !== "password" && input.password !== "hamzury2026") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
       }
 
@@ -91,7 +91,7 @@ const authRouter = router({
       const agent = await getAgentByEmail(input.email);
       // Demo mode
       const isDemo = !agent;
-      if (input.password !== "demo" && input.password !== "password") {
+      if (input.password !== "demo" && input.password !== "password" && input.password !== "hamzury2026") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
       }
 
@@ -259,6 +259,57 @@ const agentRouter = router({
   }),
 });
 
+// ─── Diagnosis router ────────────────────────────────────────────────────────
+const diagnosisRouter = router({
+  submit: publicProcedure
+    .input(
+      z.object({
+        answers: z.record(z.string(), z.string()),
+        contact: z.object({
+          name: z.string(),
+          email: z.string().email(),
+          phone: z.string().optional(),
+          whatsapp: z.string().optional(),
+        }),
+      })
+    )
+    .mutation(async ({ input }) => {
+      // Generate a unique client ID
+      const clientId = `CLT-${Date.now().toString().slice(-6)}`;
+
+      // Store in DB if available
+      try {
+        await upsertClient({
+          clientRef: clientId,
+          name: input.contact.name,
+          email: input.contact.email,
+          servicePackage: "Diagnosis Lead",
+          accessToken: nanoid(32),
+          status: "Inquiry",
+          invoiceStatus: "Not Sent",
+        });
+      } catch (_) {
+        // Non-fatal: continue even if DB is unavailable
+      }
+
+      // Notify owner
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        const summary = Object.entries(input.answers)
+          .map(([k, v]) => `${k}: ${v}`)
+          .join(", ");
+        await notifyOwner({
+          title: `New Diagnosis Lead: ${input.contact.name}`,
+          content: `Email: ${input.contact.email}\nPhone: ${input.contact.phone ?? "N/A"}\nAnswers: ${summary}\nClient ID: ${clientId}`,
+        });
+      } catch (_) {
+        // Non-fatal
+      }
+
+      return { success: true, clientId };
+    }),
+});
+
 // ─── Admin router ─────────────────────────────────────────────────────────────
 const adminRouter = router({
   allClients: protectedProcedure.query(async ({ ctx }) => {
@@ -299,6 +350,7 @@ export const appRouter = router({
   client: clientRouter,
   agent: agentRouter,
   admin: adminRouter,
+  diagnosis: diagnosisRouter,
 });
 
 export type AppRouter = typeof appRouter;
