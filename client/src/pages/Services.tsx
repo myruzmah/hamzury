@@ -176,6 +176,54 @@ export default function Services() {
         </div>
       </section>
 
+      {/* Comparison Table */}
+      <section className="py-20 border-t border-border" style={{ background: "#FAFAF8" }}>
+        <div className="container">
+          <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: "var(--brand)" }}>Quick Reference</p>
+          <h2 className="text-3xl font-light mb-3" style={{ color: "#1a1a1a" }}>Which department solves your problem?</h2>
+          <p className="text-sm text-muted-foreground mb-10 max-w-lg">Use this table to identify the right starting point. If your problem spans multiple departments, submit a brief and we will route it correctly.</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 pr-6 text-xs font-medium uppercase tracking-wider text-muted-foreground w-1/3">Your problem</th>
+                  <th className="text-left py-3 pr-6 text-xs font-medium uppercase tracking-wider text-muted-foreground w-1/4">Department</th>
+                  <th className="text-left py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">What we do</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {[
+                  { problem: "My team lacks the skills to lead or operate effectively", dept: "Innovation Hub", action: "Executive Class or Corporate Training", href: "/services/innovation-hub" },
+                  { problem: "My children need structured technology education", dept: "Innovation Hub", action: "Young Innovators programme", href: "/services/innovation-hub" },
+                  { problem: "I want to learn to code or build digital products", dept: "Innovation Hub", action: "Tech Bootcamp", href: "/services/innovation-hub" },
+                  { problem: "My brand does not reflect the quality of my work", dept: "Studios", action: "Brand Identity system", href: "/services/studios" },
+                  { problem: "My social media is inconsistent or non-existent", dept: "Studios", action: "Social Media Management", href: "/services/studios" },
+                  { problem: "I want to start a podcast but not manage production", dept: "Studios", action: "Podcast Production", href: "/services/studios" },
+                  { problem: "I need a professional website that converts visitors", dept: "Systems", action: "Business Website build", href: "/services/systems" },
+                  { problem: "I need a custom platform or internal tool built", dept: "Systems", action: "Web Application or Dashboard", href: "/services/systems" },
+                  { problem: "My team spends too much time on manual processes", dept: "Systems", action: "Automation & AI Workflow", href: "/services/systems" },
+                  { problem: "I manage clients and leads in WhatsApp or spreadsheets", dept: "Systems", action: "CRM System", href: "/services/systems" },
+                  { problem: "My business is not registered or not compliant", dept: "Bizdoc", action: "CAC Registration or Compliance Advisory", href: "/services/bizdoc" },
+                  { problem: "I have not filed annual returns or tax obligations", dept: "Bizdoc", action: "Annual Returns & Tax Filing", href: "/services/bizdoc" },
+                ].map((row, i) => (
+                  <tr key={i} className="hover:bg-white transition-colors">
+                    <td className="py-4 pr-6 text-muted-foreground leading-relaxed">{row.problem}</td>
+                    <td className="py-4 pr-6">
+                      <Link href={row.href} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ background: "var(--brand)" + "15", color: "var(--brand)" }}>{row.dept}</Link>
+                    </td>
+                    <td className="py-4">
+                      <Link href={row.href} className="flex items-center gap-1.5 text-sm hover:opacity-70 transition-opacity" style={{ color: "#1a1a1a" }}>
+                        {row.action} <ArrowRight size={12} style={{ color: "var(--brand)" }} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* Bottom CTA */}
       <section className="py-20 border-t border-border grain-overlay" style={{ background: "var(--brand)" }}>
         <div className="container max-w-xl text-center">

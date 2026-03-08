@@ -211,3 +211,12 @@
 - [ ] Replace Bizdoc section below services with the 5-step client journey ("How it works")
 - [ ] Rewrite all homepage copy with full HAMZURY brand wisdom
 - [ ] Audit and fix Services index, department pages, Portal, footer for consistency
+
+## Phase 15 — Department Pages Polish + New Site Pages
+- [x] Rebuild Innovation Hub: programme cards with branched chat forms, cohort gallery (placeholders), hackathon results section, next cohort banner, PDF guide download
+- [x] Polish Studios: clickable service cards each opening focused chat form, past work gallery (placeholders), outcome section per service
+- [x] Polish Systems: clickable service cards with focused chat forms, "How we build" process section, "What you own at the end" section
+- [x] Upgrade /track to milestone tracker with visual progress bar (5 stages)
+- [x] Build Policies page (/policies): Privacy, Terms of Engagement, Refund Policy
+- [x] Build Team page (/team): department leads only, name + title + department cards
+- [x] Update Services index with problem-solution comparison table

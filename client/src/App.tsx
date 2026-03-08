@@ -15,6 +15,8 @@ import Contact from "./pages/Contact";
 import Legal from "./pages/Legal";
 import Department from "./pages/Department";
 import Diagnosis from "./pages/Diagnosis";
+import Policies from "./pages/Policies";
+import Team from "./pages/Team";
 
 // Authenticated dashboards
 import StaffDashboard from "./pages/StaffDashboard";
@@ -88,6 +90,10 @@ function Router() {
       <Route path="/start" component={ClientIntake} />
       <Route path="/track" component={TrackProject} />
       <Route path="/event" component={EventForm} />
+
+      {/* Public institutional pages */}
+      <Route path="/policies" component={Policies} />
+      <Route path="/team" component={Team} />
 
       {/* Fallback */}
       <Route path="/404" component={NotFound} />
