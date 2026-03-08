@@ -161,14 +161,16 @@ export default function FinanceDashboard() {
     <div className="min-h-screen bg-stone-50">
       {/* Header */}
       <div className="bg-white border-b border-stone-100 px-6 py-4 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-xs font-medium text-stone-400 uppercase tracking-widest">HAMZURY</span>
-            <span className="text-stone-200">·</span>
-            <span className="text-xs font-medium text-emerald-600 uppercase tracking-widest">LEDGER</span>
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 bg-[#1B4D3E]/10 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-6 h-6 text-[#1B4D3E]" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+            </svg>
           </div>
-          <h1 className="text-xl font-semibold text-stone-900">Finance Office</h1>
-          <p className="text-sm text-stone-400 mt-0.5">Muhammad Ismail Adam — Finance Lead</p>
+          <div>
+            <div className="text-base font-bold text-[#1B4D3E] leading-tight">Finance &amp; Ledger</div>
+            <p className="text-xs text-stone-400 mt-0.5">Muhammad Ismail Adam · Finance Lead</p>
+          </div>
         </div>
         <button onClick={() => setShowInvoice(true)}
           className="px-4 py-2 bg-stone-900 text-white rounded-lg text-sm font-medium hover:bg-stone-800 transition-colors">

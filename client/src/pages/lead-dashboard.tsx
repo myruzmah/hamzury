@@ -279,7 +279,37 @@ const STAGE_COLOR: Record<TaskStage, string> = {
 
 const DEPARTMENTS = ["CSO", "Systems", "Studios", "Bizdoc", "Innovation", "Growth", "People", "Ledger", "RIDI"];
 
-// ─── Assign Task Modal ────────────────────────────────────────────────────────
+// ─── Department personalisation maps ─────────────────────────────────────────
+const DEPT_DISPLAY_NAME: Record<string, string> = {
+  Studios: "Studios Department",
+  Bizdoc: "Bizdoc Department",
+  Bizdev: "Business Development",
+  Innovation: "Innovation Hub",
+  Robotics: "Robotics Department",
+  Growth: "Growth & Quality",
+  People: "People & HR",
+  Ledger: "Finance & Ledger",
+  CSO: "Client Success Office",
+  RIDI: "RIDI Department",
+  Systems: "Systems Department",
+  Executive: "Executive Office",
+};
+
+const DEPT_FOCUS_AREAS: Record<string, string[]> = {
+  Studios: ["Brand Identity", "Visual Design", "Content Production", "Creative Assets", "Photography & Video"],
+  Bizdoc: ["Business Plan", "Company Profile", "Policy Document", "Pitch Deck", "Feasibility Study", "SOP"],
+  Bizdev: ["Market Research", "Partnership Outreach", "Agent Network", "Proposal Support", "Lead Nurture"],
+  Innovation: ["Executive Class", "Young Innovators", "Tech Bootcamp", "Internship", "Corporate Training", "Robotics"],
+  Robotics: ["Robotics Curriculum", "Cohort Management", "Equipment & Lab", "Student Assessment", "Competitions"],
+  Growth: ["Quality Review", "Deliverable Audit", "Process Improvement", "Client Satisfaction", "Standards Compliance"],
+  People: ["Staff Onboarding", "HR Policy", "Access Management", "Staff Welfare", "Performance Review"],
+  Ledger: ["Invoice Management", "Expense Approval", "Commission Tracking", "RIDI Allocation", "Financial Reporting"],
+  CSO: ["Lead Qualification", "Client Onboarding", "Clarity Report", "Client Follow-up", "Nurture Campaign"],
+  RIDI: ["Scholarship Review", "Donation Management", "Rural Outreach", "Programme Placement", "Impact Reporting"],
+  Systems: ["IT Infrastructure", "Software Setup", "System Maintenance", "Data Management", "Security"],
+};
+
+// ─── Assign Task Modal ─────────────────────────────────────────────────────────
 function AssignTaskModal({
   department,
   onClose,
@@ -656,12 +686,15 @@ export default function LeadDashboard() {
       <header className="bg-white border-b border-stone-100 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-[#1B4D3E] rounded-lg flex items-center justify-center">
-              <span className="text-white text-xs font-bold">{department[0]}</span>
+            {/* Green human avatar */}
+            <div className="w-11 h-11 bg-[#1B4D3E]/10 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-6 h-6 text-[#1B4D3E]" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+              </svg>
             </div>
             <div>
-              <div className="text-sm font-semibold text-stone-900">{department} Department</div>
-              <div className="text-xs text-stone-400">{profile?.name ?? "Lead"} · Department Lead</div>
+              <div className="text-base font-bold text-[#1B4D3E] leading-tight">{DEPT_DISPLAY_NAME[department] ?? department + " Department"}</div>
+              <div className="text-xs text-stone-400 mt-0.5">{profile?.name ?? "Lead"} · Department Lead</div>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -724,6 +757,25 @@ export default function LeadDashboard() {
         {/* Overview */}
         {activeTab === "overview" && (
           <div className="space-y-6">
+            {/* Department identity banner */}
+            <div className="bg-[#1B4D3E] rounded-2xl p-6 flex items-center gap-5">
+              <div className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <div className="text-white font-bold text-lg leading-tight">{DEPT_DISPLAY_NAME[department] ?? department}</div>
+                <div className="text-white/60 text-sm mt-0.5">Welcome, {profile?.name ?? "Lead"}</div>
+                {(DEPT_FOCUS_AREAS[department] ?? []).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {(DEPT_FOCUS_AREAS[department] ?? []).map((area) => (
+                      <span key={area} className="text-xs bg-white/10 text-white/80 px-3 py-1 rounded-full">{area}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: "Active Tasks", value: activeTasks },
@@ -737,10 +789,9 @@ export default function LeadDashboard() {
                 </div>
               ))}
             </div>
-
             {/* Recent tasks */}
             <div className="bg-white rounded-2xl border border-stone-100 p-6">
-              <h3 className="text-sm font-semibold text-stone-900 mb-4">Recent Department Tasks</h3>
+              <h3 className="text-sm font-semibold text-stone-900 mb-4">Recent {DEPT_DISPLAY_NAME[department] ?? department} Tasks</h3>
               {deptTasks.slice(0, 5).length === 0 ? (
                 <p className="text-sm text-stone-400 text-center py-6">No tasks yet. Assign the first task to your team.</p>
               ) : (
