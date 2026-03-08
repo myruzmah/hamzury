@@ -11,12 +11,16 @@ import {
   InsertClient,
   InsertTask,
   InsertUser,
+  InsertWeeklyReport,
+  InsertRidiImpact,
   referrals,
+  ridiImpact,
   sopTemplates,
   staffMembers,
   taskLifecycle,
   tasks,
   users,
+  weeklyReports,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -547,4 +551,68 @@ export async function getReferralsByAgent(agentId: string) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(referrals).where(eq(referrals.agentId, agentId)).orderBy(referrals.referralDate);
+}
+
+// ─── Weekly Reports (Friday CEO → Founder) ───────────────────────────────────
+export async function submitWeeklyReport(data: InsertWeeklyReport) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(weeklyReports).values(data);
+}
+
+export async function getAllWeeklyReports() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(weeklyReports).orderBy(desc(weeklyReports.createdAt));
+}
+
+export async function getLatestWeeklyReport() {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(weeklyReports).orderBy(desc(weeklyReports.createdAt)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function markReportReadByFounder(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(weeklyReports)
+    .set({ isReadByFounder: true, readAt: new Date() })
+    .where(eq(weeklyReports.id, id));
+}
+
+// ─── RIDI Impact ──────────────────────────────────────────────────────────────
+export async function createRidiProgram(data: InsertRidiImpact) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(ridiImpact).values(data);
+}
+
+export async function getAllRidiPrograms() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(ridiImpact).orderBy(desc(ridiImpact.createdAt));
+}
+
+export async function updateRidiProgram(
+  programRef: string,
+  updates: Partial<InsertRidiImpact>
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(ridiImpact).set(updates).where(eq(ridiImpact.programRef, programRef));
+}
+
+export async function getRidiTotals() {
+  const db = await getDb();
+  if (!db) return { totalBeneficiaries: 0, women: 0, youth: 0, men: 0, referrals: 0, programs: 0 };
+  const programs = await db.select().from(ridiImpact);
+  return {
+    programs: programs.length,
+    totalBeneficiaries: programs.reduce((s, p) => s + p.totalBeneficiaries, 0),
+    women: programs.reduce((s, p) => s + p.women, 0),
+    youth: programs.reduce((s, p) => s + p.youth, 0),
+    men: programs.reduce((s, p) => s + p.men, 0),
+    referrals: programs.reduce((s, p) => s + p.referralsToHamzury, 0),
+  };
 }

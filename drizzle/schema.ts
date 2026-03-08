@@ -266,3 +266,65 @@ export const sheetsSyncLog = mysqlTable("sheetsSyncLog", {
   status: mysqlEnum("status", ["success", "error"]).default("success").notNull(),
   errorMessage: text("errorMessage"),
 });
+
+
+
+// ─── Weekly CEO Report (Friday report to Founder) ────────────────────────────
+export const weeklyReports = mysqlTable("weeklyReports", {
+  id: int("id").autoincrement().primaryKey(),
+  reportRef: varchar("reportRef", { length: 32 }).notNull().unique(),
+  submittedByStaffId: varchar("submittedByStaffId", { length: 32 }).notNull(),
+  submittedByName: varchar("submittedByName", { length: 256 }).notNull(),
+  weekEnding: timestamp("weekEnding").notNull(),
+  goingWell1: text("goingWell1").notNull(),
+  goingWell2: text("goingWell2").notNull(),
+  goingWell3: text("goingWell3").notNull(),
+  toWatch1: text("toWatch1").notNull(),
+  toWatch2: text("toWatch2").notNull(),
+  toWatch3: text("toWatch3").notNull(),
+  keyInfo: text("keyInfo").notNull(),
+  revenueThisWeek: int("revenueThisWeek").default(0).notNull(),
+  newClients: int("newClients").default(0).notNull(),
+  activeTasks: int("activeTasks").default(0).notNull(),
+  overdueTasks: int("overdueTasks").default(0).notNull(),
+  staffPresent: int("staffPresent").default(0).notNull(),
+  staffTotal: int("staffTotal").default(0).notNull(),
+  pendingApprovals: int("pendingApprovals").default(0).notNull(),
+  isReadByFounder: boolean("isReadByFounder").default(false).notNull(),
+  readAt: timestamp("readAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type WeeklyReport = typeof weeklyReports.$inferSelect;
+export type InsertWeeklyReport = typeof weeklyReports.$inferInsert;
+
+// ─── RIDI Impact Records ──────────────────────────────────────────────────────
+export const ridiImpact = mysqlTable("ridiImpact", {
+  id: int("id").autoincrement().primaryKey(),
+  programRef: varchar("programRef", { length: 32 }).notNull().unique(),
+  programName: varchar("programName", { length: 256 }).notNull(),
+  programType: mysqlEnum("programType", [
+    "Digital Skills",
+    "Entrepreneurship Training",
+    "Climate Education",
+    "Robotics",
+    "Community Partnership",
+  ]).notNull(),
+  location: varchar("location", { length: 256 }).notNull(),
+  communityPartner: varchar("communityPartner", { length: 256 }),
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate"),
+  status: mysqlEnum("status", ["Planning", "Active", "Completed", "On Hold"]).default("Planning").notNull(),
+  totalBeneficiaries: int("totalBeneficiaries").default(0).notNull(),
+  women: int("women").default(0).notNull(),
+  youth: int("youth").default(0).notNull(),
+  men: int("men").default(0).notNull(),
+  referralsToHamzury: int("referralsToHamzury").default(0).notNull(),
+  impactStory: text("impactStory"),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type RidiImpact = typeof ridiImpact.$inferSelect;
+export type InsertRidiImpact = typeof ridiImpact.$inferInsert;

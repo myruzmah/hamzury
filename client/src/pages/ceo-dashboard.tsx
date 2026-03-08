@@ -194,7 +194,7 @@ function AssignTaskModal({ onClose, onSuccess }: { onClose: () => void; onSucces
 // ─── CEO Dashboard ────────────────────────────────────────────────────────────
 export default function CEODashboard() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "team" | "clients">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "team" | "clients" | "report">("overview");
   const [deptFilter, setDeptFilter] = useState("All");
   const [showAssign, setShowAssign] = useState(false);
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
@@ -202,7 +202,21 @@ export default function CEODashboard() {
   const allTasksQuery = trpc.institutional.allTasks.useQuery();
   const allStaffQuery = trpc.institutional.allStaff.useQuery();
   const allClientsQuery = trpc.admin.allClients.useQuery(undefined, { retry: false });
+  const latestReportQuery = trpc.weeklyReport.latest.useQuery();
   const utils = trpc.useUtils();
+
+  // Friday report form state
+  const [reportForm, setReportForm] = useState({
+    goingWell1: "", goingWell2: "", goingWell3: "",
+    toWatch1: "", toWatch2: "", toWatch3: "",
+    keyInfo: "",
+    revenueThisWeek: 0, newClients: 0, activeTasks: 0,
+    overdueTasks: 0, staffPresent: 0, staffTotal: 0, pendingApprovals: 0,
+  });
+  const [reportSubmitted, setReportSubmitted] = useState(false);
+  const submitReportMutation = trpc.weeklyReport.submit.useMutation({
+    onSuccess: () => { setReportSubmitted(true); utils.weeklyReport.latest.invalidate(); },
+  });
 
   const tasks = allTasksQuery.data ?? [];
   const staff = allStaffQuery.data ?? [];
@@ -252,7 +266,7 @@ export default function CEODashboard() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tabs */}
         <div className="flex gap-1 mb-8 bg-white rounded-xl p-1 border border-stone-100 w-fit">
-          {(["overview", "tasks", "team", "clients"] as const).map((tab) => (
+          {(["overview", "tasks", "team", "clients", "report"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -479,6 +493,107 @@ export default function CEODashboard() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Friday Report Tab */}
+        {activeTab === "report" && (
+          <div className="space-y-6 max-w-7xl mx-auto px-6 py-8">
+            {/* Approval Limits Banner */}
+            <div className="bg-[#1B4D3E]/5 border border-[#1B4D3E]/20 rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-[#1B4D3E] mb-1">Your Approval Authority</div>
+                <div className="text-xs text-stone-600">You may approve expenditures and commitments up to <strong>NGN 200,000</strong>. Anything above this threshold requires Founder approval before proceeding.</div>
+              </div>
+              <div className="flex gap-3">
+                <div className="bg-white rounded-xl px-5 py-3 border border-stone-100 text-center">
+                  <div className="text-lg font-semibold text-[#1B4D3E]">NGN 200k</div>
+                  <div className="text-xs text-stone-400">Your limit</div>
+                </div>
+                <div className="bg-white rounded-xl px-5 py-3 border border-stone-100 text-center">
+                  <div className="text-lg font-semibold text-stone-400">Founder</div>
+                  <div className="text-xs text-stone-400">Above limit</div>
+                </div>
+              </div>
+            </div>
+
+            {reportSubmitted ? (
+              <div className="bg-white rounded-2xl border border-stone-100 p-12 text-center">
+                <div className="text-4xl mb-4">✅</div>
+                <div className="text-lg font-semibold text-stone-900 mb-2">Friday Report Submitted</div>
+                <div className="text-sm text-stone-500 mb-6">Your report has been sent to the Founder. They will receive a notification.</div>
+                <button onClick={() => setReportSubmitted(false)} className="text-sm text-[#1B4D3E] hover:underline">Submit another report</button>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-stone-100 p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-base font-semibold text-stone-900">Friday CEO Report</h3>
+                    <p className="text-xs text-stone-400 mt-1">Submit every Friday. Goes directly to the Founder.</p>
+                  </div>
+                  {latestReportQuery.data && (
+                    <div className="text-xs text-stone-400">Last submitted: {new Date(latestReportQuery.data.createdAt).toLocaleDateString()}</div>
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  {/* Going Well */}
+                  <div>
+                    <label className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-3 block">3 Things Going Well This Week</label>
+                    <div className="space-y-2">
+                      {(["goingWell1", "goingWell2", "goingWell3"] as const).map((k, i) => (
+                        <input key={k} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-200" placeholder={`${i + 1}. Going well...`} value={reportForm[k]} onChange={(e) => setReportForm((p) => ({ ...p, [k]: e.target.value }))} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* To Watch */}
+                  <div>
+                    <label className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-3 block">3 Things To Watch</label>
+                    <div className="space-y-2">
+                      {(["toWatch1", "toWatch2", "toWatch3"] as const).map((k, i) => (
+                        <input key={k} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200" placeholder={`${i + 1}. Watch this...`} value={reportForm[k]} onChange={(e) => setReportForm((p) => ({ ...p, [k]: e.target.value }))} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Key Info */}
+                  <div>
+                    <label className="text-xs font-semibold text-[#1B4D3E] uppercase tracking-wider mb-3 block">1 Thing the Founder Needs to Know</label>
+                    <textarea className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4D3E]/20 resize-none" rows={3} placeholder="The most important thing this week..." value={reportForm.keyInfo} onChange={(e) => setReportForm((p) => ({ ...p, keyInfo: e.target.value }))} />
+                  </div>
+
+                  {/* Key Numbers */}
+                  <div>
+                    <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3 block">Key Numbers This Week</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {([
+                        { key: "revenueThisWeek" as const, label: "Revenue (NGN)", placeholder: "0" },
+                        { key: "newClients" as const, label: "New Clients", placeholder: "0" },
+                        { key: "activeTasks" as const, label: "Active Tasks", placeholder: "0" },
+                        { key: "overdueTasks" as const, label: "Overdue Tasks", placeholder: "0" },
+                        { key: "staffPresent" as const, label: "Staff Present", placeholder: "0" },
+                        { key: "staffTotal" as const, label: "Staff Total", placeholder: "0" },
+                        { key: "pendingApprovals" as const, label: "Pending Approvals", placeholder: "0" },
+                      ]).map(({ key, label, placeholder }) => (
+                        <div key={key}>
+                          <label className="text-xs text-stone-400 mb-1 block">{label}</label>
+                          <input type="number" min={0} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B4D3E]/20" placeholder={placeholder} value={reportForm[key] || ""} onChange={(e) => setReportForm((p) => ({ ...p, [key]: Number(e.target.value) }))} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => submitReportMutation.mutate(reportForm)}
+                    disabled={submitReportMutation.isPending || !reportForm.goingWell1 || !reportForm.toWatch1 || !reportForm.keyInfo}
+                    className="w-full bg-[#1B4D3E] text-white py-3 rounded-xl text-sm font-medium hover:bg-[#163d30] transition-colors disabled:opacity-50"
+                  >
+                    {submitReportMutation.isPending ? "Submitting…" : "Submit Friday Report to Founder"}
+                  </button>
+                </div>
               </div>
             )}
           </div>

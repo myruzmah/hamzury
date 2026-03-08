@@ -224,7 +224,7 @@ function NoteEditor({ note, onSave, onCancel }: {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function FounderDashboard() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"boardroom" | "tasks" | "team" | "notes">("boardroom");
+  const [activeTab, setActiveTab] = useState<"boardroom" | "tasks" | "team" | "notes" | "reports" | "ridi">("boardroom");
   const [showAssign, setShowAssign] = useState(false);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [editingNote, setEditingNote] = useState<{ id: number; title: string; content: string } | undefined>();
@@ -233,7 +233,13 @@ export default function FounderDashboard() {
   const allStaffQuery = trpc.institutional.allStaff.useQuery();
   const allClientsQuery = trpc.admin.allClients.useQuery(undefined, { retry: false });
   const notesQuery = trpc.institutional.founderNotes.useQuery();
+  const weeklyReportsQuery = trpc.weeklyReport.all.useQuery();
+  const ridiProgramsQuery = trpc.ridi.programs.useQuery();
+  const ridiTotalsQuery = trpc.ridi.totals.useQuery();
   const utils = trpc.useUtils();
+  const markReportRead = trpc.weeklyReport.markRead.useMutation({
+    onSuccess: () => utils.weeklyReport.all.invalidate(),
+  });
 
   const createNote = trpc.institutional.createFounderNote.useMutation({
     onSuccess: () => { utils.institutional.founderNotes.invalidate(); setShowNoteEditor(false); },
@@ -289,7 +295,7 @@ export default function FounderDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tabs */}
         <div className="flex gap-1 mb-8 bg-white rounded-xl p-1 border border-stone-100 w-fit">
-          {(["boardroom", "tasks", "team", "notes"] as const).map((tab) => (
+          {(["boardroom", "tasks", "team", "notes", "reports", "ridi"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -501,6 +507,147 @@ export default function FounderDashboard() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* CEO Reports Tab */}
+        {activeTab === "reports" && (
+          <div className="space-y-6">
+            {/* Approval Limits Banner */}
+            <div className="bg-stone-900/5 border border-stone-200 rounded-2xl p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-stone-900 mb-1">Approval Authority Reference</div>
+                <div className="text-xs text-stone-600">CEO (Idris) may approve up to <strong>NGN 200,000</strong>. Any expenditure or commitment above this requires your direct approval before proceeding.</div>
+              </div>
+              <div className="flex gap-3">
+                <div className="bg-white rounded-xl px-5 py-3 border border-stone-100 text-center">
+                  <div className="text-lg font-semibold text-stone-900">NGN 200k</div>
+                  <div className="text-xs text-stone-400">CEO limit</div>
+                </div>
+                <div className="bg-white rounded-xl px-5 py-3 border border-stone-100 text-center">
+                  <div className="text-lg font-semibold text-[#1B4D3E]">You</div>
+                  <div className="text-xs text-stone-400">Above limit</div>
+                </div>
+              </div>
+            </div>
+
+            {weeklyReportsQuery.isLoading ? (
+              <div className="text-center py-12 text-stone-400">Loading reports…</div>
+            ) : (weeklyReportsQuery.data ?? []).length === 0 ? (
+              <div className="bg-white rounded-2xl border border-stone-100 p-12 text-center">
+                <div className="text-stone-300 text-4xl mb-4">📥</div>
+                <div className="text-stone-500 text-sm">No Friday reports submitted yet.</div>
+                <div className="text-stone-400 text-xs mt-2">Idris will submit the first one this Friday.</div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(weeklyReportsQuery.data ?? []).map((r: any) => (
+                  <div key={r.id} className={`bg-white rounded-2xl border p-6 transition-all ${r.readByFounder ? "border-stone-100" : "border-[#1B4D3E]/30 shadow-sm"}`}>
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-stone-900">{r.reportRef}</span>
+                          {!r.readByFounder && <span className="bg-[#1B4D3E] text-white text-xs px-2 py-0.5 rounded-full">New</span>}
+                        </div>
+                        <div className="text-xs text-stone-400 mt-0.5">From {r.submittedByName} · Week ending {new Date(r.weekEnding).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
+                      </div>
+                      {!r.readByFounder && (
+                        <button onClick={() => markReportRead.mutate({ id: r.id })} className="text-xs text-stone-400 hover:text-stone-600 border border-stone-200 rounded-lg px-3 py-1">Mark read</button>
+                      )}
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-green-50 rounded-xl p-4">
+                        <div className="text-xs font-semibold text-green-700 mb-2 uppercase tracking-wider">Going Well</div>
+                        <ol className="text-xs text-stone-700 space-y-1 list-decimal list-inside">
+                          <li>{r.goingWell1}</li>
+                          <li>{r.goingWell2}</li>
+                          <li>{r.goingWell3}</li>
+                        </ol>
+                      </div>
+                      <div className="bg-amber-50 rounded-xl p-4">
+                        <div className="text-xs font-semibold text-amber-700 mb-2 uppercase tracking-wider">To Watch</div>
+                        <ol className="text-xs text-stone-700 space-y-1 list-decimal list-inside">
+                          <li>{r.toWatch1}</li>
+                          <li>{r.toWatch2}</li>
+                          <li>{r.toWatch3}</li>
+                        </ol>
+                      </div>
+                      <div className="bg-stone-50 rounded-xl p-4">
+                        <div className="text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">Key Info</div>
+                        <p className="text-xs text-stone-700">{r.keyInfo}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
+                      {[
+                        { label: "Revenue", value: `NGN ${(r.revenueThisWeek ?? 0).toLocaleString()}` },
+                        { label: "New Clients", value: r.newClients ?? 0 },
+                        { label: "Active Tasks", value: r.activeTasks ?? 0 },
+                        { label: "Overdue", value: r.overdueTasks ?? 0 },
+                        { label: "Present", value: `${r.staffPresent ?? 0}/${r.staffTotal ?? 0}` },
+                        { label: "Approvals", value: r.pendingApprovals ?? 0 },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="bg-stone-50 rounded-lg p-2 text-center">
+                          <div className="text-xs font-medium text-stone-800">{value}</div>
+                          <div className="text-xs text-stone-400">{label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* RIDI Impact Tab */}
+        {activeTab === "ridi" && (
+          <div className="space-y-6">
+            {/* Totals */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {ridiTotalsQuery.isLoading ? null : [
+                { label: "Total Beneficiaries", value: ridiTotalsQuery.data?.totalBeneficiaries ?? 0 },
+                { label: "Women Reached", value: ridiTotalsQuery.data?.women ?? 0 },
+                { label: "Youth Reached", value: ridiTotalsQuery.data?.youth ?? 0 },
+                { label: "Referrals to HAMZURY", value: ridiTotalsQuery.data?.referrals ?? 0 },
+              ].map((kpi) => (
+                <div key={kpi.label} className="bg-white rounded-2xl p-6 border border-stone-100">
+                  <div className="text-3xl font-light text-stone-900 mb-1">{kpi.value.toLocaleString()}</div>
+                  <div className="text-sm font-medium text-stone-700">{kpi.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Programs List */}
+            <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-stone-900">RIDI Programs</h3>
+                <span className="text-xs text-stone-400">{(ridiProgramsQuery.data ?? []).length} programs</span>
+              </div>
+              {(ridiProgramsQuery.data ?? []).length === 0 ? (
+                <div className="p-12 text-center text-stone-400 text-sm">No programs recorded yet. The RIDI Lead will add programs here.</div>
+              ) : (
+                <div className="divide-y divide-stone-50">
+                  {(ridiProgramsQuery.data ?? []).map((p: any) => (
+                    <div key={p.id} className="px-6 py-4 flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-stone-900">{p.programName}</div>
+                        <div className="text-xs text-stone-400 mt-0.5">{p.programType} · {p.location} {p.communityPartner ? `· Partner: ${p.communityPartner}` : ""}</div>
+                        {p.impactStory && <div className="text-xs text-stone-600 mt-2 italic">“{p.impactStory}”</div>}
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          p.status === "Active" ? "bg-green-50 text-green-700" :
+                          p.status === "Completed" ? "bg-blue-50 text-blue-700" :
+                          p.status === "Planning" ? "bg-amber-50 text-amber-700" :
+                          "bg-stone-100 text-stone-500"
+                        }`}>{p.status}</span>
+                        <div className="text-xs text-stone-400">{p.totalBeneficiaries ?? 0} beneficiaries</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
