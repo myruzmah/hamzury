@@ -1,49 +1,76 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Menu, X } from "lucide-react";
+import { ArrowRight, Menu, X, CheckCircle2 } from "lucide-react";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
-const FEATURED_DEPTS = [
+const SERVICES = [
   {
     code: "01",
     slug: "innovation",
     name: "Innovation Hub",
-    tagline: "Capability development",
-    desc: "Executive training, kids robotics, digital skills bootcamps, and structured learning programs designed to build lasting capability.",
+    problem: "Your people lack the skills your organisation needs to grow.",
+    outcome: "Structured training programs — executive, youth, and digital — that build lasting capability from the inside out.",
     external: false,
   },
   {
     code: "02",
     slug: "studios",
     name: "Studios",
-    tagline: "Brand architecture",
-    desc: "Identity systems, social media management, content strategy, podcast production, and visual assets built to institutional standard.",
+    problem: "Your brand does not reflect the quality of what you actually do.",
+    outcome: "Identity systems, content strategy, social media management, and media production built to institutional standard.",
     external: false,
   },
   {
     code: "03",
     slug: "systems",
     name: "Systems",
-    tagline: "Digital infrastructure",
-    desc: "Business websites, web applications, client dashboards, automation workflows, and AI-powered operational systems.",
+    problem: "Your operations run on manual processes that slow everything down.",
+    outcome: "Business websites, web applications, automation workflows, and AI-powered systems that make your organisation run without friction.",
     external: false,
   },
   {
     code: "04",
     slug: "bizdoc",
     name: "Bizdoc",
-    tagline: "Regulatory structure",
-    desc: "CAC registration, annual returns, tax filings, PENCOM compliance, industry licensing, and full compliance advisory.",
+    problem: "Your business is not properly registered, compliant, or legally protected.",
+    outcome: "CAC registration, annual returns, tax filings, PENCOM compliance, and full regulatory advisory — done correctly, on time.",
     external: true,
     externalUrl: "https://bizdoc.hamzury.com",
   },
 ];
 
+const JOURNEY_STEPS = [
+  {
+    step: "01",
+    title: "Enquire",
+    desc: "Tell us what you need. No account required. Takes under three minutes.",
+  },
+  {
+    step: "02",
+    title: "Brief",
+    desc: "We review your submission and send you a structured project brief for confirmation.",
+  },
+  {
+    step: "03",
+    title: "Match",
+    desc: "Your project is assigned to the right department and team lead.",
+  },
+  {
+    step: "04",
+    title: "Build",
+    desc: "Work begins. You track progress in real time using your reference code.",
+  },
+  {
+    step: "05",
+    title: "Deliver",
+    desc: "Your deliverable is reviewed, approved, and handed over — with documentation.",
+  },
+];
+
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
-  { href: "/ridi", label: "RIDI" },
-  { href: "/start", label: "Start a Project" },
+  { href: "/portal", label: "Portal" },
 ];
 
 export default function Home() {
@@ -81,11 +108,11 @@ export default function Home() {
 
           <div className="flex items-center gap-3">
             <Link
-              href="/portal"
+              href="/start"
               className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-sm"
               style={{ background: "var(--brand)", color: "white" }}
             >
-              Portal
+              Start a Project
             </Link>
             {/* Mobile hamburger */}
             <button
@@ -113,12 +140,12 @@ export default function Home() {
                 </Link>
               ))}
               <Link
-                href="/portal"
+                href="/start"
                 className="mt-3 inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-sm"
                 style={{ background: "var(--brand)", color: "white" }}
                 onClick={() => setMobileOpen(false)}
               >
-                Portal Login
+                Start a Project
               </Link>
             </nav>
           </div>
@@ -132,29 +159,19 @@ export default function Home() {
       >
         <div className="container">
           <div className="max-w-2xl">
-            {/* Eyebrow */}
             <p className="label mb-8" style={{ color: "var(--brand)" }}>
               HAMZURY — Institutional Business Development
             </p>
-
-            {/* Headline */}
-            <h1
-              className="display mb-6"
-              style={{ color: "var(--charcoal)" }}
-            >
+            <h1 className="display mb-6" style={{ color: "var(--charcoal)" }}>
               Build institutions<br />that last.
             </h1>
-
-            {/* Supporting sentence */}
             <p
               className="text-base md:text-lg font-light leading-relaxed mb-10 max-w-lg"
               style={{ color: "var(--body-text)" }}
             >
               HAMZURY designs the systems, brands, and legal foundations
-              organizations rely on to operate with structure and clarity.
+              organisations rely on to operate with structure and clarity.
             </p>
-
-            {/* CTAs */}
             <div className="flex flex-wrap gap-3">
               <Link href="/start" className="btn-primary">
                 Start a Project <ArrowRight size={14} />
@@ -176,7 +193,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Featured Services ──────────────────────────────────────────────── */}
+      {/* ── What We Build ──────────────────────────────────────────────────── */}
       <section className="section-padding" style={{ background: "white" }}>
         <div className="container">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-4">
@@ -189,43 +206,45 @@ export default function Home() {
               className="flex items-center gap-2 text-xs font-semibold self-start md:self-auto"
               style={{ color: "var(--brand)" }}
             >
-              RIDI &amp; more <ArrowRight size={12} />
+              All services <ArrowRight size={12} />
             </Link>
           </div>
 
-          {/* 4 featured departments — 2×2 grid */}
+          {/* 4 service cards — 2×2 grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border">
-            {FEATURED_DEPTS.map((dept) => {
+            {SERVICES.map((svc) => {
               const inner = (
                 <>
                   <div className="flex items-start justify-between mb-6">
-                    <span className="label" style={{ color: "var(--brand)" }}>{dept.code}</span>
+                    <span className="label" style={{ color: "var(--brand)" }}>{svc.code}</span>
                     <ArrowRight
                       size={13}
                       className="opacity-0 group-hover:opacity-100 transition-opacity -translate-x-1 group-hover:translate-x-0 transition-transform"
                       style={{ color: "var(--brand)" }}
                     />
                   </div>
-                  <h3 className="text-base font-semibold mb-1" style={{ color: "var(--charcoal)" }}>
-                    {dept.name}
+                  <h3 className="text-base font-semibold mb-3" style={{ color: "var(--charcoal)" }}>
+                    {svc.name}
                   </h3>
-                  <p className="text-xs font-medium mb-4" style={{ color: "var(--muted-text)" }}>
-                    {dept.tagline}
+                  {/* Problem statement */}
+                  <p className="text-xs font-medium mb-3 italic" style={{ color: "var(--muted-text)" }}>
+                    {svc.problem}
                   </p>
+                  {/* Outcome */}
                   <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                    {dept.desc}
+                    {svc.outcome}
                   </p>
-                  {dept.external && (
+                  {svc.external && (
                     <p className="mt-4 text-xs font-semibold flex items-center gap-1" style={{ color: "var(--brand)" }}>
                       Visit Bizdoc <ArrowRight size={11} />
                     </p>
                   )}
                 </>
               );
-              return dept.external ? (
+              return svc.external ? (
                 <a
-                  key={dept.slug}
-                  href={dept.externalUrl}
+                  key={svc.slug}
+                  href={svc.externalUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group bg-white p-8 md:p-10 hover:bg-gray-50 transition-colors block"
@@ -234,8 +253,8 @@ export default function Home() {
                 </a>
               ) : (
                 <Link
-                  key={dept.slug}
-                  href={`/department/${dept.slug}`}
+                  key={svc.slug}
+                  href={`/department/${svc.slug}`}
                   className="group bg-white p-8 md:p-10 hover:bg-gray-50 transition-colors block"
                 >
                   {inner}
@@ -246,35 +265,54 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── RIDI Statement ─────────────────────────────────────────────────── */}
+      {/* ── 5-Step Client Journey ──────────────────────────────────────────── */}
       <section
         className="section-padding grain-overlay"
         style={{ background: "var(--brand)" }}
       >
-        <div className="container max-w-2xl">
-          <span className="block w-8 h-px bg-white/40 mb-10" />
-          <p className="label mb-6" style={{ color: "rgba(255,255,255,0.5)" }}>
-            RIDI — Rural Innovation & Digital Literacy Development
-          </p>
-          <p
-            className="text-xl md:text-2xl font-light leading-relaxed mb-4"
-            style={{ color: "white", letterSpacing: "-0.015em" }}
-          >
-            Ten percent of profits support rural development.
-          </p>
-          <p className="text-sm font-light leading-relaxed mb-2" style={{ color: "rgba(255,255,255,0.7)" }}>
-            Programs focus on education and economic opportunity.
-          </p>
-          <p className="text-sm font-light" style={{ color: "rgba(255,255,255,0.7)" }}>
-            Impact is tracked and reported.
-          </p>
-          <Link
-            href="/ridi"
-            className="inline-flex items-center gap-2 mt-10 text-xs font-semibold"
-            style={{ color: "rgba(255,255,255,0.85)" }}
-          >
-            Learn about RIDI <ArrowRight size={12} />
-          </Link>
+        <div className="container">
+          <div className="max-w-sm mb-14">
+            <span className="block w-8 h-px bg-white/30 mb-10" />
+            <p className="label mb-4" style={{ color: "rgba(255,255,255,0.5)" }}>
+              How it works
+            </p>
+            <h2 className="text-2xl md:text-3xl font-light" style={{ color: "white", letterSpacing: "-0.02em" }}>
+              From enquiry<br />to delivery.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-white/10">
+            {JOURNEY_STEPS.map((s, i) => (
+              <div
+                key={s.step}
+                className="p-6 md:p-8"
+                style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)" }}
+              >
+                <p className="label mb-4" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  {s.step}
+                </p>
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 size={14} style={{ color: "rgba(255,255,255,0.5)" }} />
+                  <h3 className="text-sm font-semibold" style={{ color: "white" }}>
+                    {s.title}
+                  </h3>
+                </div>
+                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  {s.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10">
+            <Link
+              href="/start"
+              className="inline-flex items-center gap-2 px-6 py-3 text-xs font-semibold rounded-sm"
+              style={{ background: "white", color: "var(--brand)" }}
+            >
+              Begin your project <ArrowRight size={13} />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -290,41 +328,20 @@ export default function Home() {
             </div>
             <div className="space-y-4">
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                HAMZURY is an institutional business development firm in Nigeria.
+                HAMZURY is an institutional business development firm operating across Nigeria.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                Departments operate as independent service providers within one system.
+                Four departments — Innovation Hub, Studios, Systems, and Bizdoc — operate as independent service providers within one coordinated institution.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                The institution builds organizations designed to last.
+                Every engagement is structured, documented, and delivered to a standard that outlasts the project.
               </p>
               <div className="pt-4">
-                <Link href="/start" className="btn-ghost text-xs">
-                  Start a project
+                <Link href="/services" className="btn-ghost text-xs">
+                  Explore our services <ArrowRight size={12} />
                 </Link>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Start CTA ───────────────────────────────────────────────────── */}
-      <section className="py-20 border-t border-border" style={{ background: "var(--milk)" }}>
-        <div className="container max-w-xl text-center">
-          <span className="block w-8 h-px mx-auto mb-10" style={{ background: "var(--brand)" }} />
-          <h2 className="text-2xl font-light mb-4" style={{ color: "var(--charcoal)", letterSpacing: "-0.02em" }}>
-            Ready to begin?
-          </h2>
-          <p className="text-sm leading-relaxed mb-8 max-w-sm mx-auto" style={{ color: "var(--body-text)" }}>
-            Submit your request in under three minutes. No account required. You will receive a reference code immediately.
-          </p>
-          <div className="flex justify-center gap-3 flex-wrap">
-            <Link href="/start" className="btn-primary">
-              Start a Project <ArrowRight size={14} />
-            </Link>
-            <Link href="/track" className="btn-ghost">
-              Track My Project
-            </Link>
           </div>
         </div>
       </section>
@@ -350,12 +367,12 @@ export default function Home() {
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
               {[
                 { href: "/services", label: "Services" },
-                { href: "/ridi", label: "RIDI" },
                 { href: "/start", label: "Start a Project" },
                 { href: "/track", label: "Track Project" },
                 { href: "/portal", label: "Partner Portal" },
                 { href: "/legal/privacy", label: "Privacy" },
                 { href: "/legal/terms", label: "Terms" },
+                { href: "/staff-login", label: "Staff" },
               ].map((l) => (
                 <Link key={l.href} href={l.href} className="nav-link text-xs">
                   {l.label}

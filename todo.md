@@ -194,3 +194,13 @@
 - [ ] Build /departments/systems page
 - [ ] Build /departments/bizdoc page (with external link to bizdoc.hamzury.com)
 - [ ] Remove client portal login, simplify portal to Staff and Agent only
+
+## Phase 13 — Homepage Rebuild & Chat Redesign
+- [ ] Homepage: replace department cards with 4 outcome-focused "What We Build" service statements
+- [ ] Homepage: replace RIDI section with 5-step client journey (Enquire → Brief → Match → Build → Deliver)
+- [ ] Homepage: add Bizdoc as a visible section (where RIDI was)
+- [ ] Homepage: remove extra "Start a Project" from nav, keep only one CTA
+- [ ] Rebuild AI chat as compact WhatsApp-style widget (small bubble, opens to chat thread)
+- [ ] Chat: full project intake flow inside the chat (dept selection → questions → submission)
+- [ ] Department pages: add department-specific intake forms
+- [ ] Build dedicated event/ticket form page at /form/:slug

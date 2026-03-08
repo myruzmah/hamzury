@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
@@ -45,6 +47,58 @@ const SERVICES = [
     who: "Businesses managing clients and leads in WhatsApp, spreadsheets, or memory — and ready to do it properly.",
   },
 ];
+
+function ProjectBriefForm() {
+  const [step, setStep] = useState(0);
+  const [form, setForm] = useState({ service: "", name: "", email: "", phone: "", business: "", problem: "", existing: "", timeline: "" });
+  const [submitted, setSubmitted] = useState(false);
+  const [ref, setRef] = useState("");
+
+  const submitMutation = trpc.intake.submit.useMutation({
+    onSuccess: (data) => { setRef(data.referenceCode); setSubmitted(true); },
+  });
+
+  const STEPS = [
+    { title: "What do you need built?", options: SERVICES.map((s) => s.name) },
+    { title: "About your business", fields: [{ key: "name" as const, label: "Your name", type: "text", placeholder: "Full name" }, { key: "email" as const, label: "Email address", type: "email", placeholder: "your@email.com" }, { key: "phone" as const, label: "WhatsApp number", type: "tel", placeholder: "+234 800 000 0000" }, { key: "business" as const, label: "Business name and industry", type: "text", placeholder: "e.g. Kano Feeds Ltd — food manufacturing" }] },
+    { title: "About the project", fields: [{ key: "problem" as const, label: "What problem does this need to solve?", type: "text", placeholder: "Describe the situation as clearly as possible" }, { key: "existing" as const, label: "What do you currently use (if anything)?", type: "text", placeholder: "e.g. WhatsApp, Excel, a specific software" }, { key: "timeline" as const, label: "When do you need this delivered?", type: "text", placeholder: "e.g. Within 2 months, by end of Q2" }] },
+  ];
+
+  if (submitted) return (
+    <div className="text-center py-10">
+      <CheckCircle2 size={36} className="mx-auto mb-4" style={{ color: "var(--brand)" }} />
+      <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--brand)" }}>Brief received</h3>
+      <p className="text-sm text-muted-foreground mb-1">Your reference: <strong>{ref}</strong></p>
+      <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed mt-3">Our team will review your brief and respond within 24 hours with a clear proposal.</p>
+      <Link href="/track" className="inline-block mt-6 text-xs underline" style={{ color: "var(--brand)" }}>Track your project →</Link>
+    </div>
+  );
+
+  const currentStep = STEPS[step];
+  const canProceed = () => {
+    if (step === 0) return !!form.service;
+    if (step === 1) return !!(form.name && form.email && form.phone && form.business);
+    if (step === 2) return !!form.problem;
+    return false;
+  };
+
+  const handleSubmit = () => {
+    submitMutation.mutate({ name: form.name, email: form.email, phone: form.phone, department: "Systems", serviceType: form.service, description: `Business: ${form.business}\n\nProblem: ${form.problem}\n\nExisting tools: ${form.existing}\n\nTimeline: ${form.timeline}` });
+  };
+
+  return (
+    <div className="max-w-lg mx-auto">
+      <div className="flex gap-1.5 mb-8">{STEPS.map((_, i) => (<div key={i} className="flex-1 h-0.5 rounded-full transition-all" style={{ background: i <= step ? "var(--brand)" : "#E5E7EB" }} />))}</div>
+      <h3 className="text-base font-semibold mb-5" style={{ color: "var(--brand)" }}>{currentStep.title}</h3>
+      {step === 0 && (<div className="space-y-2">{SERVICES.map((s) => (<button key={s.id} onClick={() => setForm((f) => ({ ...f, service: s.name }))} className="w-full text-left px-4 py-3.5 rounded-sm border text-sm transition-all" style={{ borderColor: form.service === s.name ? "var(--brand)" : "#E5E7EB", background: form.service === s.name ? "rgba(27,77,62,0.04)" : "white", color: form.service === s.name ? "var(--brand)" : "#374151", fontWeight: form.service === s.name ? 600 : 400 }}>{s.name}</button>))}</div>)}
+      {(step === 1 || step === 2) && "fields" in currentStep && (<div className="space-y-4">{currentStep.fields!.map((field) => (<div key={field.key}><label className="block text-xs font-medium mb-1.5 text-muted-foreground">{field.label}</label><input type={field.type} placeholder={field.placeholder} value={form[field.key]} onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))} className="w-full border border-border rounded-sm px-3.5 py-2.5 text-sm focus:outline-none focus:ring-1" /></div>))}</div>)}
+      <div className="flex items-center justify-between mt-8">
+        {step > 0 ? (<button onClick={() => setStep(step - 1)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft size={12} /> Back</button>) : <span />}
+        {step < STEPS.length - 1 ? (<button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-semibold text-white disabled:opacity-40" style={{ background: "var(--brand)" }}>Continue <ArrowRight size={13} /></button>) : (<button onClick={handleSubmit} disabled={!canProceed() || submitMutation.isPending} className="flex items-center gap-2 px-5 py-2.5 rounded-sm text-sm font-semibold text-white disabled:opacity-40" style={{ background: "var(--brand)" }}>{submitMutation.isPending ? "Submitting…" : "Submit Brief"} <ArrowRight size={13} /></button>)}
+      </div>
+    </div>
+  );
+}
 
 export default function Systems() {
   return (
@@ -125,19 +179,13 @@ export default function Systems() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 border-t border-border grain-overlay" style={{ background: "var(--brand)" }}>
-        <div className="container max-w-xl text-center">
-          <span className="block w-8 h-px mx-auto mb-10 bg-white/40" />
-          <h2 className="text-2xl font-light mb-4 text-white" style={{ letterSpacing: "-0.02em" }}>
-            Ready to build?
-          </h2>
-          <p className="text-sm leading-relaxed mb-8 max-w-sm mx-auto text-white/70">
-            Tell us what you need to build. Submit your brief in under three minutes and our team will follow up within 24 hours.
-          </p>
-          <Link href="/start" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-sm text-sm font-semibold bg-white" style={{ color: "var(--brand)" }}>
-            Start a Project <ArrowRight size={14} />
-          </Link>
+      {/* Inline Brief Form */}
+      <section className="py-20 border-t border-border" style={{ background: "#FAFAF8" }}>
+        <div className="container max-w-2xl">
+          <span className="block w-8 h-px mb-10" style={{ background: "var(--brand)" }} />
+          <h2 className="text-xl font-light mb-3" style={{ color: "var(--brand)", letterSpacing: "-0.02em" }}>Submit a project brief</h2>
+          <p className="text-sm text-muted-foreground mb-10 max-w-md leading-relaxed">Tell us what you need built. Our team will review your brief and respond within 24 hours with a clear proposal and timeline.</p>
+          <ProjectBriefForm />
         </div>
       </section>
 

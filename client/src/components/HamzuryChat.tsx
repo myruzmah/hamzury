@@ -1,87 +1,68 @@
 /**
- * HAMZURY Advisor Widget
- * Four public departments. Outcome-first. Apple-style. No friction.
+ * HAMZURY Advisor — WhatsApp-style conversational widget
+ * Compact. Human. Intelligent. No friction.
  */
 import { useState, useRef, useEffect } from "react";
-import { X, ChevronRight, ArrowLeft, Loader2 } from "lucide-react";
+import { X, MessageCircle, ChevronRight, ArrowLeft, Loader2, Send } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Screen = "welcome" | "innovation" | "studios" | "systems" | "bizdoc" | "general" | "luxury-gate" | "questions" | "analysing" | "result";
+type Screen =
+  | "welcome"
+  | "innovation" | "studios" | "systems" | "bizdoc" | "general"
+  | "luxury-gate" | "questions" | "analysing" | "result";
 
-// ─── Department entry cards ───────────────────────────────────────────────────
+type ChatMsg = {
+  id: number;
+  from: "bot" | "user";
+  text: string;
+  options?: { label: string; value: string }[];
+  isTyping?: boolean;
+};
+
+// ─── Department cards ─────────────────────────────────────────────────────────
 const DEPT_CARDS = [
-  {
-    id: "innovation" as Screen,
-    label: "Innovation Hub",
-    icon: "◎",
-    problem: "You want to build capability — in yourself, your team, or your community.",
-    outcome: "Training programmes, executive classes, kids STEM & digital skills bootcamps.",
-  },
-  {
-    id: "studios" as Screen,
-    label: "Studios",
-    icon: "✦",
-    problem: "Your brand does not reflect the quality of what you actually do.",
-    outcome: "Brand identity, content strategy, social media management & podcast production.",
-  },
-  {
-    id: "systems" as Screen,
-    label: "Systems",
-    icon: "⬡",
-    problem: "Your business runs on manual processes that slow everything down.",
-    outcome: "Websites, dashboards, automation systems & AI-powered business workflows.",
-  },
-  {
-    id: "bizdoc" as Screen,
-    label: "Bizdoc",
-    icon: "◈",
-    problem: "Your business is not properly registered, compliant, or protected.",
-    outcome: "CAC registration, tax filings, PENCOM compliance & regulatory advisory.",
-  },
-  {
-    id: "general" as Screen,
-    label: "I am not sure where to start",
-    icon: "→",
-    problem: "You know something needs to change but you are not sure which direction.",
-    outcome: "Answer a few questions and we will identify exactly what you need.",
-  },
+  { id: "innovation" as Screen, label: "Innovation Hub", sub: "Training, executive classes, kids STEM & digital skills" },
+  { id: "studios" as Screen,    label: "Studios",        sub: "Brand identity, content, social media & podcast" },
+  { id: "systems" as Screen,    label: "Systems",        sub: "Websites, web apps, automation & AI workflows" },
+  { id: "bizdoc" as Screen,     label: "Bizdoc",         sub: "CAC registration, tax, PENCOM & compliance" },
+  { id: "general" as Screen,    label: "Not sure where to start", sub: "Answer a few questions — we will identify what you need" },
 ];
 
-// ─── Services per department ──────────────────────────────────────────────────
-const SERVICES: Record<string, { id: string; label: string; result: string }[]> = {
+// ─── Services ─────────────────────────────────────────────────────────────────
+const SERVICES: Record<string, { id: string; label: string; sub: string }[]> = {
   innovation: [
-    { id: "executive", label: "Executive Class", result: "Leadership capacity and institutional management skills for professionals." },
-    { id: "kids", label: "Kids Robotics & STEM", result: "Structured technology education for children aged 7–17." },
-    { id: "digital-skills", label: "Digital Skills Bootcamp", result: "Practical technology training for individuals and teams." },
-    { id: "internship", label: "Internship Programme", result: "Structured work experience across HAMZURY departments." },
-    { id: "corporate", label: "Corporate Training", result: "Custom capability development designed around your organisation." },
+    { id: "executive",     label: "Executive Class",          sub: "Leadership and institutional management for professionals" },
+    { id: "kids",          label: "Kids Robotics & STEM",     sub: "Structured technology education for children aged 7–17" },
+    { id: "digital-skills",label: "Digital Skills Bootcamp",  sub: "Practical technology training for individuals and teams" },
+    { id: "internship",    label: "Internship Programme",     sub: "Structured work experience across HAMZURY departments" },
+    { id: "corporate",     label: "Corporate Training",       sub: "Custom capability development for your organisation" },
   ],
   studios: [
-    { id: "brand-identity", label: "Brand Identity", result: "A complete visual identity — logo, colour system, typography, and brand guidelines." },
-    { id: "social-media", label: "Social Media Management", result: "Consistent, on-brand content that builds audience and drives enquiries." },
-    { id: "content-strategy", label: "Content Strategy", result: "A clear messaging framework that tells the right story to the right people." },
-    { id: "podcast", label: "Podcast Production", result: "A professional podcast — recorded, edited, and distributed." },
-    { id: "event-media", label: "Event Media Coverage", result: "Photography, video, and post-event content that captures the moment." },
+    { id: "brand-identity",  label: "Brand Identity",          sub: "Logo, colour system, typography and brand guidelines" },
+    { id: "social-media",    label: "Social Media Management", sub: "Consistent, on-brand content that builds audience" },
+    { id: "content-strategy",label: "Content Strategy",        sub: "A clear messaging framework for the right audience" },
+    { id: "podcast",         label: "Podcast Production",      sub: "Recorded, edited and distributed professionally" },
+    { id: "event-media",     label: "Event Media Coverage",    sub: "Photography, video and post-event content" },
   ],
   systems: [
-    { id: "website", label: "Business Website", result: "A professional website that builds credibility and converts visitors." },
-    { id: "web-app", label: "Web Application", result: "A custom platform built around your workflow and your users." },
-    { id: "dashboard", label: "Staff or Client Dashboard", result: "An internal management system or client-facing portal." },
-    { id: "automation", label: "Automation & AI Workflow", result: "Intelligent systems that reduce manual work and eliminate bottlenecks." },
-    { id: "crm", label: "CRM System", result: "A structured pipeline for managing clients, leads, and relationships." },
+    { id: "website",    label: "Business Website",         sub: "Professional site that builds credibility and converts" },
+    { id: "web-app",    label: "Web Application",          sub: "Custom platform built around your workflow" },
+    { id: "dashboard",  label: "Staff or Client Dashboard",sub: "Internal management system or client-facing portal" },
+    { id: "automation", label: "Automation & AI Workflow", sub: "Intelligent systems that reduce manual work" },
+    { id: "crm",        label: "CRM System",               sub: "Structured pipeline for clients, leads and relationships" },
   ],
   bizdoc: [
-    { id: "cac-reg", label: "CAC Business Registration", result: "A properly registered business — name or company incorporation." },
-    { id: "annual-returns", label: "Annual Returns Filing", result: "Statutory compliance with CAC — on time, every time." },
-    { id: "tax-reg", label: "Tax Registration", result: "TIN, VAT, and corporate tax registration with FIRS or LIRS." },
-    { id: "pencom", label: "PENCOM Compliance", result: "Pension fund registration and ongoing compliance." },
-    { id: "licensing", label: "Industry Licensing", result: "Sector-specific permits and regulatory approvals." },
-    { id: "compliance-advisory", label: "Compliance Advisory", result: "Ongoing regulatory guidance so your business stays protected." },
+    { id: "cac-reg",            label: "CAC Business Registration", sub: "Business name or company incorporation" },
+    { id: "annual-returns",     label: "Annual Returns Filing",     sub: "Statutory compliance with CAC — on time" },
+    { id: "tax-reg",            label: "Tax Registration",          sub: "TIN, VAT and corporate tax with FIRS or LIRS" },
+    { id: "pencom",             label: "PENCOM Compliance",         sub: "Pension fund registration and ongoing compliance" },
+    { id: "licensing",          label: "Industry Licensing",        sub: "Sector-specific permits and regulatory approvals" },
+    { id: "compliance-advisory",label: "Compliance Advisory",       sub: "Ongoing regulatory guidance for your business" },
   ],
 };
 
-// ─── Question sets ────────────────────────────────────────────────────────────
+// ─── Questions ────────────────────────────────────────────────────────────────
 const QUESTIONS: Record<string, { q: string; options?: string[]; type?: "text" }[]> = {
   executive: [
     { q: "What is your current professional role?", options: ["Business Owner / Founder", "Senior Manager / Director", "Mid-level Professional", "Aspiring Leader"] },
@@ -104,13 +85,13 @@ const QUESTIONS: Record<string, { q: string; options?: string[]; type?: "text" }
   ],
   internship: [
     { q: "What is your current status?", options: ["Undergraduate student", "Recent graduate (within 2 years)", "Career changer", "Post-graduate student"] },
-    { q: "Which area of work interests you most?", options: ["Creative and brand work (Studios)", "Technology and systems (Systems)", "Business compliance and documentation (Bizdoc)", "Training and education (Innovation Hub)", "Client relations and communication (CSO)", "Community impact (RIDI)"] },
+    { q: "Which area of work interests you most?", options: ["Creative and brand work", "Technology and systems", "Business compliance and documentation", "Training and education", "Client relations and communication"] },
     { q: "What skills do you most want to develop?", options: ["Creative and design skills", "Technical and coding skills", "Business and operations skills", "Communication and client management"] },
     { q: "How long are you available?", options: ["1 month", "3 months", "6 months", "Flexible"] },
   ],
   corporate: [
     { q: "How large is your organisation?", options: ["1–10 people", "11–50 people", "51–200 people", "Over 200 people"] },
-    { q: "What is the primary training need?", options: ["Leadership and management development", "Digital skills and technology adoption", "Communication and presentation", "Operational efficiency and process improvement", "Custom programme design"] },
+    { q: "What is the primary training need?", options: ["Leadership and management development", "Digital skills and technology adoption", "Communication and presentation", "Operational efficiency and process improvement"] },
     { q: "How soon do you need this?", options: ["Within 1 month", "Within 3 months", "Planning for next quarter", "Exploring options"] },
     { q: "What format works for your team?", options: ["On-site at our office", "At HAMZURY facility", "Online live sessions", "Blended approach"] },
   ],
@@ -124,7 +105,6 @@ const QUESTIONS: Record<string, { q: string; options?: string[]; type?: "text" }
     { q: "Which platforms matter most to your audience?", options: ["Instagram and Facebook", "LinkedIn", "Twitter / X", "TikTok", "All major platforms"] },
     { q: "What is your current posting situation?", options: ["We do not post regularly", "1–2 times per week", "3–5 times per week", "Daily but inconsistently"] },
     { q: "What is your primary goal?", options: ["Build brand awareness", "Generate leads and enquiries", "Establish thought leadership", "Grow community engagement"] },
-    { q: "Do you have existing brand guidelines?", options: ["Yes, fully documented", "Partial guidelines exist", "No, we need brand work first"] },
   ],
   "content-strategy": [
     { q: "What is the main gap in your current content?", options: ["We have no content strategy at all", "We post but it does not convert", "Our message is unclear or inconsistent", "We do not know what to say or how to say it"] },
@@ -137,9 +117,9 @@ const QUESTIONS: Record<string, { q: string; options?: string[]; type?: "text" }
     { q: "How often do you plan to publish?", options: ["Weekly", "Bi-weekly", "Monthly", "Not decided yet"] },
   ],
   "event-media": [
-    { q: "What type of event is this?", options: ["Corporate conference or summit", "Product launch or brand activation", "Training or workshop", "Community or social event", "Personal or family event"] },
-    { q: "What deliverables do you need?", options: ["Photography only", "Video coverage only", "Both photography and video", "Photography, video, and post-event content package"] },
+    { q: "What type of event is this?", options: ["Corporate conference or summit", "Product launch or brand activation", "Training or workshop", "Community or social event"] },
     { q: "When is the event?", options: ["Within 2 weeks", "Within a month", "1–3 months away", "More than 3 months away"] },
+    { q: "What do you need most?", options: ["Photography only", "Video coverage only", "Both photography and video", "Full post-event content package"] },
   ],
   website: [
     { q: "What type of website do you need?", options: ["Business or corporate website", "Portfolio or showcase site", "E-commerce store", "Landing page for a specific campaign"] },
@@ -161,7 +141,7 @@ const QUESTIONS: Record<string, { q: string; options?: string[]; type?: "text" }
   automation: [
     { q: "What process do you want to automate?", type: "text" },
     { q: "How much time does this process currently take per week?", options: ["Less than 2 hours", "2–5 hours", "5–10 hours", "Over 10 hours"] },
-    { q: "What tools do you currently use?", options: ["Google Workspace (Docs, Sheets, Gmail)", "Microsoft 365", "WhatsApp and manual processes", "A mix of different tools", "No specific tools yet"] },
+    { q: "What tools do you currently use?", options: ["Google Workspace", "Microsoft 365", "WhatsApp and manual processes", "A mix of different tools", "No specific tools yet"] },
   ],
   crm: [
     { q: "What is your current client management situation?", options: ["Everything is in WhatsApp and memory", "We use spreadsheets", "We have a basic system but it is not working", "We have nothing at all"] },
@@ -171,7 +151,6 @@ const QUESTIONS: Record<string, { q: string; options?: string[]; type?: "text" }
   "cac-reg": [
     { q: "What type of registration do you need?", options: ["Business Name (sole proprietor or partnership)", "Private Limited Company (Ltd)", "Incorporated Trustee (NGO or Foundation)", "Not sure — I need guidance"] },
     { q: "Have you chosen a business name?", options: ["Yes, I have a preferred name ready", "I have a few options to check availability", "No, I need help deciding"] },
-    { q: "Do you have a registered address in Nigeria?", options: ["Yes", "No, I need guidance on this"] },
     { q: "How soon do you need this completed?", options: ["Urgently — within 2 weeks", "Within a month", "No specific deadline"] },
   ],
   "annual-returns": [
@@ -205,342 +184,366 @@ const QUESTIONS: Record<string, { q: string; options?: string[]; type?: "text" }
   ],
 };
 
-// ─── Luxury gate message ──────────────────────────────────────────────────────
-const LUXURY_MSG = [
+const INNOVATION_LUXURY = new Set(["executive", "kids", "digital-skills", "internship", "corporate"]);
+
+const LUXURY_PARAS = [
   "At HAMZURY Innovation Hub, we do not accept open enrolments.",
-  "Every participant is carefully assessed before joining any programme. This is not a barrier — it is how we protect the quality of your experience and the integrity of our cohorts.",
-  "The few minutes you spend answering these questions allow our team to understand your goals, your background, and which programme is the right fit for you. We will review your responses and come back to you with a personal recommendation.",
+  "Every participant is carefully assessed before joining any programme. This is how we protect the quality of your experience and the integrity of our cohorts.",
+  "The few questions ahead allow our team to understand your goals and background. We will review your responses and come back with a personal recommendation.",
   "Please continue — your answers matter.",
 ];
 
-const INNOVATION_LUXURY_IDS = new Set(["executive", "kids", "digital-skills", "internship", "corporate"]);
-
-function getDeptName(screen: Screen): string {
-  const map: Partial<Record<Screen, string>> = {
+function getDeptLabel(screen: Screen): string {
+  const m: Partial<Record<Screen, string>> = {
     innovation: "Innovation Hub", studios: "Studios",
     systems: "Systems", bizdoc: "Bizdoc", general: "General",
   };
-  return map[screen] ?? "General";
+  return m[screen] ?? "HAMZURY";
+}
+
+let msgId = 0;
+function mk(from: ChatMsg["from"], text: string, options?: { label: string; value: string }[]): ChatMsg {
+  return { id: ++msgId, from, text, options };
 }
 
 export default function HamzuryChat() {
   const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState<ChatMsg[]>([]);
   const [screen, setScreen] = useState<Screen>("welcome");
   const [activeDept, setActiveDept] = useState<Screen>("welcome");
-  const [selectedService, setSelectedService] = useState("");
+  const [selectedSvc, setSelectedSvc] = useState("");
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [textInput, setTextInput] = useState("");
-  const [showLuxury, setShowLuxury] = useState(false);
-  const [result, setResult] = useState("");
+  const [luxuryShown, setLuxuryShown] = useState(false);
+  const [optionsDisabled, setOptionsDisabled] = useState<Set<number>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const analyseMutation = trpc.agent.analyseResponses.useMutation({
-    onSuccess: (data) => { setResult(data.recommendation); setScreen("result"); },
+    onSuccess: (data) => {
+      setMsgs((prev) => [
+        ...prev,
+        mk("bot", data.recommendation),
+        mk("bot", "Ready to move forward?", [
+          { label: "Start a Project →", value: "start" },
+          { label: "Ask another question", value: "reset" },
+        ]),
+      ]);
+      setScreen("result");
+    },
     onError: () => {
-      setResult(`Based on your responses, our team will review your profile and reach out with a personalised recommendation within 24 hours.\n\nIn the meantime, you can submit a formal request to begin the process.`);
+      setMsgs((prev) => [
+        ...prev,
+        mk("bot", "Based on your responses, our team will review your profile and reach out with a personalised recommendation within 24 hours."),
+        mk("bot", "What would you like to do next?", [
+          { label: "Start a Project →", value: "start" },
+          { label: "Start over", value: "reset" },
+        ]),
+      ]);
       setScreen("result");
     },
   });
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [screen, currentQ, showLuxury]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [msgs]);
+
+  // Initialise on open
+  useEffect(() => {
+    if (open && msgs.length === 0) {
+      setMsgs([
+        mk("bot", "Hello. I am the HAMZURY advisor.\n\nWhat are you trying to build or solve?", DEPT_CARDS.map((d) => ({ label: d.label, value: d.id }))),
+      ]);
+      setScreen("welcome");
+    }
+  }, [open]);
+
+  const pushBot = (text: string, options?: { label: string; value: string }[]) => {
+    setMsgs((prev) => [...prev, mk("bot", text, options)]);
+  };
+
+  const pushUser = (text: string) => {
+    setMsgs((prev) => [...prev, mk("user", text)]);
+  };
+
+  const disableOptions = (id: number) => {
+    setOptionsDisabled((prev) => new Set([...prev, id]));
+  };
 
   const reset = () => {
-    setScreen("welcome"); setActiveDept("welcome"); setSelectedService("");
-    setCurrentQ(0); setAnswers([]); setTextInput(""); setShowLuxury(false); setResult("");
+    msgId = 0;
+    setMsgs([
+      mk("bot", "What else can I help you with?", DEPT_CARDS.map((d) => ({ label: d.label, value: d.id }))),
+    ]);
+    setScreen("welcome");
+    setActiveDept("welcome");
+    setSelectedSvc("");
+    setCurrentQ(0);
+    setAnswers([]);
+    setTextInput("");
+    setLuxuryShown(false);
+    setOptionsDisabled(new Set());
   };
 
-  const goToDept = (dept: Screen) => {
-    setActiveDept(dept); setScreen(dept);
-    setSelectedService(""); setCurrentQ(0); setAnswers([]); setShowLuxury(false);
-  };
+  const handleOption = (msgId: number, label: string, value: string) => {
+    disableOptions(msgId);
+    pushUser(label);
 
-  const handleServiceSelect = (svcId: string) => {
-    setSelectedService(svcId);
-    if (activeDept === "innovation" && INNOVATION_LUXURY_IDS.has(svcId)) {
-      setShowLuxury(true);
-    } else {
-      setCurrentQ(0); setAnswers([]); setScreen("questions");
+    // Navigation options
+    if (value === "start") { window.location.href = "/start"; return; }
+    if (value === "reset") { reset(); return; }
+    if (value === "learn-more") { window.location.href = `/department/${activeDept}`; return; }
+
+    // Department selection
+    if (screen === "welcome") {
+      const dept = value as Screen;
+      setActiveDept(dept);
+      setScreen(dept);
+      const svcs = SERVICES[dept];
+      if (svcs) {
+        pushBot(
+          `${getDeptLabel(dept)} — select the outcome you are looking for.`,
+          [
+            ...svcs.map((s) => ({ label: s.label, value: s.id })),
+            { label: `Learn more about ${getDeptLabel(dept)}`, value: "learn-more" },
+          ]
+        );
+      } else {
+        // General
+        setSelectedSvc("general");
+        setCurrentQ(0);
+        setAnswers([]);
+        setScreen("questions");
+        const qs = QUESTIONS["general"];
+        pushBot(qs[0].q, qs[0].options?.map((o) => ({ label: o, value: o })));
+      }
+      return;
+    }
+
+    // Service selection
+    if (["innovation", "studios", "systems", "bizdoc"].includes(screen)) {
+      setSelectedSvc(value);
+      if (screen === "innovation" && INNOVATION_LUXURY.has(value)) {
+        setLuxuryShown(true);
+        setScreen("luxury-gate");
+        LUXURY_PARAS.forEach((p, i) => {
+          setTimeout(() => {
+            if (i < LUXURY_PARAS.length - 1) {
+              pushBot(p);
+            } else {
+              pushBot(p, [{ label: "Continue — answer the questions", value: "begin-questions" }]);
+            }
+          }, i * 600);
+        });
+      } else {
+        setCurrentQ(0);
+        setAnswers([]);
+        setScreen("questions");
+        const qs = QUESTIONS[value] ?? QUESTIONS["general"];
+        pushBot(qs[0].q, qs[0].options?.map((o) => ({ label: o, value: o })));
+      }
+      return;
+    }
+
+    // Luxury gate — begin questions
+    if (screen === "luxury-gate" && value === "begin-questions") {
+      setScreen("questions");
+      setCurrentQ(0);
+      setAnswers([]);
+      const qs = QUESTIONS[selectedSvc] ?? QUESTIONS["general"];
+      pushBot(qs[0].q, qs[0].options?.map((o) => ({ label: o, value: o })));
+      return;
+    }
+
+    // Question answers (option type)
+    if (screen === "questions") {
+      processAnswer(value);
+      return;
     }
   };
 
-  const getQuestions = () => QUESTIONS[selectedService] ?? QUESTIONS["general"];
-
-  const handleAnswer = (answer: string) => {
-    const qs = getQuestions();
+  const processAnswer = (answer: string) => {
+    const qs = QUESTIONS[selectedSvc] ?? QUESTIONS["general"];
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
-    if (currentQ + 1 < qs.length) {
-      setCurrentQ(currentQ + 1);
+    const next = currentQ + 1;
+
+    if (next < qs.length) {
+      setCurrentQ(next);
+      const nextQ = qs[next];
+      pushBot(nextQ.q, nextQ.options?.map((o) => ({ label: o, value: o })));
     } else {
       setScreen("analysing");
+      pushBot("Reviewing your responses…");
       analyseMutation.mutate({
-        department: getDeptName(activeDept),
-        service: selectedService || "general",
+        department: getDeptLabel(activeDept),
+        service: selectedSvc,
         answers: newAnswers,
         questions: qs.map((q) => q.q),
       });
     }
   };
 
-  const handleTextSubmit = () => {
-    if (!textInput.trim()) return;
-    handleAnswer(textInput.trim());
+  const handleTextSend = () => {
+    const text = textInput.trim();
+    if (!text) return;
     setTextInput("");
+    pushUser(text);
+    if (screen === "questions") {
+      processAnswer(text);
+    }
   };
 
-  const qs = getQuestions();
+  const qs = QUESTIONS[selectedSvc] ?? QUESTIONS["general"];
   const currentQuestion = qs[currentQ];
-  const deptServices = SERVICES[activeDept as string] ?? [];
-  const isServiceScreen = ["innovation", "studios", "systems", "bizdoc"].includes(screen) && !showLuxury;
+  const showTextInput = screen === "questions" && currentQuestion?.type === "text";
 
   return (
     <>
-      {/* ── Floating button ── */}
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-        style={{ background: "#1B4D3E" }}
-        aria-label="Open HAMZURY advisor"
-      >
-        {open ? (
-          <X size={20} color="white" />
-        ) : (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5" />
-            <path d="M8 10.5c0-2.2 1.8-4 4-4s4 1.8 4 4c0 2-1.5 3.5-3.5 4v1.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
-            <circle cx="12" cy="18.5" r="0.8" fill="white" />
-          </svg>
-        )}
-      </button>
+      {/* ── Floating bubble ── */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+          style={{ background: "#1B4D3E" }}
+          aria-label="Open HAMZURY advisor"
+        >
+          <MessageCircle size={22} color="white" />
+        </button>
+      )}
 
-      {/* ── Chat panel ── */}
+      {/* ── Chat window ── */}
       {open && (
         <div
-          className="fixed bottom-24 right-6 z-50 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
-          style={{ background: "#FAFAF8", width: "min(380px, calc(100vw - 2rem))", maxHeight: "82vh", border: "1px solid rgba(0,0,0,0.07)" }}
+          className="fixed bottom-6 right-6 z-50 flex flex-col rounded-2xl shadow-2xl overflow-hidden"
+          style={{
+            width: "min(370px, calc(100vw - 24px))",
+            height: "min(600px, calc(100vh - 80px))",
+            background: "#ECE5DD",
+          }}
         >
-          {/* Header */}
-          <div className="px-5 py-4 flex items-center justify-between shrink-0" style={{ background: "#1B4D3E" }}>
+          {/* ── Header ── */}
+          <div
+            className="flex items-center justify-between px-4 py-3 shrink-0"
+            style={{ background: "#1B4D3E" }}
+          >
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(255,255,255,0.15)" }}>
-                <span className="text-white text-xs font-bold">H</span>
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm"
+                style={{ background: "rgba(255,255,255,0.15)", color: "white" }}
+              >
+                H
               </div>
               <div>
                 <p className="text-white text-sm font-semibold leading-none">HAMZURY Advisor</p>
-                <p className="text-white/50 text-xs mt-0.5">Always available</p>
+                <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
+                  Always available
+                </p>
               </div>
             </div>
-            <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white transition-colors">
-              <X size={16} />
+            <button
+              onClick={() => setOpen(false)}
+              className="p-1.5 rounded-full hover:bg-white/10 transition-colors"
+              aria-label="Close"
+            >
+              <X size={16} color="white" />
             </button>
           </div>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-4 py-5 space-y-3" style={{ minHeight: 0 }}>
-
-            {/* ── Welcome ── */}
-            {screen === "welcome" && (
-              <div className="space-y-4">
-                <div className="bg-white rounded-2xl p-4 shadow-sm">
-                  <p className="text-sm font-semibold text-stone-800">Welcome to HAMZURY.</p>
-                  <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">
-                    Tell me what you are trying to build or solve. I will guide you to the right service.
-                  </p>
-                </div>
-                <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider px-1">What describes your situation?</p>
-                <div className="space-y-2">
-                  {DEPT_CARDS.map((card) => (
-                    <button
-                      key={card.id}
-                      onClick={() => goToDept(card.id)}
-                      className="w-full text-left bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="text-base mt-0.5 shrink-0 opacity-60">{card.icon}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-stone-800">{card.label}</p>
-                          <p className="text-xs text-stone-400 mt-0.5 leading-relaxed">{card.problem}</p>
-                        </div>
-                        <ChevronRight size={14} className="text-stone-300 group-hover:text-stone-500 shrink-0 mt-1 transition-colors" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ── Department service list ── */}
-            {isServiceScreen && (
-              <div className="space-y-3">
-                <button onClick={reset} className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors">
-                  <ArrowLeft size={12} /> Back
-                </button>
-                <div className="bg-white rounded-2xl p-4 shadow-sm">
-                  <p className="text-sm font-semibold text-stone-800">{getDeptName(screen)}</p>
-                  <p className="text-xs text-stone-400 mt-1 leading-relaxed">Select the outcome you are looking for.</p>
-                </div>
-                <div className="space-y-2">
-                  {deptServices.map((svc) => (
-                    <button
-                      key={svc.id}
-                      onClick={() => handleServiceSelect(svc.id)}
-                      className="w-full text-left bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-start gap-3 group"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-stone-800">{svc.label}</p>
-                        <p className="text-xs text-stone-400 mt-0.5 leading-relaxed">{svc.result}</p>
-                      </div>
-                      <ChevronRight size={14} className="text-stone-300 group-hover:text-stone-500 shrink-0 mt-1 transition-colors" />
-                    </button>
-                  ))}
-                  <a
-                    href={`/departments/${screen}`}
-                    className="w-full text-left bg-stone-50 border border-stone-100 rounded-2xl p-4 flex items-center gap-3 hover:bg-stone-100 transition-colors"
+          {/* ── Messages ── */}
+          <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5" style={{ minHeight: 0 }}>
+            {msgs.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"}`}>
+                <div className="max-w-[85%]">
+                  {/* Bubble */}
+                  <div
+                    className="px-3.5 py-2.5 rounded-2xl shadow-sm text-sm leading-relaxed"
+                    style={{
+                      background: msg.from === "user" ? "#1B4D3E" : "white",
+                      color: msg.from === "user" ? "white" : "#1C1C1C",
+                      borderBottomRightRadius: msg.from === "user" ? "4px" : undefined,
+                      borderBottomLeftRadius: msg.from === "bot" ? "4px" : undefined,
+                      whiteSpace: "pre-wrap",
+                      fontSize: "13px",
+                    }}
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-stone-600">Learn more about {getDeptName(screen)}</p>
-                      <p className="text-xs text-stone-400 mt-0.5">View the full department page</p>
+                    {msg.text}
+                  </div>
+
+                  {/* Options */}
+                  {msg.options && !optionsDisabled.has(msg.id) && (
+                    <div className="mt-2 flex flex-col gap-1.5">
+                      {msg.options.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => handleOption(msg.id, opt.label, opt.value)}
+                          className="flex items-center justify-between w-full text-left bg-white rounded-xl px-3.5 py-2.5 shadow-sm hover:bg-gray-50 transition-colors"
+                          style={{ fontSize: "12.5px", color: "#1B4D3E", fontWeight: 500 }}
+                        >
+                          {opt.label}
+                          <ChevronRight size={12} className="shrink-0 ml-2 opacity-50" />
+                        </button>
+                      ))}
                     </div>
-                    <ChevronRight size={14} className="text-stone-300 shrink-0" />
-                  </a>
+                  )}
                 </div>
               </div>
-            )}
+            ))}
 
-            {/* ── General Business Checkup ── */}
-            {screen === "general" && (
-              <div className="space-y-3">
-                <button onClick={reset} className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors">
-                  <ArrowLeft size={12} /> Back
-                </button>
-                <div className="bg-white rounded-2xl p-4 shadow-sm">
-                  <p className="text-sm font-semibold text-stone-800">Business Checkup</p>
-                  <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                    Answer four questions. Our advisor will identify exactly what you need and recommend the right service.
-                  </p>
-                </div>
-                <button
-                  onClick={() => { setSelectedService("general"); setCurrentQ(0); setAnswers([]); setScreen("questions"); }}
-                  className="w-full bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex items-center justify-between group"
-                >
-                  <span className="text-sm font-semibold text-stone-800">Begin the checkup</span>
-                  <ChevronRight size={14} className="text-stone-300 group-hover:text-stone-500 transition-colors" />
-                </button>
-              </div>
-            )}
-
-            {/* ── Luxury gate ── */}
-            {showLuxury && (
-              <div className="space-y-4">
-                <button onClick={() => { setShowLuxury(false); }} className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors">
-                  <ArrowLeft size={12} /> Back
-                </button>
-                <div className="bg-white rounded-2xl p-5 shadow-sm">
-                  <div className="w-6 h-px mb-4" style={{ background: "#1B4D3E" }} />
-                  {LUXURY_MSG.map((para, i) => (
-                    <p key={i} className={`text-sm leading-relaxed ${i === 0 ? "font-semibold text-stone-800" : "text-stone-500"} ${i > 0 ? "mt-3" : ""}`}>
-                      {para}
-                    </p>
-                  ))}
-                </div>
-                <button
-                  onClick={() => { setShowLuxury(false); setCurrentQ(0); setAnswers([]); setScreen("questions"); }}
-                  className="w-full rounded-2xl py-3.5 text-sm font-semibold text-white transition-all hover:opacity-90"
-                  style={{ background: "#1B4D3E" }}
-                >
-                  Continue — answer the questions
-                </button>
-              </div>
-            )}
-
-            {/* ── Questions ── */}
-            {screen === "questions" && currentQuestion && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 px-1">
-                  <div className="flex-1 h-1 bg-stone-100 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-300" style={{ background: "#1B4D3E", width: `${(currentQ / qs.length) * 100}%` }} />
+            {/* Typing indicator when analysing */}
+            {screen === "analysing" && analyseMutation.isPending && (
+              <div className="flex justify-start">
+                <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                  <div className="flex gap-1 items-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
-                  <span className="text-xs text-stone-400 shrink-0">{currentQ + 1} / {qs.length}</span>
                 </div>
-                {answers.map((ans, i) => (
-                  <div key={i} className="space-y-1.5">
-                    <div className="bg-stone-50 rounded-2xl rounded-tl-sm px-3 py-2.5">
-                      <p className="text-xs text-stone-400 leading-relaxed">{qs[i].q}</p>
-                    </div>
-                    <div className="flex justify-end">
-                      <div className="rounded-2xl rounded-tr-sm px-3 py-2.5 max-w-[80%]" style={{ background: "#1B4D3E" }}>
-                        <p className="text-xs text-white">{ans}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <div className="bg-white rounded-2xl p-4 shadow-sm">
-                  <p className="text-sm font-medium text-stone-800 leading-relaxed">{currentQuestion.q}</p>
-                </div>
-                {currentQuestion.type === "text" ? (
-                  <div className="flex gap-2">
-                    <input
-                      className="flex-1 bg-white border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#1B4D3E]"
-                      placeholder="Type your answer…"
-                      value={textInput}
-                      onChange={(e) => setTextInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleTextSubmit()}
-                    />
-                    <button onClick={handleTextSubmit} disabled={!textInput.trim()} className="px-4 py-2.5 rounded-xl text-white text-sm font-semibold disabled:opacity-40 shrink-0" style={{ background: "#1B4D3E" }}>
-                      →
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {currentQuestion.options?.map((opt) => (
-                      <button key={opt} onClick={() => handleAnswer(opt)} className="w-full text-left bg-white border border-stone-100 rounded-2xl px-4 py-3 text-sm text-stone-700 hover:border-stone-300 hover:bg-stone-50 transition-all">
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── Analysing ── */}
-            {screen === "analysing" && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
-                <Loader2 size={24} className="animate-spin mx-auto mb-3" style={{ color: "#1B4D3E" }} />
-                <p className="text-sm font-semibold text-stone-800">Reviewing your responses…</p>
-                <p className="text-xs text-stone-400 mt-1.5 leading-relaxed">Our advisor is identifying the best match for your situation.</p>
-              </div>
-            )}
-
-            {/* ── Result ── */}
-            {screen === "result" && result && (
-              <div className="space-y-3">
-                <div className="bg-white rounded-2xl p-5 shadow-sm">
-                  <div className="w-6 h-px mb-4" style={{ background: "#1B4D3E" }} />
-                  <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#1B4D3E" }}>Your recommendation</p>
-                  {result.split("\n\n").map((para, i) => (
-                    <p key={i} className={`text-sm leading-relaxed text-stone-700 ${i > 0 ? "mt-3" : ""}`}>{para}</p>
-                  ))}
-                </div>
-                <a href="/start" className="block w-full rounded-2xl py-3.5 text-sm font-semibold text-white text-center transition-all hover:opacity-90" style={{ background: "#1B4D3E" }}>
-                  Start a Project →
-                </a>
-                <button onClick={reset} className="w-full text-xs text-stone-400 hover:text-stone-600 transition-colors py-1">
-                  Start over
-                </button>
               </div>
             )}
 
             <div ref={bottomRef} />
           </div>
 
-          {/* Footer */}
-          <div className="px-4 py-2.5 border-t shrink-0 text-center" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
-            <p className="text-xs text-stone-400">
+          {/* ── Text input (only for open-ended questions) ── */}
+          {showTextInput && (
+            <div
+              className="flex items-center gap-2 px-3 py-3 shrink-0"
+              style={{ background: "#F0EBE1", borderTop: "1px solid rgba(0,0,0,0.06)" }}
+            >
+              <input
+                type="text"
+                value={textInput}
+                onChange={(e) => setTextInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleTextSend()}
+                placeholder="Type your answer…"
+                className="flex-1 bg-white rounded-full px-4 py-2.5 text-sm outline-none shadow-sm"
+                style={{ color: "#1C1C1C", fontSize: "13px" }}
+                autoFocus
+              />
+              <button
+                onClick={handleTextSend}
+                disabled={!textInput.trim()}
+                className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 disabled:opacity-40 transition-opacity"
+                style={{ background: "#1B4D3E" }}
+                aria-label="Send"
+              >
+                <Send size={14} color="white" />
+              </button>
+            </div>
+          )}
+
+          {/* ── Footer ── */}
+          <div
+            className="px-4 py-2 shrink-0 text-center"
+            style={{ background: "#F0EBE1", borderTop: "1px solid rgba(0,0,0,0.06)" }}
+          >
+            <p className="text-xs" style={{ color: "#999", fontSize: "11px" }}>
               HAMZURY &middot;{" "}
-              <a href="/start" className="underline" style={{ color: "#1B4D3E" }}>Start a project</a>
+              <a href="/start" style={{ color: "#1B4D3E" }} className="underline">Start a project</a>
               {" "}&middot;{" "}
-              <a href="/track" className="underline" style={{ color: "#1B4D3E" }}>Track project</a>
+              <a href="/track" style={{ color: "#1B4D3E" }} className="underline">Track project</a>
             </p>
           </div>
         </div>

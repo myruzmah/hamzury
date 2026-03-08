@@ -27,6 +27,7 @@ import StaffLogin from "./pages/StaffLogin";
 // Frictionless client intake
 import ClientIntake from "./pages/ClientIntake";
 import TrackProject from "./pages/TrackProject";
+import EventForm from "./pages/EventForm";
 
 // Department pages
 import InnovationHub from "./pages/departments/InnovationHub";
@@ -86,6 +87,7 @@ function Router() {
       {/* Frictionless client intake — no login required */}
       <Route path="/start" component={ClientIntake} />
       <Route path="/track" component={TrackProject} />
+      <Route path="/event" component={EventForm} />
 
       {/* Fallback */}
       <Route path="/404" component={NotFound} />
