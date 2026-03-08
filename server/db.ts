@@ -4,11 +4,14 @@ import {
   agents,
   auditTrail,
   checklistItems,
+  clientIntake,
+  ClientIntake,
   clients,
   communications,
   deliverables,
   founderNotes,
   InsertClient,
+  InsertClientIntake,
   InsertTask,
   InsertUser,
   InsertWeeklyReport,
@@ -615,4 +618,73 @@ export async function getRidiTotals() {
     men: programs.reduce((s, p) => s + p.men, 0),
     referrals: programs.reduce((s, p) => s + p.referralsToHamzury, 0),
   };
+}
+
+// ─── Client Intake Helpers ────────────────────────────────────────────────────
+
+/** Generate a unique reference code like HMZ-2026-0042 */
+export async function generateIntakeReference(): Promise<string> {
+  const db = await getDb();
+  const year = new Date().getFullYear();
+  if (!db) return `HMZ-${year}-${String(Date.now()).slice(-4)}`;
+  const rows = await db
+    .select({ id: clientIntake.id })
+    .from(clientIntake)
+    .orderBy(desc(clientIntake.id))
+    .limit(1);
+  const nextNum = rows.length > 0 ? rows[0].id + 1 : 1;
+  return `HMZ-${year}-${String(nextNum).padStart(4, "0")}`;
+}
+
+/** Create a new intake submission */
+export async function createClientIntake(data: InsertClientIntake): Promise<ClientIntake> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(clientIntake).values(data);
+  const rows = await db
+    .select()
+    .from(clientIntake)
+    .where(eq(clientIntake.referenceCode, data.referenceCode))
+    .limit(1);
+  return rows[0];
+}
+
+/** Look up an intake by reference code (for client status check) */
+export async function getIntakeByReference(referenceCode: string): Promise<ClientIntake | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(clientIntake)
+    .where(eq(clientIntake.referenceCode, referenceCode))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/** Get all intakes for CSO lead queue, newest first */
+export async function getAllIntakes(status?: string): Promise<ClientIntake[]> {
+  const db = await getDb();
+  if (!db) return [];
+  if (status) {
+    return db
+      .select()
+      .from(clientIntake)
+      .where(eq(clientIntake.status, status as ClientIntake["status"]))
+      .orderBy(desc(clientIntake.createdAt));
+  }
+  return db.select().from(clientIntake).orderBy(desc(clientIntake.createdAt));
+}
+
+/** Update intake status and CSO notes */
+export async function updateIntakeStatus(
+  referenceCode: string,
+  status: ClientIntake["status"],
+  csoNotes?: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(clientIntake)
+    .set({ status, ...(csoNotes !== undefined ? { csoNotes } : {}), updatedAt: new Date() })
+    .where(eq(clientIntake.referenceCode, referenceCode));
 }

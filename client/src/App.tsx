@@ -4,7 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import WhatsAppWidget from "./components/WhatsAppWidget";
+import HamzuryChat from "./components/HamzuryChat";
 
 // Public pages
 import Home from "./pages/Home";
@@ -23,6 +23,10 @@ import AgentDashboard from "./pages/AgentDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
 import StaffLogin from "./pages/StaffLogin";
+
+// Frictionless client intake
+import ClientIntake from "./pages/ClientIntake";
+import TrackProject from "./pages/TrackProject";
 
 // Institutional dashboards
 import CEODashboard from "./pages/ceo-dashboard";
@@ -67,6 +71,10 @@ function Router() {
       <Route path="/lead-dashboard" component={LeadDashboard} />
       <Route path="/my-tasks" component={MyTasksDashboard} />
 
+      {/* Frictionless client intake — no login required */}
+      <Route path="/start" component={ClientIntake} />
+      <Route path="/track" component={TrackProject} />
+
       {/* Fallback */}
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
@@ -81,7 +89,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <WhatsAppWidget />
+          <HamzuryChat />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

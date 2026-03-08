@@ -328,3 +328,39 @@ export const ridiImpact = mysqlTable("ridiImpact", {
 
 export type RidiImpact = typeof ridiImpact.$inferSelect;
 export type InsertRidiImpact = typeof ridiImpact.$inferInsert;
+
+// ─── Client Intake (frictionless no-login submissions) ───────────────────────
+export const clientIntake = mysqlTable("clientIntake", {
+  id: int("id").autoincrement().primaryKey(),
+  referenceCode: varchar("referenceCode", { length: 16 }).notNull().unique(), // e.g. HMZ-2026-0001
+  // Contact info
+  name: varchar("name", { length: 256 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  whatsapp: varchar("whatsapp", { length: 32 }),
+  // Service request
+  department: mysqlEnum("department", [
+    "CSO", "Systems", "Studios", "Bizdoc", "Innovation",
+    "Growth", "People", "Ledger", "RIDI", "Robotics",
+  ]).notNull(),
+  serviceType: varchar("serviceType", { length: 256 }).notNull(),
+  description: text("description").notNull(),
+  // Optional file attachment (S3 URL)
+  attachmentUrl: text("attachmentUrl"),
+  attachmentName: varchar("attachmentName", { length: 256 }),
+  // Status lifecycle
+  status: mysqlEnum("status", [
+    "new",        // just submitted
+    "reviewing",  // CSO has seen it
+    "in_progress",// task created and assigned
+    "completed",  // delivered
+    "closed",     // archived
+  ]).default("new").notNull(),
+  // Internal notes (CSO only)
+  csoNotes: text("csoNotes"),
+  assignedTaskId: int("assignedTaskId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ClientIntake = typeof clientIntake.$inferSelect;
+export type InsertClientIntake = typeof clientIntake.$inferInsert;

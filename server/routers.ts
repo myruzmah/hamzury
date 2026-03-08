@@ -6,6 +6,17 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { ENV } from "./_core/env";
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateText } from "ai";
+import { createPatchedFetch } from "./_core/patchedFetch";
+
+// Forge AI client for agent procedures
+const forgeAI = createOpenAI({
+  apiKey: ENV.forgeApiKey,
+  baseURL: `${ENV.forgeApiUrl}/v1`,
+  fetch: createPatchedFetch(fetch),
+});
+const agentModel = forgeAI.chat("gemini-2.5-flash");
 import {
   addAuditEntry,
   createRidiProgram,
@@ -60,6 +71,11 @@ import {
   upsertTask,
   upsertUser,
   getTasksByAssignee,
+  generateIntakeReference,
+  createClientIntake,
+  getIntakeByReference,
+  getAllIntakes,
+  updateIntakeStatus,
 } from "./db";
 import {
   getMockDeliverables,
@@ -486,6 +502,105 @@ const clientRouter = router({
 
 // ─── Agent router ─────────────────────────────────────────────────────────────
 const agentRouter = router({
+  // ── CSO Agent: client communication assistant ──────────────────────────────
+  csoChat: protectedProcedure
+    .input(z.object({
+      message: z.string().min(1).max(2000),
+      history: z.array(z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      })).optional().default([]),
+    }))
+    .mutation(async ({ input }) => {
+      const systemPrompt = `You are the HAMZURY CSO Agent — an AI assistant for Amina Ahmad Musa, the Client Success Officer at HAMZURY.
+
+HAMZURY is a multi-service institutional company based in Nigeria. It operates across:
+- Studios: brand identity, social media, content, podcasts
+- Bizdoc: CAC registration, compliance, tax, PENCOM, licensing
+- Systems: websites, web apps, automation, AI workflows
+- Innovation Hub: digital skills training, robotics, scholarships
+- BizDev: lead generation, partnerships, grant applications
+- Ledger: bookkeeping, financial reporting, commissions
+- People: HR, recruitment, onboarding, performance
+- RIDI: community impact, digital skills, climate education
+
+Brand voice: institutional, calm, structured, precise. Never casual. Never generic. Never rushed.
+Governing principle: Structure before speed. Clarity before complexity. Calm before urgency.
+
+Your role is to help Amina:
+1. Draft professional client messages (follow-ups, updates, delivery messages, welcome messages)
+2. Qualify leads and recommend the right HAMZURY service
+3. Write nurture messages for inactive leads
+4. Respond to client inquiries professionally
+5. Draft the Delivery Dossier cover message
+
+Always write in the HAMZURY voice. Be specific, professional, and warm but never casual.
+When drafting messages, provide the full draft ready to send — not a template with placeholders.`;
+
+      const messages = [
+        ...input.history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+        { role: "user" as const, content: input.message },
+      ];
+
+      const result = await generateText({
+        model: agentModel,
+        system: systemPrompt,
+        messages,
+        maxOutputTokens: 1200,
+      });
+
+      return { reply: result.text };
+    }),
+
+  // ── Bizdoc Agent: compliance research assistant ────────────────────────────
+  bizdocChat: protectedProcedure
+    .input(z.object({
+      message: z.string().min(1).max(2000),
+      history: z.array(z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      })).optional().default([]),
+    }))
+    .mutation(async ({ input }) => {
+      const systemPrompt = `You are the HAMZURY Bizdoc Agent — an AI compliance research assistant for the Bizdoc department at HAMZURY.
+
+HAMZURY Bizdoc handles all business documentation and compliance work in Nigeria, including:
+- CAC business name registration
+- CAC company incorporation (limited liability companies)
+- Annual returns filing
+- Tax registration with FIRS (TIN, VAT, CIT, WHT, PAYE)
+- PENCOM registration for pension compliance
+- Industry-specific licensing (NAFDAC, SON, NCC, CBN, SEC, etc.)
+- Compliance advisory and regulatory guidance
+
+Your role is to help the Bizdoc team:
+1. Research and explain CAC registration requirements and processes
+2. Explain tax obligations for different business types
+3. Clarify PENCOM and pension compliance requirements
+4. Research industry-specific licensing requirements
+5. Explain annual return filing deadlines and penalties
+6. Provide step-by-step guidance on compliance processes
+7. Summarise regulatory changes that affect clients
+
+Always be precise and accurate. Cite the relevant law or regulation when possible (e.g., CAMA 2020, FIRS Act, PENCOM Act).
+If you are uncertain about a specific detail, say so clearly and recommend the team verify with the relevant agency.
+Be structured and clear — use numbered steps when explaining processes.`;
+
+      const messages = [
+        ...input.history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+        { role: "user" as const, content: input.message },
+      ];
+
+      const result = await generateText({
+        model: agentModel,
+        system: systemPrompt,
+        messages,
+        maxOutputTokens: 1500,
+      });
+
+      return { reply: result.text };
+    }),
+
   myReferrals: publicProcedure.query(async ({ ctx }) => {
     const agentId = "AGT-DEMO";
     const dbRefs = await getReferralsByAgent(agentId);
@@ -815,6 +930,64 @@ const ridiRouter = router({
 });
 
 // --- App router ---
+// ─── Client Intake Router ────────────────────────────────────────────────────
+const intakeRouter = router({
+  // Public: submit a new intake form
+  submit: publicProcedure
+    .input(z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      phone: z.string().min(7),
+      whatsapp: z.string().optional(),
+      department: z.enum(["CSO","Systems","Studios","Bizdoc","Innovation","Growth","People","Ledger","RIDI","Robotics"]),
+      serviceType: z.string().min(2),
+      description: z.string().min(10),
+      attachmentUrl: z.string().optional(),
+      attachmentName: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const referenceCode = await generateIntakeReference();
+      const intake = await createClientIntake({ ...input, referenceCode, status: "new" });
+      return { referenceCode, intake };
+    }),
+
+  // Public: check status by reference code
+  checkStatus: publicProcedure
+    .input(z.object({ referenceCode: z.string() }))
+    .query(async ({ input }) => {
+      const intake = await getIntakeByReference(input.referenceCode);
+      if (!intake) throw new Error("Reference not found");
+      return {
+        referenceCode: intake.referenceCode,
+        name: intake.name,
+        department: intake.department,
+        serviceType: intake.serviceType,
+        status: intake.status,
+        createdAt: intake.createdAt,
+        updatedAt: intake.updatedAt,
+      };
+    }),
+
+  // Protected (Lead/CEO/Founder): get all intakes for CSO queue
+  getAll: protectedProcedure
+    .input(z.object({ status: z.string().optional() }))
+    .query(async ({ input }) => {
+      return getAllIntakes(input.status);
+    }),
+
+  // Protected: update status and notes
+  updateStatus: protectedProcedure
+    .input(z.object({
+      referenceCode: z.string(),
+      status: z.enum(["new","reviewing","in_progress","completed","closed"]),
+      csoNotes: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      await updateIntakeStatus(input.referenceCode, input.status, input.csoNotes);
+      return { success: true };
+    }),
+});
+
 export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
@@ -827,6 +1000,7 @@ export const appRouter = router({
   superAdmin: superAdminRouter,
   weeklyReport: weeklyReportRouter,
   ridi: ridiRouter,
+  intake: intakeRouter,
 });
 
 export type AppRouter = typeof appRouter;

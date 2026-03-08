@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { CSOAgent } from "@/components/CSOAgent";
+import { BizdocAgent } from "@/components/BizdocAgent";
 
 type TaskStage = "pre" | "during" | "post" | "review" | "approved" | "rejected" | "closed";
 
@@ -302,7 +304,7 @@ function ReviewModal({
 // ─── Lead Dashboard ───────────────────────────────────────────────────────────
 export default function LeadDashboard() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "review" | "team">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "review" | "team" | "agent">("overview");
   const [showAssign, setShowAssign] = useState(false);
   const [reviewingTask, setReviewingTask] = useState<{ taskRef: string; title: string; assignedToStaffId: string } | null>(null);
 
@@ -373,7 +375,7 @@ export default function LeadDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tabs */}
         <div className="flex gap-1 mb-8 bg-white rounded-xl p-1 border border-stone-100 w-fit">
-          {(["overview", "tasks", "review", "team"] as const).map((tab) => (
+          {(["overview", "tasks", "review", "team", "agent"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -381,7 +383,7 @@ export default function LeadDashboard() {
                 activeTab === tab ? "bg-[#1B4D3E] text-white" : "text-stone-500 hover:text-stone-700"
               }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === "agent" ? "AI Agent" : tab.charAt(0).toUpperCase() + tab.slice(1)}
               {tab === "review" && reviewQueue.length > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-600 text-white text-xs rounded-full flex items-center justify-center">
                   {reviewQueue.length}
@@ -508,6 +510,29 @@ export default function LeadDashboard() {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {/* Agent tab */}
+        {activeTab === "agent" && (
+          <div className="max-w-2xl space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-stone-700 mb-1">AI Assistant</h3>
+              <p className="text-xs text-stone-400 mb-4">
+                {department === "CSO"
+                  ? "Draft client messages, qualify leads, and manage client communication in the HAMZURY voice."
+                  : department === "Bizdoc"
+                  ? "Research compliance requirements, CAC processes, tax obligations, and regulatory guidance."
+                  : "Research, draft content, and get AI assistance for your department work."}
+              </p>
+              {department === "CSO" ? (
+                <CSOAgent />
+              ) : department === "Bizdoc" ? (
+                <BizdocAgent />
+              ) : (
+                <CSOAgent />
+              )}
+            </div>
           </div>
         )}
 

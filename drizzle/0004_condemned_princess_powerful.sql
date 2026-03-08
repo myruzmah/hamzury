@@ -1,0 +1,20 @@
+CREATE TABLE `clientIntake` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`referenceCode` varchar(16) NOT NULL,
+	`name` varchar(256) NOT NULL,
+	`email` varchar(320) NOT NULL,
+	`phone` varchar(32) NOT NULL,
+	`whatsapp` varchar(32),
+	`department` enum('CSO','Systems','Studios','Bizdoc','Innovation','Growth','People','Ledger','RIDI','Robotics') NOT NULL,
+	`serviceType` varchar(256) NOT NULL,
+	`description` text NOT NULL,
+	`attachmentUrl` text,
+	`attachmentName` varchar(256),
+	`status` enum('new','reviewing','in_progress','completed','closed') NOT NULL DEFAULT 'new',
+	`csoNotes` text,
+	`assignedTaskId` int,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `clientIntake_id` PRIMARY KEY(`id`),
+	CONSTRAINT `clientIntake_referenceCode_unique` UNIQUE(`referenceCode`)
+);

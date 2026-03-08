@@ -15,7 +15,7 @@ const FEATURED_DEPTS = [
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
   { href: "/ridi", label: "RIDI" },
-  { href: "/diagnosis", label: "Diagnosis" },
+  { href: "/start", label: "Start a Project" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -129,11 +129,11 @@ export default function Home() {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-3">
-              <Link href="/diagnosis" className="btn-primary">
-                Free Business Diagnosis <ArrowRight size={14} />
+              <Link href="/start" className="btn-primary">
+                Start a Project <ArrowRight size={14} />
               </Link>
-              <Link href="/services" className="btn-ghost">
-                Our Services
+              <Link href="/track" className="btn-ghost">
+                Track My Project
               </Link>
             </div>
           </div>
@@ -281,19 +281,24 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Diagnosis CTA ──────────────────────────────────────────────────── */}
+      {/* ── Start CTA ───────────────────────────────────────────────────── */}
       <section className="py-20 border-t border-border" style={{ background: "var(--milk)" }}>
         <div className="container max-w-xl text-center">
           <span className="block w-8 h-px mx-auto mb-10" style={{ background: "var(--brand)" }} />
           <h2 className="text-2xl font-light mb-4" style={{ color: "var(--charcoal)", letterSpacing: "-0.02em" }}>
-            Not sure where to start?
+            Ready to begin?
           </h2>
           <p className="text-sm leading-relaxed mb-8 max-w-sm mx-auto" style={{ color: "var(--body-text)" }}>
-            Answer five questions. Receive a personalised Business Health Report within minutes.
+            Submit your request in under three minutes. No account required. You will receive a reference code immediately.
           </p>
-          <Link href="/diagnosis" className="btn-primary">
-            Free Business Diagnosis <ArrowRight size={14} />
-          </Link>
+          <div className="flex justify-center gap-3 flex-wrap">
+            <Link href="/start" className="btn-primary">
+              Start a Project <ArrowRight size={14} />
+            </Link>
+            <Link href="/track" className="btn-ghost">
+              Track My Project
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -319,7 +324,8 @@ export default function Home() {
               {[
                 { href: "/services", label: "Services" },
                 { href: "/ridi", label: "RIDI" },
-                { href: "/diagnosis", label: "Diagnosis" },
+                { href: "/start", label: "Start a Project" },
+                { href: "/track", label: "Track Project" },
                 { href: "/contact", label: "Contact" },
                 { href: "/portal", label: "Portal" },
                 { href: "/legal/privacy", label: "Privacy" },

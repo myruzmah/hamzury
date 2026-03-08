@@ -155,3 +155,17 @@
 - [x] Add approval limits display to CEO and Founder dashboards (₦50k/₦200k thresholds)
 - [x] Add RIDI impact tracker (beneficiaries, programs, stories, referrals)
 - [x] Produce branded HAMZURY Internal Operations Manual PDF
+
+## Phase 10 — The 10 Priorities (Full Execution)
+- [x] Fix WhatsApp number to 2349130700056 (confirmed, notification-only mode)
+- [x] Promote Amina Ahmad Musa to CSO Lead role
+- [x] Build frictionless client intake at /start: guided multi-step form, auto-reference, email+WhatsApp notification
+- [x] Build project tracker at /track: reference code lookup, status timeline
+- [x] Build internal AI chat widget (HamzuryChat, replaces WhatsApp popup, brand-trained)
+- [x] Complete department pages: all CTAs updated to /start, department descriptions updated
+- [x] Brand language audit: all /diagnosis references replaced with /start and /track, HAMZURY voice applied
+- [x] Produce 14 staff onboarding documents (branded PDF per person, HAMZURY-Staff-Onboarding-Pack.zip)
+- [x] Seed 7 demo tasks across all departments (63 checklist items, realistic client names)
+- [x] Build CSO AI Agent in Lead dashboard (drafts client messages, qualifies leads)
+- [x] Build Bizdoc AI Agent in Lead dashboard (compliance research, CAC/tax/PENCOM guidance)
+- [x] Staff list corrected to 14 real staff members with accurate names, roles, departments

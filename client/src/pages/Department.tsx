@@ -277,11 +277,11 @@ export default function Department() {
             {dept.clientFacing && (
               <div className="flex gap-4 mt-8">
                 <a
-                  href="/diagnosis"
+                  href="/start"
                   className="flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-sm"
                   style={{ background: "var(--brand)", color: "white" }}
                 >
-                  Get Started <ArrowRight size={14} />
+                  Start a Project <ArrowRight size={14} />
                 </a>
                 <Link
                   href="/contact"
@@ -341,11 +341,11 @@ export default function Department() {
           </p>
           <div className="flex justify-center gap-4">
             <a
-              href="/diagnosis"
+              href="/start"
               className="flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-sm"
               style={{ background: "var(--brand)", color: "white" }}
             >
-              Free Diagnosis <ArrowRight size={14} />
+              Start a Project <ArrowRight size={14} />
             </a>
             <Link
               href="/"
