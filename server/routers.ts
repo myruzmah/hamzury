@@ -7,26 +7,51 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { ENV } from "./_core/env";
 import {
+  addAuditEntry,
   addCommunication,
+  advanceTaskStage,
   createAgentRecord,
+  createChecklistFromSOP,
+  createFounderNote,
+  createTaskLifecycle,
   getAgentByEmail,
   getAgentByOpenId,
   getAllAgents,
   getAllClients,
   getAllStaff,
+  getAllStaffMembers,
+  getAllTaskLifecycle,
   getAllTasks,
+  getAuditForTask,
+  getChecklistForTask,
   getClientByRef,
   getCommunicationsByClientRef,
   getDeliverablesByClientRef,
+  getFounderNotes,
   getReferralsByAgent,
-  getTasksByAssignee,
+  getServiceTypesByDept,
+  getSopTemplates,
+  getStaffByDepartment,
+  getStaffMemberByEmail,
+  getStaffMemberById,
+  getTaskByRef,
+  getTasksByClientRef,
+  getTasksByDepartment,
+  getTasksByStaffId,
+  getTasksForReview,
   getUpcomingTasks,
   getUserByEmail,
+  hashStaffPassword,
+  tickChecklistItem,
   updateClientStatusDb,
+  updateFounderNote,
+  updateStaffLastSignIn,
   updateTaskStatus,
   upsertClient,
   upsertStaffUser,
+  upsertTask,
   upsertUser,
+  getTasksByAssignee,
 } from "./db";
 import {
   getMockDeliverables,
@@ -35,6 +60,16 @@ import {
   getMockTasks,
   writeTaskStatusToSheet,
 } from "./sheets";
+
+// ─── JWT helpers ──────────────────────────────────────────────────────────────
+async function signJWT(payload: Record<string, unknown>, expiresIn = "8h") {
+  const { SignJWT } = await import("jose");
+  const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime(expiresIn)
+    .sign(secret);
+}
 
 // ─── Auth router ──────────────────────────────────────────────────────────────
 const authRouter = router({
@@ -46,60 +81,59 @@ const authRouter = router({
     return { success: true } as const;
   }),
 
-  // Staff login – email/password (demo: any @hamzury.com email works)
+  // ── Institutional staff login (real accounts from staffMembers table) ────────
   staffLogin: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
-      const user = await getUserByEmail(input.email);
-      // Demo mode: if no user found but email ends with @hamzury.com, allow
-      const isDemo = !user && input.email.endsWith("@hamzury.com");
-      if (!user && !isDemo) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
-      }
-      if (user && user.role !== "staff" && user.role !== "admin") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "This account does not have staff access." });
-      }
-      // In production, verify hashed password here. For demo, password "demo" works.
-      if (input.password !== "demo" && input.password !== "password" && input.password !== "hamzury2026") {
+      const member = await getStaffMemberByEmail(input.email);
+
+      if (!member) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
       }
 
-      const staffUser = user ?? {
-        id: 0,
-        openId: `staff-${input.email}`,
-        name: input.email.split("@")[0],
-        email: input.email,
-        role: "staff" as const,
-        department: "Studios",
-        staffId: "STF-DEMO",
-        loginMethod: "password",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastSignedIn: new Date(),
-      };
+      const expectedHash = hashStaffPassword(input.password);
+      if (member.passwordHash !== expectedHash) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
+      }
 
-      // Ensure user exists in DB so context.authenticateRequest can find them
+      if (!member.isActive) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "This account has been deactivated." });
+      }
+
+      await updateStaffLastSignIn(member.staffId);
+
+      // Ensure user exists in users table for session compatibility
       await upsertUser({
-        openId: staffUser.openId,
-        name: staffUser.name ?? null,
-        email: staffUser.email ?? null,
+        openId: `staff-${member.staffId}`,
+        name: member.name,
+        email: member.email,
         loginMethod: "password",
-        role: (staffUser.role === "admin" ? "admin" : "user") as "admin" | "user",
+        role: member.institutionalRole === "founder" || member.institutionalRole === "ceo" ? "admin" : "staff",
         lastSignedIn: new Date(),
       });
 
-      // Set a simple session cookie with user info
-      const { SignJWT } = await import("jose");
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
-      const token = await new SignJWT({ sub: staffUser.openId, openId: staffUser.openId, appId: ENV.appId, role: staffUser.role ?? "staff", email: staffUser.email, name: staffUser.name })
-        .setProtectedHeader({ alg: "HS256" })
-        .setExpirationTime("8h")
-        .sign(secret);
+      const token = await signJWT({
+        sub: `staff-${member.staffId}`,
+        openId: `staff-${member.staffId}`,
+        appId: ENV.appId,
+        role: "staff",
+        institutionalRole: member.institutionalRole,
+        staffId: member.staffId,
+        email: member.email,
+        name: member.name,
+        department: member.primaryDepartment,
+      });
 
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 });
 
-      return { success: true, role: staffUser.role ?? "staff", name: staffUser.name };
+      return {
+        success: true,
+        institutionalRole: member.institutionalRole,
+        name: member.name,
+        staffId: member.staffId,
+        department: member.primaryDepartment,
+      };
     }),
 
   // Agent login
@@ -107,8 +141,6 @@ const authRouter = router({
     .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
       const agent = await getAgentByEmail(input.email);
-      // Demo mode
-      const isDemo = !agent;
       if (input.password !== "demo" && input.password !== "password" && input.password !== "hamzury2026") {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid email or password." });
       }
@@ -123,7 +155,6 @@ const authRouter = router({
         createdAt: new Date(),
       };
 
-      // Ensure agent user exists in DB
       await upsertUser({
         openId: `agent-${agentData.email}`,
         name: agentData.name ?? null,
@@ -133,12 +164,15 @@ const authRouter = router({
         lastSignedIn: new Date(),
       });
 
-      const { SignJWT } = await import("jose");
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
-      const token = await new SignJWT({ sub: `agent-${agentData.email}`, openId: `agent-${agentData.email}`, appId: ENV.appId, role: "agent", email: agentData.email, name: agentData.name, agentId: agentData.agentId })
-        .setProtectedHeader({ alg: "HS256" })
-        .setExpirationTime("8h")
-        .sign(secret);
+      const token = await signJWT({
+        sub: `agent-${agentData.email}`,
+        openId: `agent-${agentData.email}`,
+        appId: ENV.appId,
+        role: "agent",
+        email: agentData.email,
+        name: agentData.name,
+        agentId: agentData.agentId,
+      });
 
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 });
@@ -152,7 +186,6 @@ const authRouter = router({
     .mutation(async ({ input }) => {
       const client = await getClientByRef(input.clientRef);
       if (!client) {
-        // Demo: create a demo client
         const demoRef = input.clientRef.toUpperCase();
         if (demoRef.startsWith("CLT-")) {
           return { clientRef: demoRef, name: "Demo Client" };
@@ -163,11 +196,194 @@ const authRouter = router({
     }),
 });
 
-// ─── Staff router ─────────────────────────────────────────────────────────────
-const staffRouter = router({
-  // Get tasks for the current staff member
+// ─── Institutional Staff router ───────────────────────────────────────────────
+const institutionalRouter = router({
+  // Get my profile
+  myProfile: publicProcedure.query(async ({ ctx }) => {
+    const staffId = (ctx.user as any)?.staffId;
+    if (!staffId) return null;
+    return getStaffMemberById(staffId);
+  }),
+
+  // Get all staff (for task assignment dropdowns)
+  allStaff: publicProcedure.query(async () => {
+    return getAllStaffMembers();
+  }),
+
+  // Get my tasks (assigned to me)
   myTasks: publicProcedure.query(async ({ ctx }) => {
-    // In production, use ctx.user. For demo, return mock data.
+    const staffId = (ctx.user as any)?.staffId;
+    if (!staffId) return [];
+    return getTasksByStaffId(staffId);
+  }),
+
+  // Get tasks I assigned (for leads/CEO/founder)
+  tasksIAssigned: publicProcedure.query(async ({ ctx }) => {
+    const staffId = (ctx.user as any)?.staffId;
+    if (!staffId) return [];
+    return getTasksByStaffId(staffId);
+  }),
+
+  // Get tasks for my department (lead view)
+  departmentTasks: publicProcedure.query(async ({ ctx }) => {
+    const dept = (ctx.user as any)?.department;
+    if (!dept) return [];
+    return getTasksByDepartment(dept);
+  }),
+
+  // Get tasks in review queue (lead approves/rejects)
+  reviewQueue: publicProcedure.query(async ({ ctx }) => {
+    const dept = (ctx.user as any)?.department;
+    if (!dept) return [];
+    return getTasksForReview(dept);
+  }),
+
+  // All tasks (CEO / Founder view)
+  allTasks: publicProcedure.query(async () => {
+    return getAllTaskLifecycle();
+  }),
+
+  // Get checklist for a task
+  taskChecklist: publicProcedure
+    .input(z.object({ taskRef: z.string() }))
+    .query(async ({ input }) => {
+      return getChecklistForTask(input.taskRef);
+    }),
+
+  // Get audit trail for a task
+  taskAudit: publicProcedure
+    .input(z.object({ taskRef: z.string() }))
+    .query(async ({ input }) => {
+      return getAuditForTask(input.taskRef);
+    }),
+
+  // Get task detail
+  taskDetail: publicProcedure
+    .input(z.object({ taskRef: z.string() }))
+    .query(async ({ input }) => {
+      return getTaskByRef(input.taskRef);
+    }),
+
+  // Assign a new task
+  assignTask: publicProcedure
+    .input(z.object({
+      title: z.string().min(1),
+      assignedToStaffId: z.string().min(1),
+      department: z.string().min(1),
+      serviceType: z.string().min(1),
+      clientRef: z.string().optional(),
+      clientName: z.string().optional(),
+      priority: z.enum(["normal", "urgent"]).default("normal"),
+      deadline: z.string().optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "STF-001";
+      const taskRef = `TSK-${Date.now().toString().slice(-8)}`;
+
+      await createTaskLifecycle({
+        taskRef,
+        title: input.title,
+        clientRef: input.clientRef,
+        clientName: input.clientName,
+        department: input.department,
+        serviceType: input.serviceType,
+        assignedByStaffId: staffId,
+        assignedToStaffId: input.assignedToStaffId,
+        priority: input.priority,
+        deadline: input.deadline ? new Date(input.deadline) : undefined,
+        notes: input.notes,
+      });
+
+      // Auto-generate checklist from SOP templates
+      await createChecklistFromSOP(taskRef, input.department, input.serviceType);
+
+      // Audit
+      const assigner = (ctx.user as any)?.name ?? "System";
+      await addAuditEntry({
+        taskRef,
+        staffId,
+        staffName: assigner,
+        action: `Task created and assigned to ${input.assignedToStaffId}`,
+        stage: "system",
+      });
+
+      return { success: true, taskRef };
+    }),
+
+  // Tick a checklist item
+  tickItem: publicProcedure
+    .input(z.object({
+      itemId: z.number(),
+      completed: z.boolean(),
+      taskRef: z.string(),
+      stepText: z.string(),
+      stage: z.enum(["pre", "during", "post"]),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "STF-000";
+      const staffName = (ctx.user as any)?.name ?? "Unknown";
+      await tickChecklistItem(input.itemId, input.completed, staffId, staffName, input.taskRef, input.stepText, input.stage);
+      return { success: true };
+    }),
+
+  // Advance task to next stage
+  advanceStage: publicProcedure
+    .input(z.object({
+      taskRef: z.string(),
+      stage: z.enum(["pre", "during", "post", "review", "approved", "rejected", "closed"]),
+      rejectionComment: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "STF-000";
+      const staffName = (ctx.user as any)?.name ?? "Unknown";
+
+      await advanceTaskStage(input.taskRef, input.stage, {
+        reviewedByStaffId: staffId,
+        rejectionComment: input.rejectionComment,
+      });
+
+      await addAuditEntry({
+        taskRef: input.taskRef,
+        staffId,
+        staffName,
+        action: `Stage advanced to: ${input.stage}${input.rejectionComment ? ` — Comment: ${input.rejectionComment}` : ""}`,
+        stage: "system",
+      });
+
+      return { success: true };
+    }),
+
+  // Get available service types for a department
+  serviceTypes: publicProcedure
+    .input(z.object({ department: z.string() }))
+    .query(async ({ input }) => {
+      return getServiceTypesByDept(input.department);
+    }),
+
+  // Founder notes
+  founderNotes: publicProcedure.query(async () => {
+    return getFounderNotes();
+  }),
+
+  createFounderNote: publicProcedure
+    .input(z.object({ title: z.string().min(1), content: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      await createFounderNote(input.title, input.content);
+      return { success: true };
+    }),
+
+  updateFounderNote: publicProcedure
+    .input(z.object({ id: z.number(), title: z.string().min(1), content: z.string().min(1) }))
+    .mutation(async ({ input }) => {
+      await updateFounderNote(input.id, input.title, input.content);
+      return { success: true };
+    }),
+});
+
+// ─── Staff router (legacy, kept for backward compat) ─────────────────────────
+const staffRouter = router({
+  myTasks: publicProcedure.query(async ({ ctx }) => {
     const name = ctx.user?.name ?? "Demo Staff";
     const dbTasks = await getTasksByAssignee(name);
     if (dbTasks.length > 0) return dbTasks;
@@ -195,15 +411,12 @@ const staffRouter = router({
   }),
 
   updateTaskStatus: publicProcedure
-    .input(
-      z.object({
-        taskId: z.string(),
-        status: z.enum(["Not Started", "In Progress", "Completed", "On Hold", "Cancelled"]),
-      })
-    )
+    .input(z.object({
+      taskId: z.string(),
+      status: z.enum(["Not Started", "In Progress", "Completed", "On Hold", "Cancelled"]),
+    }))
     .mutation(async ({ input }) => {
       await updateTaskStatus(input.taskId, input.status);
-      // Also write to Google Sheets if configured
       const sheetId = process.env.GOOGLE_SHEETS_DEPT_TRACKER_ID;
       if (sheetId) {
         await writeTaskStatusToSheet(sheetId, input.taskId, input.status);
@@ -225,7 +438,6 @@ const clientRouter = router({
     .query(async ({ input }) => {
       const client = await getClientByRef(input.clientRef);
       if (!client) {
-        // Demo mode
         if (input.clientRef.startsWith("CLT-")) {
           return {
             client: {
@@ -255,7 +467,7 @@ const clientRouter = router({
       }
 
       const [tasks, delivs, comms] = await Promise.all([
-        import("./db").then((m) => m.getTasksByClientRef(input.clientRef)),
+        getTasksByClientRef(input.clientRef),
         getDeliverablesByClientRef(input.clientRef),
         getCommunicationsByClientRef(input.clientRef),
       ]);
@@ -267,7 +479,6 @@ const clientRouter = router({
 // ─── Agent router ─────────────────────────────────────────────────────────────
 const agentRouter = router({
   myReferrals: publicProcedure.query(async ({ ctx }) => {
-    // Try to get agent from session
     const agentId = "AGT-DEMO";
     const dbRefs = await getReferralsByAgent(agentId);
     if (dbRefs.length > 0) return dbRefs;
@@ -290,22 +501,17 @@ const agentRouter = router({
 // ─── Diagnosis router ────────────────────────────────────────────────────────
 const diagnosisRouter = router({
   submit: publicProcedure
-    .input(
-      z.object({
-        answers: z.record(z.string(), z.string()),
-        contact: z.object({
-          name: z.string(),
-          email: z.string().email(),
-          phone: z.string().optional(),
-          whatsapp: z.string().optional(),
-        }),
-      })
-    )
+    .input(z.object({
+      answers: z.record(z.string(), z.string()),
+      contact: z.object({
+        name: z.string(),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        whatsapp: z.string().optional(),
+      }),
+    }))
     .mutation(async ({ input }) => {
-      // Generate a unique client ID
       const clientId = `CLT-${Date.now().toString().slice(-6)}`;
-
-      // Store in DB if available
       try {
         await upsertClient({
           clientRef: clientId,
@@ -316,23 +522,16 @@ const diagnosisRouter = router({
           status: "Inquiry",
           invoiceStatus: "Not Sent",
         });
-      } catch (_) {
-        // Non-fatal: continue even if DB is unavailable
-      }
+      } catch (_) {}
 
-      // Notify owner
       try {
         const { notifyOwner } = await import("./_core/notification");
-        const summary = Object.entries(input.answers)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join(", ");
+        const summary = Object.entries(input.answers).map(([k, v]) => `${k}: ${v}`).join(", ");
         await notifyOwner({
           title: `New Diagnosis Lead: ${input.contact.name}`,
           content: `Email: ${input.contact.email}\nPhone: ${input.contact.phone ?? "N/A"}\nAnswers: ${summary}\nClient ID: ${clientId}`,
         });
-      } catch (_) {
-        // Non-fatal
-      }
+      } catch (_) {}
 
       return { success: true, clientId };
     }),
@@ -344,7 +543,6 @@ function requireAdmin(role: string) {
 }
 
 const adminRouter = router({
-  // ── Overview stats ──────────────────────────────────────────────────────────
   stats: protectedProcedure.query(async ({ ctx }) => {
     requireAdmin(ctx.user.role);
     const [allC, allT] = await Promise.all([getAllClients(), getAllTasks()]);
@@ -360,7 +558,6 @@ const adminRouter = router({
     };
   }),
 
-  // ── Clients ─────────────────────────────────────────────────────────────────
   allClients: protectedProcedure.query(async ({ ctx }) => {
     requireAdmin(ctx.user.role);
     return getAllClients();
@@ -405,7 +602,6 @@ const adminRouter = router({
       return { success: true };
     }),
 
-  // ── Communications ──────────────────────────────────────────────────────────
   postCommunication: protectedProcedure
     .input(z.object({
       clientRef: z.string().min(1),
@@ -418,7 +614,6 @@ const adminRouter = router({
       return { success: true };
     }),
 
-  // ── Staff ───────────────────────────────────────────────────────────────────
   allStaff: protectedProcedure.query(async ({ ctx }) => {
     requireAdmin(ctx.user.role);
     return getAllStaff();
@@ -448,7 +643,6 @@ const adminRouter = router({
       return { success: true, staffId };
     }),
 
-  // ── Agents ──────────────────────────────────────────────────────────────────
   allAgents: protectedProcedure.query(async ({ ctx }) => {
     requireAdmin(ctx.user.role);
     return getAllAgents();
@@ -467,14 +661,13 @@ const adminRouter = router({
       return { success: true, agentId };
     }),
 
-  // ── Tasks overview ──────────────────────────────────────────────────────────
   allTasks: protectedProcedure.query(async ({ ctx }) => {
     requireAdmin(ctx.user.role);
     return getAllTasks();
   }),
 });
 
-// ─── Super Admin router (secret URL, not exposed on public portal) ───────────
+// ─── Super Admin router ───────────────────────────────────────────────────────
 const SUPER_ADMIN_EMAIL = "hamzury.superadmin@hamzury.com";
 const SUPER_ADMIN_PASSWORD = "H@mzury$ysAdmin2026!";
 
@@ -483,11 +676,9 @@ const superAdminRouter = router({
     .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {
       if (input.email !== SUPER_ADMIN_EMAIL || input.password !== SUPER_ADMIN_PASSWORD) {
-        // Intentional delay to slow brute force
         await new Promise((r) => setTimeout(r, 1200));
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid credentials." });
       }
-      // Ensure superadmin user exists in DB with admin role
       await upsertUser({
         openId: "superadmin",
         name: "Super Admin",
@@ -497,19 +688,15 @@ const superAdminRouter = router({
         lastSignedIn: new Date(),
       });
 
-      const { SignJWT } = await import("jose");
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
-      const token = await new SignJWT({
+      const token = await signJWT({
         sub: "superadmin",
         openId: "superadmin",
         appId: ENV.appId,
         role: "admin",
         email: SUPER_ADMIN_EMAIL,
         name: "Super Admin",
-      })
-        .setProtectedHeader({ alg: "HS256" })
-        .setExpirationTime("12h")
-        .sign(secret);
+      }, "12h");
+
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 12 * 60 * 60 * 1000 });
       return { success: true };
@@ -520,6 +707,7 @@ const superAdminRouter = router({
 export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
+  institutional: institutionalRouter,
   staff: staffRouter,
   clientPortal: clientRouter,
   agent: agentRouter,

@@ -22,6 +22,13 @@ import ClientView from "./pages/ClientView";
 import AgentDashboard from "./pages/AgentDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import SuperAdminLogin from "./pages/SuperAdminLogin";
+import StaffLogin from "./pages/StaffLogin";
+
+// Institutional dashboards
+import CEODashboard from "./pages/ceo-dashboard";
+import FounderDashboard from "./pages/founder-dashboard";
+import LeadDashboard from "./pages/lead-dashboard";
+import MyTasksDashboard from "./pages/staff/my-tasks";
 
 function Router() {
   return (
@@ -50,6 +57,15 @@ function Router() {
 
       {/* Secret super admin login — not linked anywhere on the public site */}
       <Route path="/hq-access-9f3k2" component={SuperAdminLogin} />
+
+      {/* Staff institutional login */}
+      <Route path="/staff-login" component={StaffLogin} />
+
+      {/* Institutional dashboards — secret paths, not linked publicly */}
+      <Route path="/ceo-access-7x9m4" component={CEODashboard} />
+      <Route path="/founder-access-k8p1q" component={FounderDashboard} />
+      <Route path="/lead-dashboard" component={LeadDashboard} />
+      <Route path="/my-tasks" component={MyTasksDashboard} />
 
       {/* Fallback */}
       <Route path="/404" component={NotFound} />

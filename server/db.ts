@@ -1,14 +1,20 @@
-import { and, eq, gte, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, lte, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   agents,
+  auditTrail,
+  checklistItems,
   clients,
   communications,
   deliverables,
+  founderNotes,
   InsertClient,
   InsertTask,
   InsertUser,
   referrals,
+  sopTemplates,
+  staffMembers,
+  taskLifecycle,
   tasks,
   users,
 } from "../drizzle/schema";
@@ -71,6 +77,278 @@ export async function getUserByEmail(email: string) {
   return result[0];
 }
 
+// ─── Staff Members (institutional team) ──────────────────────────────────────
+import { createHash } from "crypto";
+
+export function hashStaffPassword(password: string): string {
+  return createHash("sha256").update(password + "hamzury_salt_2026").digest("hex");
+}
+
+export async function getStaffMemberByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(staffMembers).where(eq(staffMembers.email, email)).limit(1);
+  return result[0];
+}
+
+export async function getStaffMemberById(staffId: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(staffMembers).where(eq(staffMembers.staffId, staffId)).limit(1);
+  return result[0];
+}
+
+export async function getAllStaffMembers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(staffMembers).where(eq(staffMembers.isActive, true)).orderBy(staffMembers.name);
+}
+
+export async function getStaffByDepartment(department: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(staffMembers)
+    .where(and(eq(staffMembers.primaryDepartment, department as any), eq(staffMembers.isActive, true)))
+    .orderBy(staffMembers.name);
+}
+
+export async function updateStaffLastSignIn(staffId: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(staffMembers).set({ lastSignedIn: new Date() }).where(eq(staffMembers.staffId, staffId));
+}
+
+// ─── Task Lifecycle ───────────────────────────────────────────────────────────
+export async function createTaskLifecycle(data: {
+  taskRef: string;
+  title: string;
+  clientRef?: string;
+  clientName?: string;
+  department: string;
+  serviceType: string;
+  assignedByStaffId?: string;
+  assignedToStaffId: string;
+  priority?: "normal" | "urgent";
+  deadline?: Date;
+  notes?: string;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(taskLifecycle).values({
+    ...data,
+    lifecycleStage: "pre",
+    priority: data.priority ?? "normal",
+  });
+}
+
+export async function getTasksByStaffId(staffId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(taskLifecycle)
+    .where(eq(taskLifecycle.assignedToStaffId, staffId))
+    .orderBy(desc(taskLifecycle.createdAt));
+}
+
+export async function getTasksAssignedByStaff(staffId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(taskLifecycle)
+    .where(eq(taskLifecycle.assignedByStaffId, staffId))
+    .orderBy(desc(taskLifecycle.createdAt));
+}
+
+export async function getAllTaskLifecycle() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(taskLifecycle).orderBy(desc(taskLifecycle.createdAt));
+}
+
+export async function getTasksByDepartment(department: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(taskLifecycle)
+    .where(eq(taskLifecycle.department, department))
+    .orderBy(desc(taskLifecycle.createdAt));
+}
+
+export async function getTasksForReview(department: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(taskLifecycle)
+    .where(and(eq(taskLifecycle.department, department), eq(taskLifecycle.lifecycleStage, "review")))
+    .orderBy(desc(taskLifecycle.createdAt));
+}
+
+export async function getTaskByRef(taskRef: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(taskLifecycle).where(eq(taskLifecycle.taskRef, taskRef)).limit(1);
+  return result[0];
+}
+
+export async function advanceTaskStage(
+  taskRef: string,
+  stage: "pre" | "during" | "post" | "review" | "approved" | "rejected" | "closed",
+  extra?: { reviewedByStaffId?: string; rejectionComment?: string }
+) {
+  const db = await getDb();
+  if (!db) return;
+  const set: Record<string, unknown> = {
+    lifecycleStage: stage,
+    updatedAt: new Date(),
+  };
+  if (stage === "approved" || stage === "rejected") {
+    set.reviewedByStaffId = extra?.reviewedByStaffId;
+    set.reviewedAt = new Date();
+  }
+  if (stage === "rejected" && extra?.rejectionComment) {
+    set.rejectionComment = extra.rejectionComment;
+  }
+  if (stage === "closed") {
+    set.closedAt = new Date();
+  }
+  await db.update(taskLifecycle).set(set).where(eq(taskLifecycle.taskRef, taskRef));
+}
+
+// ─── Checklist Items ──────────────────────────────────────────────────────────
+export async function getChecklistForTask(taskRef: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(checklistItems)
+    .where(eq(checklistItems.taskRef, taskRef))
+    .orderBy(checklistItems.stage, checklistItems.stepOrder);
+}
+
+export async function createChecklistFromSOP(taskRef: string, department: string, serviceType: string) {
+  const db = await getDb();
+  if (!db) return;
+  // Get SOP templates for this dept + service
+  const templates = await db.select().from(sopTemplates)
+    .where(and(eq(sopTemplates.department, department), eq(sopTemplates.serviceType, serviceType)))
+    .orderBy(sopTemplates.stage, sopTemplates.stepOrder);
+
+  if (templates.length === 0) {
+    // Fallback: generic checklist
+    const genericSteps = [
+      { stage: "pre" as const, steps: ["Review task brief and confirm scope", "Confirm client requirements", "Prepare workspace and tools"] },
+      { stage: "during" as const, steps: ["Execute work according to brief", "Document progress and decisions", "Conduct internal quality check"] },
+      { stage: "post" as const, steps: ["Review final output against brief", "Submit to Lead for approval", "Update Central Master Tracker"] },
+    ];
+    for (const { stage, steps } of genericSteps) {
+      for (let i = 0; i < steps.length; i++) {
+        await db.insert(checklistItems).values({
+          taskRef, stage, stepOrder: i + 1, stepText: steps[i], isRequired: true,
+        });
+      }
+    }
+    return;
+  }
+
+  for (const t of templates) {
+    await db.insert(checklistItems).values({
+      taskRef,
+      stage: t.stage,
+      stepOrder: t.stepOrder,
+      stepText: t.stepText,
+      isRequired: t.isRequired,
+    });
+  }
+}
+
+export async function tickChecklistItem(
+  itemId: number,
+  completed: boolean,
+  staffId: string,
+  staffName: string,
+  taskRef: string,
+  stepText: string,
+  stage: "pre" | "during" | "post"
+) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(checklistItems)
+    .set({ isCompleted: completed, completedAt: completed ? new Date() : null })
+    .where(eq(checklistItems.id, itemId));
+
+  // Write to audit trail
+  await db.insert(auditTrail).values({
+    taskRef,
+    staffId,
+    staffName,
+    action: `${completed ? "Completed" : "Unchecked"}: ${stepText}`,
+    stage,
+  });
+}
+
+// ─── Audit Trail ─────────────────────────────────────────────────────────────
+export async function getAuditForTask(taskRef: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(auditTrail)
+    .where(eq(auditTrail.taskRef, taskRef))
+    .orderBy(desc(auditTrail.createdAt));
+}
+
+export async function addAuditEntry(entry: {
+  taskRef: string;
+  staffId: string;
+  staffName: string;
+  action: string;
+  stage: "pre" | "during" | "post" | "system";
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(auditTrail).values(entry);
+}
+
+// ─── SOP Templates ────────────────────────────────────────────────────────────
+export async function getSopTemplates(department?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (department) {
+    return db.select().from(sopTemplates)
+      .where(eq(sopTemplates.department, department))
+      .orderBy(sopTemplates.serviceType, sopTemplates.stage, sopTemplates.stepOrder);
+  }
+  return db.select().from(sopTemplates).orderBy(sopTemplates.department, sopTemplates.serviceType, sopTemplates.stage, sopTemplates.stepOrder);
+}
+
+export async function getServiceTypesByDept(department: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db.select({ serviceType: sopTemplates.serviceType })
+    .from(sopTemplates)
+    .where(eq(sopTemplates.department, department));
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const r of rows) {
+    if (!seen.has(r.serviceType)) {
+      seen.add(r.serviceType);
+      result.push(r.serviceType);
+    }
+  }
+  return result;
+}
+
+// ─── Founder Notes ────────────────────────────────────────────────────────────
+export async function getFounderNotes() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(founderNotes).orderBy(desc(founderNotes.updatedAt));
+}
+
+export async function createFounderNote(title: string, content: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(founderNotes).values({ title, content });
+}
+
+export async function updateFounderNote(id: number, title: string, content: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(founderNotes).set({ title, content, updatedAt: new Date() }).where(eq(founderNotes.id, id));
+}
+
 // ─── Clients ──────────────────────────────────────────────────────────────────
 export async function getClientByRef(clientRef: string) {
   const db = await getDb();
@@ -109,7 +387,7 @@ export async function getAllClients() {
   return db.select().from(clients).orderBy(clients.createdAt);
 }
 
-// ─── Tasks ────────────────────────────────────────────────────────────────────
+// ─── Tasks (legacy Google Sheets sync) ───────────────────────────────────────
 export async function getTasksByAssignee(assignedTo: string) {
   const db = await getDb();
   if (!db) return [];
@@ -184,7 +462,6 @@ export async function getDeliverablesByClientRef(clientRef: string) {
 export async function getRecentDeliverablesByAssignee(assignedTo: string, limit = 5) {
   const db = await getDb();
   if (!db) return [];
-  // Get tasks assigned to this person, then get deliverables for those tasks
   const userTasks = await db
     .select({ taskId: tasks.taskId })
     .from(tasks)
@@ -210,7 +487,7 @@ export async function getCommunicationsByClientRef(clientRef: string) {
     .orderBy(communications.createdAt);
 }
 
-// ─── Staff management ─────────────────────────────────────────────────────────────
+// ─── Staff management (legacy users table) ────────────────────────────────────
 export async function getAllStaff() {
   const db = await getDb();
   if (!db) return [];

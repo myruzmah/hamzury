@@ -108,4 +108,34 @@
 - [x] Direct redirect to /admin after super admin login
 
 ## Bug Fixes (Continued)
-- [ ] Fix Admin Panel showing Access Restricted to logged-in admin users
+- [x] Fix Admin Panel showing Access Restricted to logged-in admin users
+- [x] Fix JWT payload missing openId and appId fields
+- [x] Fix users not upserted to DB on custom portal login
+
+## Phase 7 — Role Hierarchy & SOP Task Lifecycle System
+- [ ] Generate SOP checklists for all 11 departments
+- [ ] Database schema: staff_role (lead/staff), sop_templates, task_checklist_items, task_lifecycle_stage
+- [ ] Department Lead dashboard (team tasks, KPIs, approvals, SOP management)
+- [ ] Individual staff dashboard (own tasks only, 3-stage lifecycle, personal KPIs)
+- [ ] Task card with Pre-Task / In-Progress / Post-Task checklist tabs
+- [ ] Completion gate (cannot advance stage until checklist complete)
+- [ ] Audit trail (every tick timestamped with staff name)
+- [ ] Department Lead can assign tasks to team members
+- [ ] Role-based routing (lead → /dept/dashboard, staff → /staff/my-tasks)
+- [ ] Update navigation for all three staff sub-roles
+
+## Phase 8 — Full Institutional Operating System
+- [x] DB schema: staffMembers, sopTemplates, taskLifecycle, checklistItems, auditTrail, founderNotes tables
+- [x] Seed real staff accounts: Haruna Muhammad (Founder), Idris Ibrahim (CEO/Lead-Systems), Aisha Musa (Lead-Studios), Fatima Yusuf (Lead-Bizdoc), Ahmad Lawal (Lead-Growth), Maryam Sani (Lead-People), Umar Abdullahi (Lead-Ledger), Ibrahim Hassan (Lead-Innovation), Zainab Umar (Lead-RIDI), Suleiman Ahmad Bashir (Staff-Studios/Bizdoc), Abubakar Bashir (Staff-Studios)
+- [x] CEO dashboard at /ceo-access-7x9m4 — command centre view (all depts, staff KPIs, client pipeline, task assignment)
+- [x] Founder dashboard at /founder-access-k8p1q — boardroom view (dept health, team overview, private notes, task assignment)
+- [x] Department Lead dashboard at /lead-dashboard — team tasks, approvals queue, assign task to staff
+- [x] Individual staff My Tasks dashboard at /my-tasks — personal tasks only, 3-stage SOP checklist
+- [x] Task Card with Pre-Task / During-Task / Post-Task tabs and completion gates
+- [x] Audit trail — every checklist tick timestamped with staff name
+- [x] Task assignment flow: CEO/Founder/Lead → Staff
+- [x] Approvals queue for Lead (review → approve / return for revision)
+- [x] Role-based routing: founder → /founder-access-k8p1q, ceo → /ceo-access-7x9m4, lead → /lead-dashboard, staff → /my-tasks
+- [x] Staff Login page at /staff-login with automatic role-based redirect
+- [x] All routes wired in App.tsx
+- [x] Staff seed script successfully executed — all 11 accounts active in database
