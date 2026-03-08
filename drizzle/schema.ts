@@ -364,3 +364,83 @@ export const clientIntake = mysqlTable("clientIntake", {
 });
 export type ClientIntake = typeof clientIntake.$inferSelect;
 export type InsertClientIntake = typeof clientIntake.$inferInsert;
+
+// ─── Task Files (deliverables uploaded by staff) ─────────────────────────────────────
+export const taskFiles = mysqlTable("taskFiles", {
+  id: int("id").autoincrement().primaryKey(),
+  taskRef: varchar("taskRef", { length: 32 }).notNull(),
+  uploadedByStaffId: varchar("uploadedByStaffId", { length: 32 }).notNull(),
+  uploadedByName: varchar("uploadedByName", { length: 256 }).notNull(),
+  fileName: varchar("fileName", { length: 512 }).notNull(),
+  fileKey: varchar("fileKey", { length: 512 }).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  mimeType: varchar("mimeType", { length: 128 }),
+  fileSizeBytes: int("fileSizeBytes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type TaskFile = typeof taskFiles.$inferSelect;
+
+// ─── Lead Department Weekly Reports ──────────────────────────────────────────────
+export const leadReports = mysqlTable("leadReports", {
+  id: int("id").autoincrement().primaryKey(),
+  reportRef: varchar("reportRef", { length: 32 }).notNull().unique(),
+  submittedByStaffId: varchar("submittedByStaffId", { length: 32 }).notNull(),
+  submittedByName: varchar("submittedByName", { length: 256 }).notNull(),
+  department: varchar("department", { length: 128 }).notNull(),
+  weekEnding: timestamp("weekEnding").notNull(),
+  win1: text("win1").notNull(),
+  win2: text("win2").notNull(),
+  win3: text("win3").notNull(),
+  blocker1: text("blocker1").notNull(),
+  blocker2: text("blocker2").notNull(),
+  keyInfo: text("keyInfo").notNull(),
+  tasksCompleted: int("tasksCompleted").default(0).notNull(),
+  tasksInProgress: int("tasksInProgress").default(0).notNull(),
+  tasksOverdue: int("tasksOverdue").default(0).notNull(),
+  isReadByFounder: boolean("isReadByFounder").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type LeadReport = typeof leadReports.$inferSelect;
+
+// ─── Staff Notifications ──────────────────────────────────────────────────────────────────
+export const staffNotifications = mysqlTable("staffNotifications", {
+  id: int("id").autoincrement().primaryKey(),
+  staffId: varchar("staffId", { length: 32 }).notNull(),
+  title: varchar("title", { length: 512 }).notNull(),
+  message: text("message").notNull(),
+  type: mysqlEnum("type", ["task_assigned", "task_approved", "task_rejected", "general"]).default("general").notNull(),
+  taskRef: varchar("taskRef", { length: 32 }),
+  isRead: boolean("isRead").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type StaffNotification = typeof staffNotifications.$inferSelect;
+
+// ─── RIDI Scholarship Applications ───────────────────────────────────────────
+export const ridiScholarshipApplications = mysqlTable("ridiScholarshipApplications", {
+  id: int("id").autoincrement().primaryKey(),
+  applicationRef: varchar("applicationRef", { length: 32 }).notNull().unique(),
+  name: varchar("name", { length: 256 }).notNull(),
+  phone: varchar("phone", { length: 32 }).notNull(),
+  state: varchar("state", { length: 128 }).notNull(),
+  lga: varchar("lga", { length: 128 }).notNull(),
+  age: int("age").notNull(),
+  gender: mysqlEnum("gender", ["Male", "Female", "Other"]).notNull(),
+  areaOfInterest: varchar("areaOfInterest", { length: 256 }).notNull(),
+  story: text("story").notNull(),
+  status: mysqlEnum("status", ["Pending", "Shortlisted", "Accepted", "Declined"]).default("Pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type RidiScholarshipApplication = typeof ridiScholarshipApplications.$inferSelect;
+
+// ─── RIDI Donations ───────────────────────────────────────────────────────────
+export const ridiDonations = mysqlTable("ridiDonations", {
+  id: int("id").autoincrement().primaryKey(),
+  donationRef: varchar("donationRef", { length: 32 }).notNull().unique(),
+  name: varchar("name", { length: 256 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  amount: varchar("amount", { length: 64 }).notNull(),
+  message: text("message"),
+  status: mysqlEnum("status", ["Pending", "Confirmed"]).default("Pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type RidiDonation = typeof ridiDonations.$inferSelect;

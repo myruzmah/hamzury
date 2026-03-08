@@ -235,3 +235,54 @@
 - [x] Add owner notification on every new intake submission
 - [x] Add /contact link to footer nav
 - [x] Wire Contact page form to tRPC (now calls contact.send mutation, notifies owner)
+
+## Phase 19 — Staff Onboarding Fixes
+- [x] Fix portal login routing (each role goes to correct dashboard)
+- [x] Add file upload to task detail view (staff attach deliverables)
+- [x] Add Lead weekly report form to lead-dashboard
+- [x] Wire intake-to-task auto-pipeline (new intake creates task for Lead)
+- [x] Add password change form to staff dashboards
+- [x] Add staff notification when Lead assigns a task
+
+## Phase 20 — Full Portal Upgrade + New Features
+
+### 20A — Dashboard Fixes (all roles)
+- [x] Wire file upload panel to task detail view in my-tasks (backend ready)
+- [x] Wire notification bell to all dashboards — staff, lead, CEO, founder (backend ready)
+- [x] Wire password change form to my-tasks and lead dashboard (backend ready)
+- [x] Add lead weekly report tab to lead dashboard (backend ready)
+- [x] Add HR onboarding tab to People Lead dashboard (create staff with temp password)
+- [x] Add staff directory tab to People Lead dashboard (deactivate, reset password)
+- [ ] Add lead reports view to CEO and Founder dashboards
+- [ ] Add intake queue tab to CEO dashboard with CLT-ID
+
+### 20B — /start Chat + Back Navigation
+- [x] Add back/previous button to every step of the /start intake form
+- [x] After submission: show reference number as downloadable PDF with instructions
+- [x] Response time messaging: "We respond fast — usually within the hour"
+
+### 20C — Department PDF Downloads
+- [x] Add downloadable PDF section to each department page (Studios, Systems, Bizdoc, Innovation Hub)
+- [x] Each PDF explains the department's services, process, and what clients receive
+
+### 20D — RIDI Donate + Rural Application
+- [x] Add Donate button to RIDI page with donation form (name, amount, message, payment method placeholder)
+- [x] Add "Apply for Scholarship" form for rural applicants (name, state, LGA, age, gender, area of interest, brief story)
+- [x] Scholarship applications saved to database, visible to RIDI Lead on her dashboard
+- [x] Donor submissions saved to database, visible to RIDI Lead and Founder
+
+### 20E — Innovation Hub Full Rebuild
+- [ ] Rebuild Innovation Hub public page: Academy (skills training, entrepreneurship, robotics) + HALS LMS + Hackathon + Ventures + Alumni
+- [ ] HALS section: online student access link/embed
+- [ ] Ibrahim Hassan's lead dashboard: cohort tracker, hackathon management, ventures pipeline, alumni directory, ideas backlog
+- [ ] CEO can assign tasks to Ibrahim directly
+
+### 20F — Quality Gate
+- [ ] Add gate_pending and gate_approved stages to taskLifecycle schema
+- [ ] Ahmad Lawal (Growth Lead) gets Quality Gate Queue tab on his dashboard
+- [ ] Approve or Return with comment — every action logged
+
+### 20G — Task Comment Thread
+- [ ] Add comment thread to every task detail view
+- [ ] Staff and leads can post text comments inside a task
+- [ ] Every comment timestamped and attributed — replaces WhatsApp for task communication

@@ -20,6 +20,9 @@ import {
   ridiImpact,
   sopTemplates,
   staffMembers,
+  taskFiles,
+  leadReports,
+  staffNotifications,
   taskLifecycle,
   tasks,
   users,
@@ -687,4 +690,147 @@ export async function updateIntakeStatus(
     .update(clientIntake)
     .set({ status, ...(csoNotes !== undefined ? { csoNotes } : {}), updatedAt: new Date() })
     .where(eq(clientIntake.referenceCode, referenceCode));
+}
+
+// ─── Task Files (deliverables uploaded by staff) ──────────────────────────────
+export async function addTaskFile(data: {
+  taskRef: string;
+  uploadedByStaffId: string;
+  uploadedByName: string;
+  fileName: string;
+  fileKey: string;
+  fileUrl: string;
+  mimeType?: string;
+  fileSizeBytes?: number;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(taskFiles).values(data);
+}
+
+export async function getTaskFiles(taskRef: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(taskFiles).where(eq(taskFiles.taskRef, taskRef)).orderBy(taskFiles.createdAt);
+}
+
+// ─── Lead Reports ─────────────────────────────────────────────────────────────
+export async function submitLeadReport(data: {
+  reportRef: string;
+  submittedByStaffId: string;
+  submittedByName: string;
+  department: string;
+  weekEnding: Date;
+  win1: string;
+  win2: string;
+  win3: string;
+  blocker1: string;
+  blocker2: string;
+  keyInfo: string;
+  tasksCompleted: number;
+  tasksInProgress: number;
+  tasksOverdue: number;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(leadReports).values(data);
+}
+
+export async function getAllLeadReports() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(leadReports).orderBy(desc(leadReports.createdAt));
+}
+
+export async function getLeadReportsByDept(department: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(leadReports).where(eq(leadReports.department, department)).orderBy(desc(leadReports.createdAt));
+}
+
+export async function markLeadReportRead(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(leadReports).set({ isReadByFounder: true }).where(eq(leadReports.id, id));
+}
+
+// ─── Staff Notifications ──────────────────────────────────────────────────────
+export async function createStaffNotification(data: {
+  staffId: string;
+  title: string;
+  message: string;
+  type: "task_assigned" | "task_approved" | "task_rejected" | "general";
+  taskRef?: string;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(staffNotifications).values(data);
+}
+
+export async function getStaffNotifications(staffId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(staffNotifications)
+    .where(eq(staffNotifications.staffId, staffId))
+    .orderBy(desc(staffNotifications.createdAt))
+    .limit(20);
+}
+
+export async function markNotificationRead(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(staffNotifications).set({ isRead: true }).where(eq(staffNotifications.id, id));
+}
+
+export async function markAllNotificationsRead(staffId: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(staffNotifications).set({ isRead: true }).where(eq(staffNotifications.staffId, staffId));
+}
+
+// ─── Staff Password Change ────────────────────────────────────────────────────
+export async function changeStaffPassword(staffId: string, newPasswordHash: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(staffMembers).set({ passwordHash: newPasswordHash }).where(eq(staffMembers.staffId, staffId));
+}
+
+// ─── RIDI Scholarship Applications ───────────────────────────────────────────
+export async function createScholarshipApplication(data: {
+  name: string; phone: string; state: string; lga: string;
+  age: number; gender: "Male" | "Female" | "Other";
+  areaOfInterest: string; story: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const { ridiScholarshipApplications } = await import("../drizzle/schema");
+  const applicationRef = `SCH-${Date.now().toString(36).toUpperCase()}`;
+  await db.insert(ridiScholarshipApplications).values({ applicationRef, ...data });
+  return applicationRef;
+}
+
+export async function getAllScholarshipApplications() {
+  const db = await getDb();
+  if (!db) return [];
+  const { ridiScholarshipApplications } = await import("../drizzle/schema");
+  return db.select().from(ridiScholarshipApplications).orderBy(ridiScholarshipApplications.createdAt);
+}
+
+// ─── RIDI Donations ───────────────────────────────────────────────────────────
+export async function createDonation(data: {
+  name: string; email: string; amount: string; message?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const { ridiDonations } = await import("../drizzle/schema");
+  const donationRef = `DON-${Date.now().toString(36).toUpperCase()}`;
+  await db.insert(ridiDonations).values({ donationRef, ...data });
+  return donationRef;
+}
+
+export async function getAllDonations() {
+  const db = await getDb();
+  if (!db) return [];
+  const { ridiDonations } = await import("../drizzle/schema");
+  return db.select().from(ridiDonations).orderBy(ridiDonations.createdAt);
 }

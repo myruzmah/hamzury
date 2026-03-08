@@ -302,6 +302,17 @@ export default function Studios() {
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
               Brand identity, content strategy, social media management, podcast production, and event media coverage. The visual and narrative infrastructure that makes your business credible before anyone speaks to you.
             </p>
+            <button
+              onClick={() => {
+                const content = ["HAMZURY STUDIOS — Department Overview","","SERVICES","1. Brand Identity Design","2. Social Media Management","3. Content Strategy","4. Podcast Production","5. Event Media Coverage","","HOW TO WORK WITH US","Visit hamzuryos.biz/start → Select Studios → Choose service → Complete brief","We respond within the hour.","","info@hamzury.com | hamzuryos.biz"].join("\n");
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = "HAMZURY-Studios-Overview.txt"; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded border text-xs border-white/20 hover:border-white/50 transition-colors"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >↓ Download Studios Overview</button>
           </div>
         </div>
       </section>

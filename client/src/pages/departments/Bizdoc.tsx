@@ -297,6 +297,17 @@ export default function Bizdoc() {
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
               CAC registration, annual returns, tax filings, PENCOM compliance, industry licensing, and regulatory advisory — handled properly, from start to finish.
             </p>
+            <button
+              onClick={() => {
+                const content = ["HAMZURY BIZDOC — Department Overview","","SERVICES","1. CAC Business Registration (Business Name, Ltd, NGO)","2. Annual Returns Filing","3. Tax Registration & Compliance (TIN, VAT, FIRS)","4. PENCOM & Pension Compliance","5. Industry Licensing (NAFDAC, NCC, CBN, SEC, SON)","6. Compliance Advisory","","HOW TO WORK WITH US","Visit hamzuryos.biz/start → Select Bizdoc → Choose service → Complete brief","We respond within the hour.","","info@hamzury.com | hamzuryos.biz"].join("\n");
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = "HAMZURY-Bizdoc-Overview.txt"; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded border text-xs border-white/20 hover:border-white/50 transition-colors"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >↓ Download Bizdoc Overview</button>
           </div>
           <div className="flex items-center gap-8 mt-12 pt-8 border-t border-white/10">
             <div><p className="text-2xl font-light text-white">6</p><p className="text-xs text-white/50 mt-1">Compliance services</p></div>

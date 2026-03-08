@@ -36,6 +36,20 @@
       "when": 1772936722136,
       "tag": "0004_condemned_princess_powerful",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1772946542475,
+      "tag": "0005_giant_terror",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1772980292291,
+      "tag": "0006_unknown_mach_iv",
+      "breakpoints": true
     }
   ]
 }

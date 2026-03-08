@@ -481,10 +481,53 @@ export default function ClientIntake() {
                 <p className="text-xs text-muted-foreground mb-1">Your Reference Code</p>
                 <p className="text-3xl font-light tracking-widest" style={{ color: "#1B4D3E" }}>{referenceCode}</p>
               </div>
-              <p className="text-xs text-muted-foreground mb-8">
-                A confirmation has been sent to <strong>{form.email}</strong>.<br />
-                Our team will review your request and reach out within 24 hours.
+              <p className="text-xs text-muted-foreground mb-2">
+                A confirmation has been sent to <strong>{form.email}</strong>.
               </p>
+              <p className="text-xs text-muted-foreground mb-8">
+                We respond fast — usually within the hour. Our team will review your request and reach out shortly.
+              </p>
+              {/* PDF download */}
+              <button
+                onClick={() => {
+                  const lines = [
+                    `HAMZURY — Project Intake Confirmation`,
+                    ``,
+                    `Reference Code: ${referenceCode}`,
+                    `Department:     ${DEPT_LABELS[form.department] || form.department}`,
+                    `Service:        ${form.serviceType}`,
+                    `Name:           ${form.name}`,
+                    `Email:          ${form.email}`,
+                    `Phone:          ${form.phone}`,
+                    form.whatsapp ? `WhatsApp:       ${form.whatsapp}` : ``,
+                    ``,
+                    `Description:`,
+                    form.description,
+                    ``,
+                    `---`,
+                    `What happens next:`,
+                    `1. A HAMZURY team member will review your brief.`,
+                    `2. We will contact you within the hour to confirm details.`,
+                    `3. You will receive a formal proposal within 24 hours.`,
+                    ``,
+                    `Track your project at: hamzuryos.biz/track?ref=${referenceCode}`,
+                    ``,
+                    `HAMZURY — Build institutions that last.`,
+                    `info@hamzury.com`,
+                  ].join("\n");
+                  const blob = new Blob([lines], { type: "text/plain" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `HAMZURY-${referenceCode}.txt`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded border text-xs mb-8 hover:bg-white transition-colors"
+                style={{ borderColor: "#1B4D3E", color: "#1B4D3E", background: "transparent" }}
+              >
+                <Upload size={12} /> Download Confirmation
+              </button>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link href={`/track?ref=${referenceCode}`}>
                   <Button variant="outline" style={{ borderColor: "#1B4D3E", color: "#1B4D3E" }}>

@@ -57,6 +57,61 @@ vi.mock("./db", () => ({
   getTasksByClientRef: vi.fn(async () => []),
   upsertUser: vi.fn(async () => {}),
   getUserByOpenId: vi.fn(async () => undefined),
+  getStaffMemberByEmail: vi.fn(async () => undefined),
+  getStaffMemberById: vi.fn(async () => undefined),
+  getAllStaffMembers: vi.fn(async () => []),
+  getAllStaff: vi.fn(async () => []),
+  getStaffByDepartment: vi.fn(async () => []),
+  updateStaffLastSignIn: vi.fn(async () => {}),
+  hashStaffPassword: vi.fn((p: string) => require("crypto").createHash("sha256").update(p).digest("hex")),
+  getDb: vi.fn(async () => null),
+  getAllTaskLifecycle: vi.fn(async () => []),
+  getTasksByDepartment: vi.fn(async () => []),
+  getTasksByStaffId: vi.fn(async () => []),
+  getTasksForReview: vi.fn(async () => []),
+  getTaskByRef: vi.fn(async () => undefined),
+  upsertTask: vi.fn(async () => {}),
+  createTaskLifecycle: vi.fn(async () => {}),
+  createChecklistFromSOP: vi.fn(async () => []),
+  getSopTemplates: vi.fn(async () => []),
+  getChecklistForTask: vi.fn(async () => []),
+  tickChecklistItem: vi.fn(async () => {}),
+  advanceTaskStage: vi.fn(async () => {}),
+  addAuditEntry: vi.fn(async () => {}),
+  getAuditForTask: vi.fn(async () => []),
+  addCommunication: vi.fn(async () => {}),
+  getFounderNotes: vi.fn(async () => []),
+  createFounderNote: vi.fn(async () => {}),
+  updateFounderNote: vi.fn(async () => {}),
+  getServiceTypesByDept: vi.fn(async () => []),
+  updateClientStatusDb: vi.fn(async () => {}),
+  createAgentRecord: vi.fn(async () => {}),
+  getAllAgents: vi.fn(async () => []),
+  generateIntakeReference: vi.fn(() => "INT-2026-001"),
+  createClientIntake: vi.fn(async () => {}),
+  getIntakeByReference: vi.fn(async () => undefined),
+  getAllIntakes: vi.fn(async () => []),
+  updateIntakeStatus: vi.fn(async () => {}),
+  addTaskFile: vi.fn(async () => {}),
+  getTaskFiles: vi.fn(async () => []),
+  submitLeadReport: vi.fn(async () => {}),
+  getAllLeadReports: vi.fn(async () => []),
+  getLeadReportsByDept: vi.fn(async () => []),
+  markLeadReportRead: vi.fn(async () => {}),
+  createStaffNotification: vi.fn(async () => {}),
+  getStaffNotifications: vi.fn(async () => []),
+  markNotificationRead: vi.fn(async () => {}),
+  markAllNotificationsRead: vi.fn(async () => {}),
+  changeStaffPassword: vi.fn(async () => {}),
+  getAllWeeklyReports: vi.fn(async () => []),
+  getLatestWeeklyReport: vi.fn(async () => undefined),
+  markReportReadByFounder: vi.fn(async () => {}),
+  submitWeeklyReport: vi.fn(async () => {}),
+  createRidiProgram: vi.fn(async () => {}),
+  getAllRidiPrograms: vi.fn(async () => []),
+  getRidiTotals: vi.fn(async () => ({ totalBeneficiaries: 0, totalCohorts: 0, totalPartners: 0 })),
+  updateRidiProgram: vi.fn(async () => {}),
+  upsertStaffUser: vi.fn(async () => {}),
 }));
 
 vi.mock("./sheets", () => ({
@@ -109,19 +164,36 @@ describe("auth.staffLogin", () => {
     ).rejects.toThrow();
   });
 
-  it("allows demo staff login with correct password", async () => {
+  it("allows staff login with correct hashed password", async () => {
+    const crypto = await import("crypto");
+    const correctHash = crypto.createHash("sha256").update("correctpassword").digest("hex");
+    const { getStaffMemberByEmail } = await import("./db") as any;
+    getStaffMemberByEmail.mockResolvedValueOnce({
+      id: 1, staffId: "STF-001", name: "Test Staff", email: "staff@hamzury.com",
+      passwordHash: correctHash, institutionalRole: "staff", primaryDepartment: "Studios",
+      isActive: true, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(),
+    });
     const ctx = createCtx();
     const caller = appRouter.createCaller(ctx);
-    const result = await caller.auth.staffLogin({ email: "staff@hamzury.com", password: "demo" });
+    const result = await caller.auth.staffLogin({ email: "staff@hamzury.com", password: "correctpassword" });
     expect(result.success).toBe(true);
-    expect(result.role).toBe("staff");
+    expect(result.institutionalRole).toBe("staff");
   });
 
-  it("allows demo mode for @hamzury.com emails", async () => {
+  it("rejects login for deactivated staff account", async () => {
+    const crypto = await import("crypto");
+    const correctHash = crypto.createHash("sha256").update("mypassword").digest("hex");
+    const { getStaffMemberByEmail } = await import("./db") as any;
+    getStaffMemberByEmail.mockResolvedValueOnce({
+      id: 2, staffId: "STF-002", name: "Inactive Staff", email: "inactive@hamzury.com",
+      passwordHash: correctHash, institutionalRole: "staff", primaryDepartment: "Studios",
+      isActive: false, createdAt: new Date(), updatedAt: new Date(), lastSignedIn: new Date(),
+    });
     const ctx = createCtx();
     const caller = appRouter.createCaller(ctx);
-    const result = await caller.auth.staffLogin({ email: "newstaff@hamzury.com", password: "demo" });
-    expect(result.success).toBe(true);
+    await expect(
+      caller.auth.staffLogin({ email: "inactive@hamzury.com", password: "mypassword" })
+    ).rejects.toThrow();
   });
 });
 

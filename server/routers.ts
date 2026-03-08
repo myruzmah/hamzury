@@ -76,7 +76,21 @@ import {
   getIntakeByReference,
   getAllIntakes,
   updateIntakeStatus,
+  addTaskFile,
+  getTaskFiles,
+  submitLeadReport,
+  getAllLeadReports,
+  getLeadReportsByDept,
+  markLeadReportRead,
+  createStaffNotification,
+  getStaffNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
+  changeStaffPassword,
+  getDb,
 } from "./db";
+import { staffMembers } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import {
   getMockDeliverables,
   getMockKPIs,
@@ -218,6 +232,26 @@ const authRouter = router({
       }
       return { clientRef: client.clientRef, name: client.name };
     }),
+
+  // Staff password change
+  changePassword: publicProcedure
+    .input(z.object({
+      currentPassword: z.string().min(1),
+      newPassword: z.string().min(6),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId;
+      if (!staffId) throw new TRPCError({ code: "UNAUTHORIZED", message: "Not logged in as staff." });
+      const staff = await getStaffMemberById(staffId);
+      if (!staff) throw new TRPCError({ code: "NOT_FOUND", message: "Staff account not found." });
+      const currentHash = hashStaffPassword(input.currentPassword);
+      if (staff.passwordHash !== currentHash) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Current password is incorrect." });
+      }
+      const newHash = hashStaffPassword(input.newPassword);
+      await changeStaffPassword(staffId, newHash);
+      return { success: true };
+    }),
 });
 
 // ─── Institutional Staff router ───────────────────────────────────────────────
@@ -300,6 +334,7 @@ const institutionalRouter = router({
       priority: z.enum(["normal", "urgent"]).default("normal"),
       deadline: z.string().optional(),
       notes: z.string().optional(),
+      // notification handled internally
     }))
     .mutation(async ({ input, ctx }) => {
       const staffId = (ctx.user as any)?.staffId ?? "STF-001";
@@ -331,6 +366,17 @@ const institutionalRouter = router({
         action: `Task created and assigned to ${input.assignedToStaffId}`,
         stage: "system",
       });
+
+      // Notify the assigned staff member
+      try {
+        await createStaffNotification({
+          staffId: input.assignedToStaffId,
+          title: `New task assigned: ${input.title}`,
+          message: `You have been assigned a new ${input.priority === "urgent" ? "URGENT " : ""}task in ${input.department}: "${input.title}".${input.notes ? " Notes: " + input.notes : ""}`,
+          type: "task_assigned",
+          taskRef,
+        });
+      } catch (_) {}
 
       return { success: true, taskRef };
     }),
@@ -375,6 +421,22 @@ const institutionalRouter = router({
         stage: "system",
       });
 
+      // Notify staff on approval or rejection
+      try {
+        const task = await getTaskByRef(input.taskRef);
+        if (task && (input.stage === "approved" || input.stage === "rejected")) {
+          await createStaffNotification({
+            staffId: task.assignedToStaffId,
+            title: input.stage === "approved" ? `Task approved: ${task.title}` : `Task returned: ${task.title}`,
+            message: input.stage === "approved"
+              ? `Your task "${task.title}" has been approved by ${staffName}. Well done!`
+              : `Your task "${task.title}" was returned by ${staffName}. Reason: ${input.rejectionComment ?? "See task for details."}`,
+            type: input.stage === "approved" ? "task_approved" : "task_rejected",
+            taskRef: input.taskRef,
+          });
+        }
+      } catch (_) {}
+
       return { success: true };
     }),
 
@@ -402,6 +464,161 @@ const institutionalRouter = router({
     .mutation(async ({ input }) => {
       await updateFounderNote(input.id, input.title, input.content);
       return { success: true };
+    }),
+
+  // ── Task File Upload ─────────────────────────────────────────────────────
+  uploadTaskFile: publicProcedure
+    .input(z.object({
+      taskRef: z.string().min(1),
+      fileName: z.string().min(1),
+      fileBase64: z.string().min(1),
+      mimeType: z.string().optional(),
+      fileSizeBytes: z.number().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "unknown";
+      const staffName = (ctx.user as any)?.name ?? "Staff";
+      const { storagePut } = await import("./storage");
+      const suffix = nanoid(8);
+      const ext = input.fileName.split(".").pop() ?? "bin";
+      const fileKey = `task-files/${input.taskRef}/${suffix}.${ext}`;
+      const buffer = Buffer.from(input.fileBase64, "base64");
+      const { url } = await storagePut(fileKey, buffer, input.mimeType ?? "application/octet-stream");
+      await addTaskFile({
+        taskRef: input.taskRef,
+        uploadedByStaffId: staffId,
+        uploadedByName: staffName,
+        fileName: input.fileName,
+        fileKey,
+        fileUrl: url,
+        mimeType: input.mimeType,
+        fileSizeBytes: input.fileSizeBytes,
+      });
+      await addAuditEntry({
+        taskRef: input.taskRef,
+        staffId,
+        staffName,
+        action: `Uploaded file: ${input.fileName}`,
+        stage: "system",
+      });
+      return { success: true, url, fileKey };
+    }),
+
+  getTaskFiles: publicProcedure
+    .input(z.object({ taskRef: z.string() }))
+    .query(async ({ input }) => getTaskFiles(input.taskRef)),
+
+  // ── Staff Notifications ──────────────────────────────────────────────────
+  myNotifications: publicProcedure.query(async ({ ctx }) => {
+    const staffId = (ctx.user as any)?.staffId;
+    if (!staffId) return [];
+    return getStaffNotifications(staffId);
+  }),
+
+  markNotificationRead: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => { await markNotificationRead(input.id); return { success: true }; }),
+
+  markAllNotificationsRead: publicProcedure.mutation(async ({ ctx }) => {
+    const staffId = (ctx.user as any)?.staffId;
+    if (staffId) await markAllNotificationsRead(staffId);
+    return { success: true };
+  }),
+
+  // ── Lead Weekly Report ───────────────────────────────────────────────────
+  submitLeadReport: publicProcedure
+    .input(z.object({
+      win1: z.string().min(1),
+      win2: z.string().min(1),
+      win3: z.string().min(1),
+      blocker1: z.string().min(1),
+      blocker2: z.string().min(1),
+      keyInfo: z.string().min(1),
+      tasksCompleted: z.number().min(0).default(0),
+      tasksInProgress: z.number().min(0).default(0),
+      tasksOverdue: z.number().min(0).default(0),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "unknown";
+      const staffName = (ctx.user as any)?.name ?? "Lead";
+      const department = (ctx.user as any)?.department ?? "Unknown";
+      const now = new Date();
+      const day = now.getDay();
+      const daysToFriday = (5 - day + 7) % 7;
+      const friday = new Date(now.getTime() + daysToFriday * 86400000);
+      const weekNum = Math.ceil(friday.getDate() / 7);
+      const reportRef = `LRP-${friday.getFullYear()}-${department.slice(0,3).toUpperCase()}-W${weekNum}`;
+      await submitLeadReport({
+        reportRef,
+        submittedByStaffId: staffId,
+        submittedByName: staffName,
+        department,
+        weekEnding: friday,
+        ...input,
+      });
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        await notifyOwner({
+          title: `${department} Lead Report — ${friday.toDateString()}`,
+          content: `From: ${staffName} (${department})\n\nWINS:\n1. ${input.win1}\n2. ${input.win2}\n3. ${input.win3}\n\nBLOCKERS:\n1. ${input.blocker1}\n2. ${input.blocker2}\n\nKEY INFO: ${input.keyInfo}\n\nNUMBERS:\nCompleted: ${input.tasksCompleted} | In Progress: ${input.tasksInProgress} | Overdue: ${input.tasksOverdue}`,
+        });
+      } catch (_) {}
+      return { success: true, reportRef };
+    }),
+
+  allLeadReports: publicProcedure.query(async () => getAllLeadReports()),
+  markLeadReportRead: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input }) => { await markLeadReportRead(input.id); return { success: true }; }),
+
+  // ── HR: create staff member with temp password ──
+  createStaffMember: publicProcedure
+    .input(z.object({
+      name: z.string().min(1),
+      email: z.string().email(),
+      department: z.string().min(1),
+      institutionalRole: z.enum(["staff", "lead"]),
+    }))
+    .mutation(async ({ input }) => {
+      const tempPassword = Math.random().toString(36).slice(-8).toUpperCase();
+      const passwordHash = hashStaffPassword(tempPassword);
+      const staffId = `STF-${Date.now().toString(36).toUpperCase()}`;
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      await db.insert(staffMembers).values({
+        staffId,
+        name: input.name,
+        email: input.email,
+        passwordHash,
+        primaryDepartment: input.department as any,
+        institutionalRole: input.institutionalRole,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any);
+      return { staffId, tempPassword };
+    }),
+
+  // ── HR: deactivate staff member ──
+  deactivateStaff: publicProcedure
+    .input(z.object({ staffId: z.string() }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      await db.update(staffMembers).set({ isActive: false, updatedAt: new Date() }).where(eq(staffMembers.staffId, input.staffId));
+      return { success: true };
+    }),
+
+  // ── HR: reset staff password ──
+  resetStaffPassword: publicProcedure
+    .input(z.object({ staffId: z.string() }))
+    .mutation(async ({ input }) => {
+      const tempPassword = Math.random().toString(36).slice(-8).toUpperCase();
+      const passwordHash = hashStaffPassword(tempPassword);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      await db.update(staffMembers).set({ passwordHash, updatedAt: new Date() }).where(eq(staffMembers.staffId, input.staffId));
+      return { tempPassword };
     }),
 });
 
@@ -963,6 +1180,58 @@ const ridiRouter = router({
       await updateRidiProgram(programRef, updates);
       return { success: true };
     }),
+
+  // ── Public: apply for RIDI scholarship ──
+  applyScholarship: publicProcedure
+    .input(z.object({
+      name: z.string().min(2),
+      phone: z.string().min(7),
+      state: z.string().min(2),
+      lga: z.string().min(2),
+      age: z.number().int().min(14).max(35),
+      gender: z.enum(["Male", "Female", "Other"]),
+      areaOfInterest: z.string().min(2),
+      story: z.string().min(20),
+    }))
+    .mutation(async ({ input }) => {
+      const { createScholarshipApplication } = await import("./db");
+      const applicationRef = await createScholarshipApplication(input);
+      await notifyOwner({
+        title: "New RIDI Scholarship Application",
+        content: `${input.name} from ${input.lga}, ${input.state} has applied for a RIDI scholarship. Interest: ${input.areaOfInterest}. Ref: ${applicationRef}`,
+      });
+      return { success: true, applicationRef };
+    }),
+
+  // ── Public: submit a donation ──
+  submitDonation: publicProcedure
+    .input(z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      amount: z.string().min(1),
+      message: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const { createDonation } = await import("./db");
+      const donationRef = await createDonation(input);
+      await notifyOwner({
+        title: "New RIDI Donation",
+        content: `${input.name} (${input.email}) has pledged a donation of ₦${input.amount} to RIDI. Ref: ${donationRef}`,
+      });
+      return { success: true, donationRef };
+    }),
+
+  // ── Protected: get all scholarship applications (RIDI Lead) ──
+  getScholarshipApplications: protectedProcedure.query(async () => {
+    const { getAllScholarshipApplications } = await import("./db");
+    return getAllScholarshipApplications();
+  }),
+
+  // ── Protected: get all donations (RIDI Lead + Founder) ──
+  getDonations: protectedProcedure.query(async () => {
+    const { getAllDonations } = await import("./db");
+    return getAllDonations();
+  }),
 });
 
 // --- App router ---
@@ -984,6 +1253,35 @@ const intakeRouter = router({
      .mutation(async ({ input }) => {
        const referenceCode = await generateIntakeReference();
        const intake = await createClientIntake({ ...input, referenceCode, status: "new" });
+
+       // Auto-create a task for the department Lead
+       try {
+         const deptStaff = await getStaffByDepartment(input.department);
+         const lead = deptStaff.find((s: any) => s.institutionalRole === "lead");
+         if (lead) {
+           const taskRef = `TSK-INT-${referenceCode}`;
+           await createTaskLifecycle({
+             taskRef,
+             title: `[Intake] ${input.serviceType} — ${input.name}`,
+             clientRef: undefined,
+             clientName: input.name,
+             department: input.department,
+             serviceType: input.serviceType,
+             assignedByStaffId: "SYSTEM",
+             assignedToStaffId: lead.staffId,
+             priority: "normal",
+             notes: `Intake ref: ${referenceCode}\nEmail: ${input.email}\nPhone: ${input.phone}\n\n${input.description}`,
+           });
+           await createStaffNotification({
+             staffId: lead.staffId,
+             title: `New intake assigned: ${input.serviceType}`,
+             message: `A new client intake (${referenceCode}) has been assigned to you in ${input.department}. Client: ${input.name}.`,
+             type: "task_assigned",
+             taskRef,
+           });
+         }
+       } catch (_) { /* non-blocking — intake still saved */ }
+
        // Notify owner of new intake
        try {
          const { notifyOwner } = await import("./_core/notification");

@@ -3,6 +3,256 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { CSOAgent } from "@/components/CSOAgent";
 import { BizdocAgent } from "@/components/BizdocAgent";
+import { toast } from "sonner";
+
+// ─── Notification Bell ────────────────────────────────────────────────────────
+function NotificationBell() {
+  const [open, setOpen] = useState(false);
+  const notifsQuery = trpc.institutional.myNotifications.useQuery();
+  const markReadMutation = trpc.institutional.markNotificationRead.useMutation({ onSuccess: () => notifsQuery.refetch() });
+  const markAllMutation = trpc.institutional.markAllNotificationsRead.useMutation({ onSuccess: () => notifsQuery.refetch() });
+  const notifs = notifsQuery.data ?? [];
+  const unread = notifs.filter((n: any) => !n.isRead).length;
+  return (
+    <div className="relative">
+      <button onClick={() => setOpen(!open)} className="relative p-2 text-stone-400 hover:text-stone-600 transition-colors">
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        {unread > 0 && (
+          <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold">
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute right-0 top-10 w-80 bg-white rounded-2xl shadow-xl border border-stone-100 z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-stone-100">
+            <span className="text-sm font-semibold text-stone-900">Notifications</span>
+            {unread > 0 && <button onClick={() => markAllMutation.mutate()} className="text-xs text-[#1B4D3E] hover:underline">Mark all read</button>}
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifs.length === 0 ? (
+              <div className="p-6 text-center text-sm text-stone-400">No notifications yet.</div>
+            ) : notifs.map((n: any) => (
+              <div key={n.id} onClick={() => !n.isRead && markReadMutation.mutate({ id: n.id })}
+                className={`px-4 py-3 border-b border-stone-50 cursor-pointer hover:bg-stone-50 transition-colors ${!n.isRead ? "bg-[#1B4D3E]/5" : ""}`}>
+                <div className="flex items-start gap-2">
+                  {!n.isRead && <div className="w-2 h-2 bg-[#1B4D3E] rounded-full mt-1.5 flex-shrink-0" />}
+                  <div className={!n.isRead ? "" : "ml-4"}>
+                    <div className="text-xs font-semibold text-stone-800">{n.title}</div>
+                    <div className="text-xs text-stone-500 mt-0.5">{n.message}</div>
+                    <div className="text-xs text-stone-300 mt-1">{new Date(n.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {open && <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />}
+    </div>
+  );
+}
+
+// ─── Password Change Modal ────────────────────────────────────────────────────
+function PasswordChangeModal({ onClose }: { onClose: () => void }) {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const changeMutation = trpc.auth.changePassword.useMutation({
+    onSuccess: () => { toast.success("Password changed successfully."); onClose(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const submit = () => {
+    if (next !== confirm) { toast.error("New passwords do not match."); return; }
+    if (next.length < 6) { toast.error("Password must be at least 6 characters."); return; }
+    changeMutation.mutate({ currentPassword: current, newPassword: next });
+  };
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-base font-semibold text-stone-900">Change Password</h3>
+          <button onClick={onClose} className="text-stone-400 hover:text-stone-600 text-xl">×</button>
+        </div>
+        <div className="space-y-3">
+          <div><label className="text-xs font-medium text-stone-600 block mb-1">Current password</label>
+            <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+          <div><label className="text-xs font-medium text-stone-600 block mb-1">New password</label>
+            <input type="password" value={next} onChange={(e) => setNext(e.target.value)} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+          <div><label className="text-xs font-medium text-stone-600 block mb-1">Confirm new password</label>
+            <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+          <button onClick={submit} disabled={changeMutation.isPending || !current || !next || !confirm}
+            className="w-full bg-[#1B4D3E] text-white rounded-xl py-3 text-sm font-medium hover:bg-[#163d30] transition-colors disabled:opacity-50 mt-2">
+            {changeMutation.isPending ? "Changing…" : "Change Password"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── HR Onboarding Panel (People Lead only) ───────────────────────────────────
+function HROnboardingPanel() {
+  const [form, setForm] = useState({ name: "", email: "", department: "Studios", institutionalRole: "staff" as "staff" | "lead" });
+  const [tempPassword, setTempPassword] = useState("");
+  const allStaffQuery = trpc.institutional.allStaff.useQuery();
+  const createMutation = trpc.institutional.createStaffMember.useMutation({
+    onSuccess: (data: any) => {
+      setTempPassword(data.tempPassword);
+      setForm({ name: "", email: "", department: "Studios", institutionalRole: "staff" });
+      allStaffQuery.refetch();
+      toast.success("Staff member created.");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const deactivateMutation = trpc.institutional.deactivateStaff.useMutation({
+    onSuccess: () => { allStaffQuery.refetch(); toast.success("Staff member deactivated."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const resetMutation = trpc.institutional.resetStaffPassword.useMutation({
+    onSuccess: (data: any) => { setTempPassword(data.tempPassword); toast.success("Password reset."); },
+    onError: (e) => toast.error(e.message),
+  });
+  const DEPTS = ["CSO", "Systems", "Studios", "Bizdoc", "Innovation", "Growth", "People", "Ledger", "RIDI"];
+  const allStaff = allStaffQuery.data ?? [];
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-2xl border border-stone-100 p-6">
+        <h3 className="text-sm font-semibold text-stone-900 mb-4">Onboard New Staff Member</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div><label className="text-xs font-medium text-stone-600 block mb-1">Full Name</label>
+            <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Amina Yusuf"
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+          <div><label className="text-xs font-medium text-stone-600 block mb-1">Email Address</label>
+            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="amina@hamzury.com"
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+          <div><label className="text-xs font-medium text-stone-600 block mb-1">Department</label>
+            <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E] bg-white">
+              {DEPTS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select></div>
+          <div><label className="text-xs font-medium text-stone-600 block mb-1">Role</label>
+            <select value={form.institutionalRole} onChange={(e) => setForm({ ...form, institutionalRole: e.target.value as "staff" | "lead" })}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E] bg-white">
+              <option value="staff">Staff</option>
+              <option value="lead">Lead</option>
+            </select></div>
+        </div>
+        <button onClick={() => createMutation.mutate(form)} disabled={createMutation.isPending || !form.name || !form.email}
+          className="bg-[#1B4D3E] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#163d30] transition-colors disabled:opacity-50">
+          {createMutation.isPending ? "Creating…" : "Create Staff Account"}
+        </button>
+        {tempPassword && (
+          <div className="mt-4 bg-green-50 border border-green-200 rounded-xl p-4">
+            <div className="text-xs font-semibold text-green-700 mb-1">Account Created — Share these credentials:</div>
+            <div className="text-sm text-green-800 font-mono bg-white rounded-lg px-3 py-2 border border-green-200">
+              Temporary Password: <strong>{tempPassword}</strong>
+            </div>
+            <div className="text-xs text-green-600 mt-2">Tell the staff member to log in at /portal and change their password immediately.</div>
+            <button onClick={() => setTempPassword("")} className="mt-2 text-xs text-green-600 hover:underline">Dismiss</button>
+          </div>
+        )}
+      </div>
+      <div className="bg-white rounded-2xl border border-stone-100 p-6">
+        <h3 className="text-sm font-semibold text-stone-900 mb-4">Staff Directory ({allStaff.length} members)</h3>
+        <div className="space-y-2">
+          {allStaff.map((s: any) => (
+            <div key={s.staffId} className="flex items-center justify-between p-3 rounded-xl border border-stone-100 hover:border-stone-200 transition-colors">
+              <div>
+                <div className="text-sm font-medium text-stone-900">{s.name}</div>
+                <div className="text-xs text-stone-400">{s.email} · {s.primaryDepartment} · {s.institutionalRole}</div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => resetMutation.mutate({ staffId: s.staffId })}
+                  className="text-xs text-[#1B4D3E] border border-[#1B4D3E]/30 px-2 py-1 rounded-lg hover:bg-[#1B4D3E]/5 transition-colors">
+                  Reset PW
+                </button>
+                {s.isActive && (
+                  <button onClick={() => deactivateMutation.mutate({ staffId: s.staffId })}
+                    className="text-xs text-red-600 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+                    Deactivate
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Lead Weekly Report Form ──────────────────────────────────────────────────
+function LeadReportForm({ department, staffId }: { department: string; staffId: string }) {
+  const [form, setForm] = useState({ win1: "", win2: "", win3: "", blocker1: "", blocker2: "", keyInfo: "", tasksCompleted: 0, tasksInProgress: 0, tasksOverdue: 0 });
+  const submitMutation = trpc.institutional.submitLeadReport.useMutation({
+    onSuccess: () => { toast.success("Weekly report submitted."); setForm({ win1: "", win2: "", win3: "", blocker1: "", blocker2: "", keyInfo: "", tasksCompleted: 0, tasksInProgress: 0, tasksOverdue: 0 }); },
+    onError: (e) => toast.error(e.message),
+  });
+  const submit = () => {
+    if (!form.win1 || !form.blocker1) { toast.error("Please fill in at least one win and one blocker."); return; }
+    submitMutation.mutate({
+      win1: form.win1,
+      win2: form.win2 || "N/A",
+      win3: form.win3 || "N/A",
+      blocker1: form.blocker1,
+      blocker2: form.blocker2 || "N/A",
+      keyInfo: form.keyInfo || "No additional info",
+      tasksCompleted: form.tasksCompleted,
+      tasksInProgress: form.tasksInProgress,
+      tasksOverdue: form.tasksOverdue,
+    });
+  };
+  return (
+    <div className="bg-white rounded-2xl border border-stone-100 p-6 max-w-2xl">
+      <h3 className="text-sm font-semibold text-stone-900 mb-1">Weekly Department Report</h3>
+      <p className="text-xs text-stone-400 mb-5">Submit every Friday. This goes to the CEO and Founder.</p>
+      <div className="space-y-4">
+        <div>
+          <div className="text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">3 Wins This Week</div>
+          {(["win1", "win2", "win3"] as const).map((k, i) => (
+            <input key={k} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })}
+              placeholder={`Win ${i + 1}${i === 0 ? " (required)" : " (optional)"}`}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E] mb-2" />
+          ))}
+        </div>
+        <div>
+          <div className="text-xs font-semibold text-stone-600 uppercase tracking-wider mb-2">Blockers / Challenges</div>
+          {(["blocker1", "blocker2"] as const).map((k, i) => (
+            <input key={k} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })}
+              placeholder={`Blocker ${i + 1}${i === 0 ? " (required)" : " (optional)"}`}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E] mb-2" />
+          ))}
+        </div>
+        <div>
+          <label className="text-xs font-medium text-stone-600 block mb-1">Key Info / Highlight</label>
+          <input value={form.keyInfo} onChange={(e) => setForm({ ...form, keyInfo: e.target.value })} placeholder="e.g. 3 clients onboarded, revenue target hit"
+            className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="text-xs font-medium text-stone-600 block mb-1">Completed</label>
+            <input type="number" min={0} value={form.tasksCompleted} onChange={(e) => setForm({ ...form, tasksCompleted: parseInt(e.target.value) || 0 })}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+          <div>
+            <label className="text-xs font-medium text-stone-600 block mb-1">In Progress</label>
+            <input type="number" min={0} value={form.tasksInProgress} onChange={(e) => setForm({ ...form, tasksInProgress: parseInt(e.target.value) || 0 })}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+          <div>
+            <label className="text-xs font-medium text-stone-600 block mb-1">Overdue</label>
+            <input type="number" min={0} value={form.tasksOverdue} onChange={(e) => setForm({ ...form, tasksOverdue: parseInt(e.target.value) || 0 })}
+              className="w-full border border-stone-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1B4D3E]" /></div>
+        </div>
+        <button onClick={submit} disabled={submitMutation.isPending}
+          className="bg-[#1B4D3E] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#163d30] transition-colors disabled:opacity-50">
+          {submitMutation.isPending ? "Submitting…" : "Submit Weekly Report"}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 type TaskStage = "pre" | "during" | "post" | "review" | "approved" | "rejected" | "closed";
 
@@ -304,8 +554,10 @@ function ReviewModal({
 // ─── Lead Dashboard ───────────────────────────────────────────────────────────
 export default function LeadDashboard() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "review" | "team" | "agent">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "review" | "team" | "report" | "hr" | "agent">("overview");
   const [showAssign, setShowAssign] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [reviewingTask, setReviewingTask] = useState<{ taskRef: string; title: string; assignedToStaffId: string } | null>(null);
 
   // Get profile from session
@@ -346,48 +598,55 @@ export default function LeadDashboard() {
           </div>
           <div className="flex items-center gap-3">
             {reviewQueue.length > 0 && (
-              <button
-                onClick={() => setActiveTab("review")}
-                className="relative bg-purple-50 text-purple-700 text-sm px-4 py-2 rounded-lg hover:bg-purple-100 transition-colors"
-              >
+              <button onClick={() => setActiveTab("review")}
+                className="relative bg-purple-50 text-purple-700 text-sm px-4 py-2 rounded-lg hover:bg-purple-100 transition-colors">
                 Review Queue
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-600 text-white text-xs rounded-full flex items-center justify-center">
-                  {reviewQueue.length}
-                </span>
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-purple-600 text-white text-xs rounded-full flex items-center justify-center">{reviewQueue.length}</span>
               </button>
             )}
-            <button
-              onClick={() => setShowAssign(true)}
-              className="bg-[#1B4D3E] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#163d30] transition-colors"
-            >
+            <button onClick={() => setShowAssign(true)} className="bg-[#1B4D3E] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#163d30] transition-colors">
               + Assign Task
             </button>
-            <button
-              onClick={() => logout.mutate()}
-              className="text-stone-400 text-sm hover:text-stone-600 transition-colors"
-            >
-              Sign out
-            </button>
+            <NotificationBell />
+            <div className="relative">
+              <button onClick={() => setShowProfileMenu(!showProfileMenu)} className="text-stone-400 hover:text-stone-600 transition-colors p-2">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+              {showProfileMenu && (
+                <div className="absolute right-0 top-10 w-48 bg-white rounded-xl shadow-xl border border-stone-100 z-50 overflow-hidden">
+                  <button onClick={() => { setShowPasswordChange(true); setShowProfileMenu(false); }}
+                    className="w-full text-left px-4 py-3 text-sm text-stone-700 hover:bg-stone-50 transition-colors">Change Password</button>
+                  <button onClick={() => logout.mutate()}
+                    className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-stone-100">Sign Out</button>
+                </div>
+              )}
+              {showProfileMenu && <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />}
+            </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tabs */}
-        <div className="flex gap-1 mb-8 bg-white rounded-xl p-1 border border-stone-100 w-fit">
-          {(["overview", "tasks", "review", "team", "agent"] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+        <div className="flex gap-1 mb-8 bg-white rounded-xl p-1 border border-stone-100 flex-wrap">
+          {([
+            { id: "overview", label: "Overview" },
+            { id: "tasks", label: "Tasks" },
+            { id: "review", label: "Review" },
+            { id: "team", label: "Team" },
+            { id: "report", label: "Weekly Report" },
+            ...(department === "People" ? [{ id: "hr", label: "HR / Onboarding" }] : []),
+            { id: "agent", label: "AI Agent" },
+          ] as { id: string; label: string }[]).map((tab) => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all relative ${
-                activeTab === tab ? "bg-[#1B4D3E] text-white" : "text-stone-500 hover:text-stone-700"
-              }`}
-            >
-              {tab === "agent" ? "AI Agent" : tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {tab === "review" && reviewQueue.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-600 text-white text-xs rounded-full flex items-center justify-center">
-                  {reviewQueue.length}
-                </span>
+                activeTab === tab.id ? "bg-[#1B4D3E] text-white" : "text-stone-500 hover:text-stone-700"
+              }`}>
+              {tab.label}
+              {tab.id === "review" && reviewQueue.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-purple-600 text-white text-xs rounded-full flex items-center justify-center">{reviewQueue.length}</span>
               )}
             </button>
           ))}
@@ -537,6 +796,8 @@ export default function LeadDashboard() {
         )}
 
         {/* Team tab */}
+        {activeTab === "report" && <LeadReportForm department={department} staffId={staffId} />}
+        {activeTab === "hr" && department === "People" && <HROnboardingPanel />}
         {activeTab === "team" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {deptStaff.map((member) => {
@@ -562,6 +823,7 @@ export default function LeadDashboard() {
         )}
       </div>
 
+      {showPasswordChange && <PasswordChangeModal onClose={() => setShowPasswordChange(false)} />}
       {showAssign && (
         <AssignTaskModal
           department={department}

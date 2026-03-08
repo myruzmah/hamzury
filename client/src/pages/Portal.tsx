@@ -133,7 +133,7 @@ export default function Portal() {
 
             {/* Forms */}
             {activeTab === "staff" && (
-              <StaffLoginForm onSuccess={() => navigate("/staff/dashboard")} />
+              <StaffLoginForm onSuccess={(path) => navigate(path)} />
             )}
             {activeTab === "agent" && (
               <AgentLoginForm onSuccess={() => navigate("/agent/dashboard")} />
@@ -145,13 +145,23 @@ export default function Portal() {
   );
 }
 
+// ─── Role → Dashboard routing ────────────────────────────────────────────────
+function getDashboardPath(institutionalRole: string): string {
+  switch (institutionalRole) {
+    case "founder": return "/founder-access-k8p1q";
+    case "ceo":     return "/ceo-access-7x9m4";
+    case "lead":    return "/lead-dashboard";
+    default:        return "/my-tasks";
+  }
+}
+
 // ─── Staff Login Form ─────────────────────────────────────────────────────────
-function StaffLoginForm({ onSuccess }: { onSuccess: () => void }) {
+function StaffLoginForm({ onSuccess }: { onSuccess: (path: string) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const loginMutation = trpc.auth.staffLogin.useMutation({
-    onSuccess: () => { toast.success("Welcome back."); onSuccess(); },
+    onSuccess: (data) => { toast.success("Welcome back."); onSuccess(getDashboardPath(data.institutionalRole)); },
     onError: (err) => toast.error(err.message),
   });
 

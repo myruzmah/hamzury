@@ -287,6 +287,17 @@ export default function InnovationHub() {
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
               Structured programmes for executives, young people, and practitioners — building the capacity that organisations and communities need to operate in a technology-driven world.
             </p>
+            <button
+              onClick={() => {
+                const content = ["HAMZURY INNOVATION HUB — Department Overview","","PROGRAMMES","1. Executive Class — Leadership & Strategy (12 weeks, in-person)","2. Young Innovators — Ages 10–17 (8 weeks, weekend cohort)","3. Tech Bootcamp — Intensive Skills (6 weeks, full-time)","4. Digital Skills — Community Programme (4 weeks, hybrid)","","ALSO UNDER INNOVATION HUB","- HALS — HAMZURY Academy Learning System (online LMS)","- Hackathon — Annual innovation competition","- Ventures — Startup support and incubation","- Alumni Network","","HOW TO APPLY","Visit hamzuryos.biz/start → Select Innovation Hub → Choose programme → Complete brief","We respond within the hour.","","info@hamzury.com | hamzuryos.biz"].join("\n");
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = "HAMZURY-InnovationHub-Overview.txt"; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded border text-xs border-white/20 hover:border-white/50 transition-colors"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >↓ Download Innovation Hub Overview</button>
           </div>
           <div className="flex items-center gap-8 mt-12 pt-8 border-t border-white/10">
             <div><p className="text-2xl font-light text-white">6+</p><p className="text-xs text-white/50 mt-1">Cohorts completed</p></div>

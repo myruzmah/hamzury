@@ -299,6 +299,17 @@ export default function Systems() {
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
               Websites, web applications, dashboards, automation systems, and CRM tools — built to replace the manual work that is slowing your business down. You own everything we build.
             </p>
+            <button
+              onClick={() => {
+                const content = ["HAMZURY SYSTEMS — Department Overview","","SERVICES","1. Business Website","2. Web Application","3. Staff or Client Dashboard","4. Automation & AI Workflow","5. CRM System","","WHAT YOU OWN AT THE END","Full source code, database access, all credentials, hosting access, documentation.","","HOW TO WORK WITH US","Visit hamzuryos.biz/start → Select Systems → Choose service → Complete brief","We respond within the hour.","","info@hamzury.com | hamzuryos.biz"].join("\n");
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = "HAMZURY-Systems-Overview.txt"; a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded border text-xs border-white/20 hover:border-white/50 transition-colors"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >↓ Download Systems Overview</button>
           </div>
           <div className="flex items-center gap-8 mt-12 pt-8 border-t border-white/10">
             <div><p className="text-2xl font-light text-white">5</p><p className="text-xs text-white/50 mt-1">Build services</p></div>

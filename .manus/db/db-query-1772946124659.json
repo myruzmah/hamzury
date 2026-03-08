@@ -1,0 +1,70 @@
+{
+  "query": "SHOW TABLES; SELECT COUNT(*) as total_tasks FROM tasks;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3J9k2MXu4QeFXf3.d7e2c34337b4 --database i9aHLqTuJkXG4gxXzw9582 --execute SHOW TABLES; SELECT COUNT(*) as total_tasks FROM tasks;",
+  "rows": [
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "agents"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "auditTrail"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "checklistItems"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "clientIntake"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "clients"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "communications"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "deliverables"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "founderNotes"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "referrals"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "ridiImpact"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "sheetsSyncLog"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "sopTemplates"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "staffMembers"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "taskLifecycle"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "tasks"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "users"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "weeklyReports"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "total_tasks"
+    },
+    {
+      "Tables_in_i9aHLqTuJkXG4gxXzw9582": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_i9aHLqTuJkXG4gxXzw9582\n__drizzle_migrations\nagents\nauditTrail\nchecklistItems\nclientIntake\nclients\ncommunications\ndeliverables\nfounderNotes\nreferrals\nridiImpact\nsheetsSyncLog\nsopTemplates\nstaffMembers\ntaskLifecycle\ntasks\nusers\nweeklyReports\ntotal_tasks\n0\n",
+  "stderr": "",
+  "execution_time_ms": 72
+}

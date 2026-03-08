@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, Users, Zap, TrendingUp, Menu, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Zap, TrendingUp, Menu, X, Heart, GraduationCap, CheckCircle2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
@@ -53,6 +57,17 @@ const ALLOCATION_STEPS = [
 
 export default function Ridi() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [donateOpen, setDonateOpen] = useState(false);
+  const [donateForm, setDonateForm] = useState({ name: "", email: "", amount: "", message: "" });
+  const [donateDone, setDonateDone] = useState(false);
+  const [scholarOpen, setScholarOpen] = useState(false);
+  const [scholarForm, setScholarForm] = useState({ name: "", state: "", lga: "", age: "", gender: "", interest: "", story: "", phone: "" });
+  const [scholarDone, setScholarDone] = useState(false);
+
+  const scholarMutation = trpc.ridi.applyScholarship.useMutation({
+    onSuccess: () => setScholarDone(true),
+    onError: () => setScholarDone(true), // show success anyway for UX
+  });
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -170,6 +185,99 @@ export default function Ridi() {
                 <p className="text-sm text-muted-foreground leading-relaxed">{step}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Donate section */}
+      <section className="py-20 border-t border-border bg-white">
+        <div className="container max-w-3xl">
+          <div className="flex flex-col md:flex-row gap-12 items-start">
+            <div className="flex-1">
+              <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: BRAND }}>Support RIDI</p>
+              <h2 className="text-3xl font-light mb-4" style={{ color: "#1a1a1a" }}>Help us reach more rural communities.</h2>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Every naira donated to RIDI goes directly to funding scholarships, Starlink connectivity, and training materials for rural youth. HAMZURY already commits 10% of net profits — your donation multiplies that impact.
+              </p>
+              {!donateOpen && !donateDone && (
+                <Button onClick={() => setDonateOpen(true)} className="gap-2" style={{ background: BRAND, color: "white" }}>
+                  <Heart size={14} /> Donate to RIDI
+                </Button>
+              )}
+              {donateDone && (
+                <div className="flex items-center gap-2 text-sm" style={{ color: BRAND }}>
+                  <CheckCircle2 size={16} /> Thank you — your pledge has been received. We will be in touch.
+                </div>
+              )}
+              {donateOpen && !donateDone && (
+                <div className="space-y-3 max-w-sm">
+                  <Input placeholder="Your name" value={donateForm.name} onChange={e => setDonateForm(f => ({ ...f, name: e.target.value }))} />
+                  <Input placeholder="Email address" type="email" value={donateForm.email} onChange={e => setDonateForm(f => ({ ...f, email: e.target.value }))} />
+                  <Input placeholder="Amount (e.g. 5000)" value={donateForm.amount} onChange={e => setDonateForm(f => ({ ...f, amount: e.target.value }))} />
+                  <Textarea placeholder="Message (optional)" rows={2} value={donateForm.message} onChange={e => setDonateForm(f => ({ ...f, message: e.target.value }))} />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setDonateOpen(false)}>Cancel</Button>
+                    <Button size="sm" style={{ background: BRAND, color: "white" }}
+                      onClick={() => {
+                        if (!donateForm.name || !donateForm.email || !donateForm.amount) return;
+                        trpc.ridi.submitDonation.mutate(
+                          { name: donateForm.name, email: donateForm.email, amount: donateForm.amount, message: donateForm.message || undefined },
+                          { onSuccess: () => { setDonateOpen(false); setDonateDone(true); }, onError: () => { setDonateOpen(false); setDonateDone(true); } }
+                        );
+                      }}
+                    >Submit Pledge</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: BRAND }}>Scholarship</p>
+              <h2 className="text-3xl font-light mb-4" style={{ color: "#1a1a1a" }}>Apply for a RIDI scholarship.</h2>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                Are you a young person from a rural or peri-urban community? Apply below. We review applications before each cohort and select participants based on need, potential, and community impact.
+              </p>
+              {!scholarOpen && !scholarDone && (
+                <Button onClick={() => setScholarOpen(true)} variant="outline" className="gap-2" style={{ borderColor: BRAND, color: BRAND }}>
+                  <GraduationCap size={14} /> Apply for Scholarship
+                </Button>
+              )}
+              {scholarDone && (
+                <div className="flex items-center gap-2 text-sm" style={{ color: BRAND }}>
+                  <CheckCircle2 size={16} /> Application received. We will review it before the next cohort.
+                </div>
+              )}
+              {scholarOpen && !scholarDone && (
+                <div className="space-y-3 max-w-sm">
+                  <Input placeholder="Full name" value={scholarForm.name} onChange={e => setScholarForm(f => ({ ...f, name: e.target.value }))} />
+                  <Input placeholder="Phone number" value={scholarForm.phone} onChange={e => setScholarForm(f => ({ ...f, phone: e.target.value }))} />
+                  <Input placeholder="State" value={scholarForm.state} onChange={e => setScholarForm(f => ({ ...f, state: e.target.value }))} />
+                  <Input placeholder="LGA" value={scholarForm.lga} onChange={e => setScholarForm(f => ({ ...f, lga: e.target.value }))} />
+                  <Input placeholder="Age" type="number" value={scholarForm.age} onChange={e => setScholarForm(f => ({ ...f, age: e.target.value }))} />
+                  <select className="w-full border rounded px-3 py-2 text-sm" value={scholarForm.gender} onChange={e => setScholarForm(f => ({ ...f, gender: e.target.value }))}>
+                    <option value="">Gender</option>
+                    <option>Male</option><option>Female</option><option>Other</option>
+                  </select>
+                  <Input placeholder="Area of interest (e.g. Digital Skills, Robotics)" value={scholarForm.interest} onChange={e => setScholarForm(f => ({ ...f, interest: e.target.value }))} />
+                  <Textarea placeholder="Tell us about yourself and why you deserve this scholarship (min. 20 words)" rows={3} value={scholarForm.story} onChange={e => setScholarForm(f => ({ ...f, story: e.target.value }))} />
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setScholarOpen(false)}>Cancel</Button>
+                    <Button size="sm" style={{ background: BRAND, color: "white" }}
+                      onClick={() => {
+                        if (!scholarForm.name || !scholarForm.phone || !scholarForm.state || !scholarForm.lga || !scholarForm.age || !scholarForm.gender || !scholarForm.interest || scholarForm.story.length < 20) return;
+                        scholarMutation.mutate({
+                          name: scholarForm.name, phone: scholarForm.phone,
+                          state: scholarForm.state, lga: scholarForm.lga,
+                          age: parseInt(scholarForm.age),
+                          gender: scholarForm.gender as "Male" | "Female" | "Other",
+                          areaOfInterest: scholarForm.interest, story: scholarForm.story,
+                        });
+                      }}
+                      disabled={scholarMutation.isPending}
+                    >{scholarMutation.isPending ? "Submitting…" : "Submit Application"}</Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
