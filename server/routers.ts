@@ -5,6 +5,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { ENV } from "./_core/env";
 import {
   addCommunication,
   createAgentRecord,
@@ -25,6 +26,7 @@ import {
   updateTaskStatus,
   upsertClient,
   upsertStaffUser,
+  upsertUser,
 } from "./db";
 import {
   getMockDeliverables,
@@ -76,10 +78,20 @@ const authRouter = router({
         lastSignedIn: new Date(),
       };
 
+      // Ensure user exists in DB so context.authenticateRequest can find them
+      await upsertUser({
+        openId: staffUser.openId,
+        name: staffUser.name ?? null,
+        email: staffUser.email ?? null,
+        loginMethod: "password",
+        role: (staffUser.role === "admin" ? "admin" : "user") as "admin" | "user",
+        lastSignedIn: new Date(),
+      });
+
       // Set a simple session cookie with user info
       const { SignJWT } = await import("jose");
       const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
-      const token = await new SignJWT({ sub: staffUser.openId, role: "staff", email: staffUser.email, name: staffUser.name })
+      const token = await new SignJWT({ sub: staffUser.openId, openId: staffUser.openId, appId: ENV.appId, role: staffUser.role ?? "staff", email: staffUser.email, name: staffUser.name })
         .setProtectedHeader({ alg: "HS256" })
         .setExpirationTime("8h")
         .sign(secret);
@@ -87,7 +99,7 @@ const authRouter = router({
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 });
 
-      return { success: true, role: "staff", name: staffUser.name };
+      return { success: true, role: staffUser.role ?? "staff", name: staffUser.name };
     }),
 
   // Agent login
@@ -111,9 +123,19 @@ const authRouter = router({
         createdAt: new Date(),
       };
 
+      // Ensure agent user exists in DB
+      await upsertUser({
+        openId: `agent-${agentData.email}`,
+        name: agentData.name ?? null,
+        email: agentData.email ?? null,
+        loginMethod: "password",
+        role: "user",
+        lastSignedIn: new Date(),
+      });
+
       const { SignJWT } = await import("jose");
       const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
-      const token = await new SignJWT({ sub: `agent-${agentData.email}`, role: "agent", email: agentData.email, name: agentData.name, agentId: agentData.agentId })
+      const token = await new SignJWT({ sub: `agent-${agentData.email}`, openId: `agent-${agentData.email}`, appId: ENV.appId, role: "agent", email: agentData.email, name: agentData.name, agentId: agentData.agentId })
         .setProtectedHeader({ alg: "HS256" })
         .setExpirationTime("8h")
         .sign(secret);
@@ -465,10 +487,22 @@ const superAdminRouter = router({
         await new Promise((r) => setTimeout(r, 1200));
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid credentials." });
       }
+      // Ensure superadmin user exists in DB with admin role
+      await upsertUser({
+        openId: "superadmin",
+        name: "Super Admin",
+        email: SUPER_ADMIN_EMAIL,
+        loginMethod: "password",
+        role: "admin",
+        lastSignedIn: new Date(),
+      });
+
       const { SignJWT } = await import("jose");
       const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
       const token = await new SignJWT({
         sub: "superadmin",
+        openId: "superadmin",
+        appId: ENV.appId,
         role: "admin",
         email: SUPER_ADMIN_EMAIL,
         name: "Super Admin",

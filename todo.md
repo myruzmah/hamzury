@@ -106,3 +106,6 @@
 - [x] Create hidden unguessable super admin login URL
 - [x] Dedicated super admin credentials (not on public portal)
 - [x] Direct redirect to /admin after super admin login
+
+## Bug Fixes (Continued)
+- [ ] Fix Admin Panel showing Access Restricted to logged-in admin users
