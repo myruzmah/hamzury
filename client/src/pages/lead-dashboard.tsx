@@ -551,10 +551,71 @@ function ReviewModal({
   );
 }
 
+// ─── Quality Gate Panel (Growth Lead only) ──────────────────────────────────
+function QualityGatePanel({ gateApprove, utils }: { gateApprove: any; utils: any }) {
+  const allTasksQuery = trpc.institutional.allTasks.useQuery();
+  const allTasks = allTasksQuery.data ?? [];
+  // Show tasks in review stage from any department
+  const reviewTasks = allTasks.filter((t: any) => t.lifecycleStage === "review");
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-stone-900 mb-1">Quality Gate</h2>
+        <p className="text-sm text-stone-400">All tasks awaiting final approval before delivery. Nothing leaves HAMZURY without passing this gate.</p>
+      </div>
+      {allTasksQuery.isLoading ? (
+        <div className="text-center py-12 text-stone-400">Loading gate queue…</div>
+      ) : reviewTasks.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-stone-100 p-12 text-center">
+          <div className="text-stone-300 text-4xl mb-4">✓</div>
+          <div className="text-stone-500 text-sm">Gate is clear. No tasks awaiting review.</div>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {reviewTasks.map((task: any) => (
+            <div key={task.taskRef} className="bg-white rounded-2xl border border-stone-100 p-5">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono text-stone-400">{task.taskRef}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                      task.priority === "urgent" ? "bg-red-100 text-red-700" :
+                      task.priority === "high" ? "bg-orange-100 text-orange-700" :
+                      "bg-stone-100 text-stone-600"
+                    }`}>{task.priority}</span>
+                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">{task.department}</span>
+                  </div>
+                  <div className="text-sm font-semibold text-stone-900 mb-1">{task.title}</div>
+                  {task.description && <div className="text-xs text-stone-500 mb-2">{task.description}</div>}
+                  {task.deadline && <div className="text-xs text-stone-400">Deadline: {new Date(task.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>}
+                </div>
+                <div className="flex gap-2 ml-4">
+                  <button
+                    onClick={() => gateApprove.mutate({ taskRef: task.taskRef, action: "approve" })}
+                    disabled={gateApprove.isPending}
+                    className="bg-green-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50">
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => gateApprove.mutate({ taskRef: task.taskRef, action: "return" })}
+                    disabled={gateApprove.isPending}
+                    className="bg-amber-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-amber-600 transition-colors disabled:opacity-50">
+                    Return
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Lead Dashboard ───────────────────────────────────────────────────────────
 export default function LeadDashboard() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "review" | "team" | "report" | "hr" | "agent">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "review" | "team" | "report" | "hr" | "agent" | "qualitygate">("overview");
   const [showAssign, setShowAssign] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -569,7 +630,9 @@ export default function LeadDashboard() {
   const deptTasksQuery = trpc.institutional.departmentTasks.useQuery();
   const reviewQueueQuery = trpc.institutional.reviewQueue.useQuery();
   const allStaffQuery = trpc.institutional.allStaff.useQuery();
+  const allTasksForGateQuery = trpc.institutional.allTasks.useQuery(undefined, { enabled: false });
   const utils = trpc.useUtils();
+  const gateApprove = trpc.institutional.advanceStage.useMutation({ onSuccess: () => { utils.institutional.allTasks.invalidate(); utils.institutional.departmentTasks.invalidate(); } });
 
   const deptTasks = deptTasksQuery.data ?? [];
   const reviewQueue = reviewQueueQuery.data ?? [];
@@ -638,6 +701,7 @@ export default function LeadDashboard() {
             { id: "team", label: "Team" },
             { id: "report", label: "Weekly Report" },
             ...(department === "People" ? [{ id: "hr", label: "HR / Onboarding" }] : []),
+            ...(department === "Growth" ? [{ id: "qualitygate", label: "Quality Gate" }] : []),
             { id: "agent", label: "AI Agent" },
           ] as { id: string; label: string }[]).map((tab) => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
@@ -798,6 +862,9 @@ export default function LeadDashboard() {
         {/* Team tab */}
         {activeTab === "report" && <LeadReportForm department={department} staffId={staffId} />}
         {activeTab === "hr" && department === "People" && <HROnboardingPanel />}
+        {activeTab === "qualitygate" && department === "Growth" && (
+          <QualityGatePanel gateApprove={gateApprove} utils={utils} />
+        )}
         {activeTab === "team" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {deptStaff.map((member) => {

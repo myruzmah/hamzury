@@ -224,7 +224,7 @@ function NoteEditor({ note, onSave, onCancel }: {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function FounderDashboard() {
   const [, navigate] = useLocation();
-  const [activeTab, setActiveTab] = useState<"boardroom" | "tasks" | "team" | "notes" | "reports" | "ridi">("boardroom");
+  const [activeTab, setActiveTab] = useState<"boardroom" | "tasks" | "team" | "notes" | "reports" | "leadreports" | "intakes" | "ridi">("boardroom");
   const [showAssign, setShowAssign] = useState(false);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [editingNote, setEditingNote] = useState<{ id: number; title: string; content: string } | undefined>();
@@ -234,6 +234,8 @@ export default function FounderDashboard() {
   const allClientsQuery = trpc.admin.allClients.useQuery(undefined, { retry: false });
   const notesQuery = trpc.institutional.founderNotes.useQuery();
   const weeklyReportsQuery = trpc.weeklyReport.all.useQuery();
+  const leadReportsQuery = trpc.institutional.allLeadReports.useQuery();
+  const intakesQuery = trpc.intake.getAll.useQuery({});
   const ridiProgramsQuery = trpc.ridi.programs.useQuery();
   const ridiTotalsQuery = trpc.ridi.totals.useQuery();
   const utils = trpc.useUtils();
@@ -295,7 +297,7 @@ export default function FounderDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Tabs */}
         <div className="flex gap-1 mb-8 bg-white rounded-xl p-1 border border-stone-100 w-fit">
-          {(["boardroom", "tasks", "team", "notes", "reports", "ridi"] as const).map((tab) => (
+          {(["boardroom", "tasks", "team", "notes", "reports", "leadreports", "intakes", "ridi"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -305,10 +307,96 @@ export default function FounderDashboard() {
                   : "text-stone-500 hover:text-stone-700"
               }`}
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === "leadreports" ? "Lead Reports" : tab === "intakes" ? "Intakes" : tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
+
+        {/* Lead Reports Tab */}
+        {activeTab === "leadreports" && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-stone-900 mb-1">Lead Weekly Reports</h2>
+              <p className="text-sm text-stone-400">Reports submitted by department leads. Track department health across HAMZURY.</p>
+            </div>
+            {leadReportsQuery.isLoading ? (
+              <div className="text-center py-12 text-stone-400">Loading reports…</div>
+            ) : (leadReportsQuery.data ?? []).length === 0 ? (
+              <div className="bg-white rounded-2xl border border-stone-100 p-12 text-center">
+                <div className="text-stone-300 text-4xl mb-4">📋</div>
+                <div className="text-stone-500 text-sm">No lead reports yet.</div>
+                <div className="text-stone-400 text-xs mt-2">Leads submit reports from their dashboards.</div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(leadReportsQuery.data ?? []).map((r: any) => (
+                  <div key={r.id} className="bg-white rounded-2xl border border-stone-100 p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="text-sm font-semibold text-stone-900">{r.department} — {r.submittedByName}</div>
+                        <div className="text-xs text-stone-400">{new Date(r.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</div>
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4 mb-3">
+                      <div className="bg-green-50 rounded-xl p-4">
+                        <div className="text-xs font-semibold text-green-700 mb-2 uppercase tracking-wider">3 Wins</div>
+                        <ol className="text-xs text-stone-700 space-y-1 list-decimal list-inside">
+                          <li>{r.win1}</li><li>{r.win2}</li><li>{r.win3}</li>
+                        </ol>
+                      </div>
+                      <div className="bg-amber-50 rounded-xl p-4">
+                        <div className="text-xs font-semibold text-amber-700 mb-2 uppercase tracking-wider">3 Blockers</div>
+                        <ol className="text-xs text-stone-700 space-y-1 list-decimal list-inside">
+                          <li>{r.blocker1}</li><li>{r.blocker2}</li><li>{r.blocker3 || "—"}</li>
+                        </ol>
+                      </div>
+                    </div>
+                    {r.keyInfo && <div className="bg-stone-50 rounded-xl p-4"><div className="text-xs font-semibold text-stone-600 mb-1 uppercase tracking-wider">Key Info</div><p className="text-xs text-stone-700">{r.keyInfo}</p></div>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {/* Intakes Tab */}
+        {activeTab === "intakes" && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-stone-900 mb-1">Client Intake Queue</h2>
+              <p className="text-sm text-stone-400">All incoming briefs from the public /start form.</p>
+            </div>
+            {intakesQuery.isLoading ? (
+              <div className="text-center py-12 text-stone-400">Loading intakes…</div>
+            ) : (intakesQuery.data ?? []).length === 0 ? (
+              <div className="bg-white rounded-2xl border border-stone-100 p-12 text-center">
+                <div className="text-stone-300 text-4xl mb-4">📥</div>
+                <div className="text-stone-500 text-sm">No intakes yet.</div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(intakesQuery.data ?? []).map((intake: any) => (
+                  <div key={intake.referenceCode} className="bg-white rounded-2xl border border-stone-100 p-5">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-semibold text-stone-900">{intake.referenceCode}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            intake.status === "new" ? "bg-amber-100 text-amber-700" :
+                            intake.status === "reviewing" ? "bg-blue-100 text-blue-700" :
+                            "bg-green-100 text-green-700"
+                          }`}>{intake.status}</span>
+                        </div>
+                        <div className="text-sm text-stone-700 font-medium">{intake.name}</div>
+                        <div className="text-xs text-stone-400">{intake.department} · {intake.serviceType}</div>
+                        <div className="text-xs text-stone-400 mt-0.5">{new Date(intake.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Boardroom Overview */}
         {activeTab === "boardroom" && (

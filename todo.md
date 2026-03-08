@@ -253,8 +253,8 @@
 - [x] Add lead weekly report tab to lead dashboard (backend ready)
 - [x] Add HR onboarding tab to People Lead dashboard (create staff with temp password)
 - [x] Add staff directory tab to People Lead dashboard (deactivate, reset password)
-- [ ] Add lead reports view to CEO and Founder dashboards
-- [ ] Add intake queue tab to CEO dashboard with CLT-ID
+- [x] Add lead reports view to CEO and Founder dashboards
+- [x] Add intake queue tab to CEO dashboard with CLT-ID
 
 ### 20B — /start Chat + Back Navigation
 - [x] Add back/previous button to every step of the /start intake form
@@ -278,11 +278,25 @@
 - [ ] CEO can assign tasks to Ibrahim directly
 
 ### 20F — Quality Gate
-- [ ] Add gate_pending and gate_approved stages to taskLifecycle schema
-- [ ] Ahmad Lawal (Growth Lead) gets Quality Gate Queue tab on his dashboard
-- [ ] Approve or Return with comment — every action logged
+- [x] Add gate_pending and gate_approved stages to taskLifecycle schema
+- [x] Ahmad Lawal (Growth Lead) gets Quality Gate Queue tab on his dashboard
+- [x] Approve or Return with comment — every action logged
 
 ### 20G — Task Comment Thread
 - [ ] Add comment thread to every task detail view
 - [ ] Staff and leads can post text comments inside a task
 - [ ] Every comment timestamped and attributed — replaces WhatsApp for task communication
+
+## Phase 21 — Luxury Brand Copy & UX Standard (Apple-tier)
+- [x] Home: add proof statement above fold, upgrade How It Works step copy, apply brand voice rules
+- [x] /start: rewrite headline to "Let's understand what you're building.", apply 3-step form audit, rewrite confirmation message
+- [ ] /track: add human microcopy "Your project has a dedicated lead. Here's where things stand."
+- [ ] Services: each card follows Problem → Solution → Outcome + "Who this is for:"
+- [ ] Footer: rewrite to "© 2026 HAMZURY. Built to last." + warm email microcopy
+- [x] Studios: apply brand copy standard — problem/solution/outcome per service
+- [x] Systems: apply brand copy standard — problem/solution/outcome per service
+- [x] Bizdoc: apply brand copy standard — problem/solution/outcome per service
+- [x] Innovation Hub: apply brand copy standard — problem/solution/outcome per programme
+- [ ] RIDI: apply brand copy standard
+- [ ] Remove all exclamation marks, "amazing", "passionate", "dedicated", "solutions" sitewide
+- [ ] All CTAs: "Start your project" / "Continue when ready" — never "Submit" / "Send"

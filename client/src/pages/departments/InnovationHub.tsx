@@ -128,7 +128,7 @@ function ProgrammeForm({ programme, onClose }: { programme: typeof programmes[0]
         <h3 className="text-xl font-light mb-2" style={{ color: "#1a1a1a" }}>Application received.</h3>
         <p className="text-sm text-muted-foreground mb-1">Reference: <strong>{ref}</strong></p>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed mt-3">
-          We will review your responses and reach out within 3 working days to confirm your placement.
+          We will review your application and reach out within the hour to confirm your placement or next steps.
         </p>
         <div className="flex items-center justify-center gap-4 mt-6">
           <Link href="/track" className="text-xs underline" style={{ color: BRAND }}>Track your application →</Link>
@@ -198,7 +198,7 @@ function ProgrammeForm({ programme, onClose }: { programme: typeof programmes[0]
       ) : (
         <div>
           <p className="text-lg font-light mb-2" style={{ color: "#1a1a1a" }}>Your contact details.</p>
-          <p className="text-sm text-muted-foreground mb-6">We will reach out within 3 working days.</p>
+          <p className="text-sm text-muted-foreground mb-6">We will reach out within the hour.</p>
           <div className="space-y-3">
             <input className="w-full border border-border rounded-lg px-4 py-3 text-sm" placeholder="Full name" value={name} onChange={e => setName(e.target.value)} />
             <input className="w-full border border-border rounded-lg px-4 py-3 text-sm" placeholder="Email address" type="email" value={email} onChange={e => setEmail(e.target.value)} />
@@ -285,7 +285,7 @@ export default function InnovationHub() {
               We train the people<br />who build what&apos;s next.
             </h1>
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
-              Structured programmes for executives, young people, and practitioners — building the capacity that organisations and communities need to operate in a technology-driven world.
+              Skills, entrepreneurship, robotics, and technology training — for executives, young people, and practitioners. The Academy that builds the people who build the future.
             </p>
             <button
               onClick={() => {

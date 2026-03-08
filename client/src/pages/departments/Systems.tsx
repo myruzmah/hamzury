@@ -147,7 +147,7 @@ function ServiceBriefForm({ service, onClose }: { service: typeof SERVICES[0]; o
         <h3 className="text-xl font-light mb-2" style={{ color: "#1a1a1a" }}>Brief received.</h3>
         <p className="text-sm text-muted-foreground mb-1">Reference: <strong>{ref}</strong></p>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed mt-3">
-          Our team will review your brief and respond within 24 hours with a clear proposal.
+          Our team will review your brief and respond within the hour. Expect a clear proposal shortly after.
         </p>
         <div className="flex items-center justify-center gap-4 mt-6">
           <Link href="/track" className="text-xs underline" style={{ color: BRAND }}>Track your project →</Link>
@@ -297,7 +297,7 @@ export default function Systems() {
               Stop running your business<br />on manual processes.
             </h1>
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
-              Websites, web applications, dashboards, automation systems, and CRM tools — built to replace the manual work that is slowing your business down. You own everything we build.
+              Manual processes are not a workflow. They are a ceiling. Systems builds the digital infrastructure that removes that ceiling — and you own everything we build.
             </p>
             <button
               onClick={() => {

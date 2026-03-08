@@ -199,10 +199,10 @@ export default function ClientIntake() {
                 Start Here
               </p>
               <h1 className="text-2xl font-light mb-2" style={{ color: "#333333" }}>
-                What do you need help with?
+                What are you building?
               </h1>
               <p className="text-sm text-muted-foreground mb-8">
-                Select the area that best describes your need. We will guide you from here.
+                Choose the area closest to your need. We will take it from there.
               </p>
               <div className="grid gap-2">
                 {Object.entries(DEPT_LABELS).map(([key, label]) => (
@@ -226,10 +226,10 @@ export default function ClientIntake() {
                 {DEPT_LABELS[form.department]}
               </p>
               <h1 className="text-2xl font-light mb-2" style={{ color: "#333333" }}>
-                Which service do you need?
+                What specifically do you need?
               </h1>
               <p className="text-sm text-muted-foreground mb-8">
-                Choose the specific service. You can add more detail in the next step.
+                Select the closest match. You will describe the details in the next step.
               </p>
               <div className="grid gap-2 mb-6">
                 {(DEPT_SERVICES[form.department] ?? []).map((svc) => (
@@ -256,10 +256,10 @@ export default function ClientIntake() {
                 {form.serviceType}
               </p>
               <h1 className="text-2xl font-light mb-2" style={{ color: "#333333" }}>
-                Tell us about your project.
+                Describe what you need.
               </h1>
               <p className="text-sm text-muted-foreground mb-6">
-                Describe what you need, your timeline, and any important context. The more detail you provide, the faster we can begin.
+                Include your timeline, any constraints, and what a successful outcome looks like for you. The more specific you are, the faster we move.
               </p>
               <Textarea
                 value={form.description}
@@ -294,10 +294,10 @@ export default function ClientIntake() {
                 Your Details
               </p>
               <h1 className="text-2xl font-light mb-2" style={{ color: "#333333" }}>
-                How do we reach you?
+                Where do we reach you?
               </h1>
               <p className="text-sm text-muted-foreground mb-6">
-                Your project reference and updates will be sent to these contacts.
+                Your reference code and next steps will be sent here. We do not share your details.
               </p>
               <div className="grid gap-3 mb-6">
                 <div>
@@ -367,10 +367,10 @@ export default function ClientIntake() {
                 Optional
               </p>
               <h1 className="text-2xl font-light mb-2" style={{ color: "#333333" }}>
-                Do you have a brief or reference file?
+                Anything to attach?
               </h1>
               <p className="text-sm text-muted-foreground mb-6">
-                You can attach a brief, existing logo, document, or any reference material. This is optional — you can always send files later.
+                A brief, existing logo, document, or reference file helps us prepare faster. Completely optional — you can send files later.
               </p>
               {form.attachmentName ? (
                 <div className="flex items-center gap-3 p-3 rounded border mb-6" style={{ borderColor: "#1B4D3E", background: "white" }}>
@@ -427,7 +427,7 @@ export default function ClientIntake() {
                 Review & Submit
               </p>
               <h1 className="text-2xl font-light mb-6" style={{ color: "#333333" }}>
-                Everything looks right?
+                Ready to submit?
               </h1>
               <div className="rounded border divide-y mb-6" style={{ borderColor: "#d4c9b0", background: "white" }}>
                 {[
@@ -459,7 +459,7 @@ export default function ClientIntake() {
                   disabled={submitMutation.isPending}
                   style={{ background: "#1B4D3E", color: "white" }}
                 >
-                  {submitMutation.isPending ? "Submitting…" : "Submit Request"}
+                  {submitMutation.isPending ? "Submitting…" : "Submit your request"}
                 </Button>
               </div>
             </div>
@@ -472,10 +472,10 @@ export default function ClientIntake() {
                 <CheckCircle2 size={28} color="white" />
               </div>
               <h1 className="text-2xl font-light mb-3" style={{ color: "#333333" }}>
-                Your request has been received.
+                You are in.
               </h1>
               <p className="text-sm text-muted-foreground mb-8 max-w-sm mx-auto">
-                Your project reference is below. Save it — you will use it to check your project status at any time.
+                Your project reference is below. Save it — you will use it to track your project status at any time.
               </p>
               <div className="inline-block px-8 py-4 rounded border-2 mb-6" style={{ borderColor: "#1B4D3E", background: "white" }}>
                 <p className="text-xs text-muted-foreground mb-1">Your Reference Code</p>

@@ -150,7 +150,7 @@ function ServiceBriefForm({ service, onClose }: { service: typeof SERVICES[0]; o
         <h3 className="text-xl font-light mb-2" style={{ color: "#1a1a1a" }}>Brief received.</h3>
         <p className="text-sm text-muted-foreground mb-1">Reference: <strong>{ref}</strong></p>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed mt-3">
-          Our team will review your brief and respond within 24 hours with a clear proposal.
+          Our team will review your brief and respond within the hour. Expect a clear proposal shortly after.
         </p>
         <div className="flex items-center justify-center gap-4 mt-6">
           <Link href="/track" className="text-xs underline" style={{ color: BRAND }}>Track your project →</Link>
@@ -300,7 +300,7 @@ export default function Studios() {
               We build the presence<br />that earns trust.
             </h1>
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
-              Brand identity, content strategy, social media management, podcast production, and event media coverage. The visual and narrative infrastructure that makes your business credible before anyone speaks to you.
+              Most businesses look smaller than they are. Studios fixes that. Brand identity, content, social media, podcast, and event media — built to the standard your work deserves.
             </p>
             <button
               onClick={() => {

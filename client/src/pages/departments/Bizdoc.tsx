@@ -145,7 +145,7 @@ function ServiceBriefForm({ service, onClose }: { service: typeof SERVICES[0]; o
         <h3 className="text-xl font-light mb-2" style={{ color: "#1a1a1a" }}>Request received.</h3>
         <p className="text-sm text-muted-foreground mb-1">Reference: <strong>{ref}</strong></p>
         <p className="text-sm text-muted-foreground max-w-xs mx-auto leading-relaxed mt-3">
-          Our compliance team will review your request and respond within 24 hours.
+          Our compliance team will review your request and respond within the hour. Expect a clear next step shortly after.
         </p>
         <div className="flex items-center justify-center gap-4 mt-6">
           <Link href="/track" className="text-xs underline" style={{ color: BRAND }}>Track your request →</Link>
@@ -295,7 +295,7 @@ export default function Bizdoc() {
               Your business should be<br />registered, compliant,<br />protected.
             </h1>
             <p className="text-white/70 text-lg leading-relaxed max-w-xl">
-              CAC registration, annual returns, tax filings, PENCOM compliance, industry licensing, and regulatory advisory — handled properly, from start to finish.
+              Compliance is not optional. But it should not consume your time. Bizdoc handles every regulatory obligation — CAC, tax, PENCOM, licensing — so you can focus on the business itself.
             </p>
             <button
               onClick={() => {

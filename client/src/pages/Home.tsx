@@ -43,27 +43,27 @@ const JOURNEY_STEPS = [
   {
     step: "01",
     title: "Enquire",
-    desc: "Tell us what you need. No account required. Takes under three minutes.",
+    desc: "Tell us what you're building.",
   },
   {
     step: "02",
     title: "Brief",
-    desc: "We review your submission and send you a structured project brief for confirmation.",
+    desc: "We structure your project and confirm scope.",
   },
   {
     step: "03",
     title: "Match",
-    desc: "Your project is assigned to the right department and team lead.",
+    desc: "Your project is assigned to the right lead.",
   },
   {
     step: "04",
     title: "Build",
-    desc: "Work begins. You track progress in real time using your reference code.",
+    desc: "Work begins. Track progress with your reference code.",
   },
   {
     step: "05",
     title: "Deliver",
-    desc: "Your deliverable is reviewed, approved, and handed over — with documentation.",
+    desc: "Reviewed, approved, and handed over with documentation.",
   },
 ];
 
@@ -159,18 +159,21 @@ export default function Home() {
               Build institutions<br />that last.
             </h1>
             <p
-              className="text-base md:text-lg font-light leading-relaxed mb-10 max-w-lg"
+              className="text-base md:text-lg font-light leading-relaxed mb-4 max-w-lg"
               style={{ color: "var(--body-text)" }}
             >
               HAMZURY designs the systems, brands, and legal foundations
               organisations rely on to operate with structure and clarity.
             </p>
+            <p className="text-xs mb-10 max-w-lg" style={{ color: "var(--muted-text)" }}>
+              Trusted by founders, executives, and institutional leaders across Nigeria building for the long term.
+            </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/start" className="btn-primary">
-                Start a Project <ArrowRight size={14} />
+                Start your project <ArrowRight size={14} />
               </Link>
               <Link href="/track" className="btn-ghost">
-                Track My Project
+                See how it works
               </Link>
             </div>
           </div>
@@ -298,13 +301,13 @@ export default function Home() {
             </div>
             <div className="space-y-4">
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                HAMZURY is an institutional business development firm operating across Nigeria. We do not offer generic services — we build the foundations that allow organisations to operate with structure, grow with clarity, and deliver with consistency.
+                Most organisations outgrow their structure before they realise it. The systems that got them here are the same ones slowing them down.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                Four departments — Innovation Hub, Studios, Systems, and Bizdoc — operate as independent service providers within one coordinated institution. Each department is led by a specialist and governed by the same standard of documentation, accountability, and delivery.
+                HAMZURY works with founders, executives, and institutional leaders who are building for the long term. We design the systems, brands, and legal foundations that allow organisations to operate with structure and deliver with consistency.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                Every engagement is structured, documented, and delivered to a standard that outlasts the project.
+                Every project is documented, assigned a lead, and reviewed before delivery. Every engagement is built to outlast the project.
               </p>
               <div className="pt-4">
                 <Link href="/services" className="btn-ghost text-xs">
@@ -342,7 +345,7 @@ export default function Home() {
                 { href: "/team", label: "Team" },
                 { href: "/policies", label: "Policies" },
                 { href: "/contact", label: "Contact" },
-                { href: "/start", label: "Start a Project" },
+                { href: "/start", label: "Start your project" },
                 { href: "/track", label: "Track Project" },
                 { href: "/portal", label: "Partner Portal" },
                 { href: "/staff-login", label: "Staff" },
@@ -356,17 +359,11 @@ export default function Home() {
 
           <div className="mt-10 pt-6 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <p className="text-xs" style={{ color: "var(--muted-text)" }}>
-              {new Date().getFullYear()} HAMZURY. All rights reserved.
+              © 2026 HAMZURY. Built to last.
             </p>
-            <div className="flex gap-4">
-              {[
-                { label: "info@hamzury.com", href: "mailto:info@hamzury.com" },
-                { label: "innovation@hamzury.com", href: "mailto:innovation@hamzury.com" },
-              ].map((e) => (
-                <a key={e.href} href={e.href} className="text-xs hover:underline" style={{ color: "var(--muted-text)" }}>
-                  {e.label}
-                </a>
-              ))}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
+              <span className="text-xs" style={{ color: "var(--muted-text)" }}>For project enquiries: <a href="mailto:info@hamzury.com" className="hover:underline">info@hamzury.com</a></span>
+              <span className="text-xs" style={{ color: "var(--muted-text)" }}>For internal operations: <a href="mailto:innovation@hamzury.com" className="hover:underline">innovation@hamzury.com</a></span>
             </div>
           </div>
         </div>
