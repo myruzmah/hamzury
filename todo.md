@@ -223,3 +223,8 @@
 
 ## Phase 16 — Services Page Visual Redesign
 - [x] Redesign Services index page to match department page style (dark brand hero, card grid, consistent typography)
+
+## Phase 17 — Bizdoc & RIDI Page Rebuild
+- [x] Rebuild Bizdoc as standalone department page (service cards, brief forms, no external link)
+- [x] Redesign RIDI page to match department page visual style (dark hero, sections, consistent typography)
+- [x] Remove Bizdoc external link from Services page

@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { useState } from "react";
-import { ArrowRight, ExternalLink, Lightbulb, Palette, Monitor, FileText, Menu, X } from "lucide-react";
+import { ArrowRight, Lightbulb, Palette, Monitor, FileText, Menu, X } from "lucide-react";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
@@ -81,7 +81,7 @@ const DEPARTMENTS = [
       "Compliance Advisory",
     ],
     href: "/services/bizdoc",
-    external: "https://bizdoc.hamzury.com",
+    external: null,
     stat: "6 services",
   },
 ];
@@ -117,7 +117,7 @@ export default function Services() {
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/services" className="nav-link" style={{ color: BRAND, fontWeight: 600 }}>Services</Link>
             <Link href="/ridi" className="nav-link">RIDI</Link>
-            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="nav-link">Bizdoc</a>
+            <Link href="/services/bizdoc" className="nav-link">Bizdoc</Link>
             <Link href="/portal" className="nav-link">Portal</Link>
           </nav>
           <button className="md:hidden p-2 rounded-sm text-muted-foreground" onClick={() => setMobileOpen(o => !o)}>
@@ -129,7 +129,7 @@ export default function Services() {
             <nav className="container py-4 flex flex-col gap-1">
               <Link href="/services" className="py-2.5 text-sm font-medium" style={{ color: BRAND }} onClick={() => setMobileOpen(false)}>Services</Link>
               <Link href="/ridi" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>RIDI</Link>
-              <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Bizdoc</a>
+              <Link href="/services/bizdoc" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Bizdoc</Link>
               <Link href="/portal" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Portal</Link>
               <Link href="/start" className="mt-3 inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg text-white" style={{ background: BRAND }} onClick={() => setMobileOpen(false)}>Start a Project</Link>
             </nav>
@@ -199,17 +199,7 @@ export default function Services() {
                       <div className="flex items-center gap-2 text-xs font-medium group-hover:gap-3 transition-all" style={{ color: BRAND }}>
                         Explore {dept.name} <ArrowRight size={13} />
                       </div>
-                      {dept.external && (
-                        <a
-                          href={dept.external}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={e => e.stopPropagation()}
-                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          Visit site <ExternalLink size={11} />
-                        </a>
-                      )}
+
                     </div>
                   </div>
                 </Link>
@@ -306,7 +296,7 @@ export default function Services() {
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
             <Link href="/ridi" className="hover:text-foreground transition-colors">RIDI</Link>
-            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">Bizdoc</a>
+            <Link href="/services/bizdoc" className="hover:text-foreground transition-colors">Bizdoc</Link>
             <Link href="/team" className="hover:text-foreground transition-colors">Team</Link>
             <Link href="/policies" className="hover:text-foreground transition-colors">Policies</Link>
             <Link href="/start" className="hover:text-foreground transition-colors">Start a Project</Link>

@@ -1,5 +1,10 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, Users, Zap, TrendingUp } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Zap, TrendingUp, Menu, X } from "lucide-react";
+
+const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
+
+const BRAND = "#1B4D3E";
 
 const IMPACT_STATS = [
   { value: "4", label: "Cohorts per year" },
@@ -12,94 +17,95 @@ const IMPACT_STATS = [
 
 const PROGRAMMES = [
   {
-    icon: <BookOpen size={18} />,
+    icon: BookOpen,
     title: "Jos Digital Rise Bootcamp",
-    description:
-      "A 3-week intensive programme training rural and peri-urban youth in digital skills — from content creation to AI tools. Participants are fully scholarshipped by HAMZURY through the RIDI allocation. Top performers convert directly to HAMZURY interns.",
+    description: "A 3-week intensive programme training rural and peri-urban youth in digital skills — from content creation to AI tools. Participants are fully scholarshipped by HAMZURY through the RIDI allocation. Top performers convert directly to HAMZURY interns.",
     partner: "RIDLDI (Rural Innovation & Digital Literacy Development Initiative)",
   },
   {
-    icon: <Users size={18} />,
+    icon: Users,
     title: "Multi-Language Content Creator Pipeline",
-    description:
-      "Graduates of the bootcamp are trained as multi-language content creators — producing content in English, Hausa, and other local languages. They join HAMZURY's Studios department as interns and, where performance justifies, as permanent staff.",
+    description: "Graduates of the bootcamp are trained as multi-language content creators — producing content in English, Hausa, and other local languages. They join HAMZURY's Studios department as interns and, where performance justifies, as permanent staff.",
     partner: "HAMZURY Studios",
   },
   {
-    icon: <Zap size={18} />,
+    icon: Zap,
     title: "Starlink Infrastructure Programme",
-    description:
-      "HAMZURY provides Starlink satellite internet infrastructure to bootcamp locations, ensuring rural participants have the same connectivity as urban counterparts. This is HAMZURY's direct operational contribution to each cohort.",
+    description: "HAMZURY provides Starlink satellite internet infrastructure to bootcamp locations, ensuring rural participants have the same connectivity as urban counterparts. This is HAMZURY's direct operational contribution to each cohort.",
     partner: "HAMZURY Systems",
   },
   {
-    icon: <TrendingUp size={18} />,
+    icon: TrendingUp,
     title: "Intern-to-Staff Conversion Track",
-    description:
-      "The most powerful part of the RIDI pipeline: trained interns who demonstrate excellence are converted to full HAMZURY staff. This is the institution's single most powerful competitive advantage — a self-renewing talent pipeline rooted in impact.",
+    description: "The most powerful part of the RIDI pipeline: trained interns who demonstrate excellence are converted to full HAMZURY staff. This is the institution's single most powerful competitive advantage — a self-renewing talent pipeline rooted in impact.",
     partner: "HAMZURY HR",
   },
 ];
 
+const ALLOCATION_STEPS = [
+  "At the end of every month, Finance calculates net profit from the revenue and expense report.",
+  "10% of net profit is earmarked for RIDI programmes — this is non-negotiable and structural.",
+  "Finance creates a RIDI Transfer Record noting the amount, date, and programme it supports.",
+  "The CEO reviews and approves. The Founder is notified directly.",
+  "The Innovation Hub is briefed on the funded programme scope for the following month.",
+  "The record is reported to the RIDLDI board and published in HAMZURY's internal impact log.",
+];
+
 export default function Ridi() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-white font-sans">
-      {/* Header */}
-      <header className="border-b border-border">
+
+      {/* Nav */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/96 backdrop-blur-sm border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3">
-            <div
-              className="w-7 h-7 rounded-sm flex items-center justify-center text-white text-xs font-bold"
-              style={{ background: "var(--brand)" }}
-            >
-              <span className="text-xs font-bold">H</span>
-            </div>
-            <span className="font-semibold text-xs tracking-widest uppercase" style={{ color: "var(--brand)" }}>
-              HAMZURY
-            </span>
+            <img src={HAMZURY_LOGO} alt="HAMZURY" className="h-9 w-9 object-contain rounded-sm" />
+            <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: BRAND }}>HAMZURY</span>
           </Link>
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft size={12} />
-            Back to home
-          </Link>
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="/services" className="nav-link">Services</Link>
+            <Link href="/ridi" className="nav-link" style={{ color: BRAND, fontWeight: 600 }}>RIDI</Link>
+            <Link href="/services/bizdoc" className="nav-link">Bizdoc</Link>
+            <Link href="/portal" className="nav-link">Portal</Link>
+          </nav>
+          <button className="md:hidden p-2 rounded-sm text-muted-foreground" onClick={() => setMobileOpen(o => !o)}>
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
+        {mobileOpen && (
+          <div className="md:hidden border-t border-border bg-white">
+            <nav className="container py-4 flex flex-col gap-1">
+              <Link href="/services" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Services</Link>
+              <Link href="/ridi" className="py-2.5 text-sm font-medium" style={{ color: BRAND }} onClick={() => setMobileOpen(false)}>RIDI</Link>
+              <Link href="/services/bizdoc" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Bizdoc</Link>
+              <Link href="/portal" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Portal</Link>
+            </nav>
+          </div>
+        )}
       </header>
 
-      {/* Hero */}
-      <section className="py-20 md:py-32" style={{ background: "var(--brand)" }}>
-        <div className="container max-w-3xl">
-          <span className="block w-10 h-0.5 bg-white/40 mb-8" />
-          <p className="text-xs font-semibold tracking-widest uppercase text-white/60 mb-4">
-            RIDI · Rural Innovation &amp; Digital Literacy Development Initiative
-          </p>
-          <h1
-            className="text-3xl md:text-5xl font-light text-white mb-6 leading-tight"
-            style={{ letterSpacing: "-0.03em" }}
-          >
-            Ten percent of profits<br />support rural development.
-          </h1>
-          <p className="text-sm text-white/70 leading-relaxed max-w-xl mb-2">
-            Programs focus on education and economic opportunity.
-          </p>
-          <p className="text-sm text-white/70 leading-relaxed max-w-xl">
-            Impact is tracked and reported.
-          </p>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-b border-border">
+      {/* Hero — dark brand */}
+      <section className="pt-32 pb-20 grain-overlay" style={{ background: BRAND }}>
         <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-border">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs mb-8 hover:opacity-70 transition-opacity" style={{ color: "rgba(255,255,255,0.5)" }}>
+            <ArrowLeft size={12} /> Back to HAMZURY
+          </Link>
+          <div className="max-w-2xl">
+            <p className="text-xs tracking-[0.2em] uppercase mb-4 text-white/50">RIDI — Rural Innovation &amp; Digital Literacy Development Initiative</p>
+            <h1 className="text-5xl md:text-6xl font-light text-white mb-6 leading-tight">
+              Ten percent of profits<br />support rural development.
+            </h1>
+            <p className="text-white/70 text-lg leading-relaxed max-w-xl">
+              Programmes focused on education and economic opportunity. Impact tracked and reported. Structurally funded by the institution's own success.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-8 mt-12 pt-8 border-t border-white/10">
             {IMPACT_STATS.map((s) => (
-              <div key={s.label} className="bg-white px-6 py-8 text-center">
-                <p className="text-2xl font-semibold mb-1" style={{ color: "var(--brand)" }}>
-                  {s.value}
-                </p>
-                <p className="text-xs text-muted-foreground leading-tight">{s.label}</p>
+              <div key={s.label}>
+                <p className="text-2xl font-light text-white">{s.value}</p>
+                <p className="text-xs text-white/50 mt-1">{s.label}</p>
               </div>
             ))}
           </div>
@@ -107,57 +113,58 @@ export default function Ridi() {
       </section>
 
       {/* What RIDI is */}
-      <section className="section-padding" style={{ background: "white" }}>
+      <section className="py-20">
         <div className="container max-w-3xl">
-          <span className="brand-rule" />
-          <h2 className="text-2xl md:text-3xl font-light mb-6" style={{ color: "var(--charcoal)", letterSpacing: "-0.02em" }}>
-            What RIDI is.
-          </h2>
+          <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: BRAND }}>About</p>
+          <h2 className="text-3xl font-light mb-8" style={{ color: "#1a1a1a" }}>What RIDI is.</h2>
           <div className="space-y-5 text-sm text-muted-foreground leading-relaxed">
             <p>
-              The signed MOU between RIDLDI (Rural Innovation &amp; Digital Literacy Development
-              Initiative) and HAMZURY Innovation Hub (January 2026) establishes this
-              relationship: RIDLDI provides mandate and funding for programs like the Jos
-              Digital Rise Bootcamp; HAMZURY provides Starlink infrastructure, facilitators,
-              and curriculum. Both entities operate as independent legal entities, serving each
-              other at the highest professional standard.
+              The signed MOU between RIDLDI (Rural Innovation &amp; Digital Literacy Development Initiative) and HAMZURY Innovation Hub (January 2026) establishes this relationship: RIDLDI provides mandate and funding for programmes like the Jos Digital Rise Bootcamp; HAMZURY provides Starlink infrastructure, facilitators, and curriculum. Both entities operate as independent legal entities, serving each other at the highest professional standard.
             </p>
             <p>
-              The NGO scholarship pipeline is structured as follows: NGO scholarship → 3-week
-              training → intern → multi-language content creator → HAMZURY staff. With 4
-              cohorts per year and 100 trainees per cohort, HAMZURY trains 400 people annually
-              and maintains 40 active interns at any given time.
+              The NGO scholarship pipeline is structured as follows: NGO scholarship → 3-week training → intern → multi-language content creator → HAMZURY staff. With 4 cohorts per year and 100 trainees per cohort, HAMZURY trains 400 people annually and maintains 40 active interns at any given time.
             </p>
             <p>
-              This is HAMZURY's single most powerful competitive advantage. It is not charity.
-              It is a self-renewing talent pipeline rooted in genuine impact — and it is
-              structurally funded by the institution's own success.
+              This is HAMZURY's single most powerful competitive advantage. It is not charity. It is a self-renewing talent pipeline rooted in genuine impact — and it is structurally funded by the institution's own success.
             </p>
           </div>
         </div>
       </section>
 
-      {/* How Finance handles it */}
-      <section className="section-padding" style={{ background: "var(--milk)" }}>
+      {/* Active Programmes */}
+      <section className="py-20 border-t border-border" style={{ background: "#FAFAF8" }}>
+        <div className="container">
+          <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: BRAND }}>Programmes</p>
+          <h2 className="text-3xl font-light mb-4" style={{ color: "#1a1a1a" }}>Active programmes.</h2>
+          <p className="text-sm text-muted-foreground mb-12 max-w-lg">Each programme is funded by the RIDI allocation and executed through HAMZURY's department structure — with the same quality standards applied to external client work.</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {PROGRAMMES.map((p) => {
+              const Icon = p.icon;
+              return (
+                <div key={p.title} className="bg-white border border-border rounded-xl p-8">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center mb-5" style={{ background: BRAND + "12", color: BRAND }}>
+                    <Icon size={18} />
+                  </div>
+                  <h3 className="font-medium mb-3" style={{ color: "#1a1a1a" }}>{p.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{p.description}</p>
+                  <p className="text-xs font-medium" style={{ color: BRAND }}>Delivered by: {p.partner}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* How the allocation works */}
+      <section className="py-20 border-t border-border">
         <div className="container max-w-3xl">
-          <span className="brand-rule" />
-          <h2 className="text-2xl md:text-3xl font-light mb-8" style={{ color: "var(--charcoal)", letterSpacing: "-0.02em" }}>
-            How the allocation works.
-          </h2>
+          <p className="text-xs tracking-[0.2em] uppercase mb-2" style={{ color: BRAND }}>Finance</p>
+          <h2 className="text-3xl font-light mb-4" style={{ color: "#1a1a1a" }}>How the allocation works.</h2>
+          <p className="text-sm text-muted-foreground mb-10 max-w-lg">The 10% RIDI allocation is not discretionary. It is a structural commitment built into HAMZURY's financial process.</p>
           <div className="space-y-4">
-            {[
-              "At the end of every month, Finance calculates net profit from the revenue and expense report.",
-              "10% of net profit is earmarked for RIDI programs — this is non-negotiable and structural.",
-              "Finance creates a RIDI Transfer Record (Google Doc) stored in 08_FINANCE, noting the amount, date, and program it supports.",
-              "The CEO reviews and approves. The Founder is notified directly.",
-              "The Innovation Hub is briefed on the funded program scope for the following month.",
-              "The record is reported to the RIDLDI board and published in HAMZURY's internal impact log.",
-            ].map((step, i) => (
-              <div key={i} className="flex items-start gap-5 p-5 bg-white rounded-sm border border-border">
-                <span
-                  className="flex-shrink-0 w-6 h-6 rounded-sm flex items-center justify-center text-white text-xs font-semibold"
-                  style={{ background: "var(--brand)" }}
-                >
+            {ALLOCATION_STEPS.map((step, i) => (
+              <div key={i} className="flex items-start gap-5 p-5 bg-white rounded-xl border border-border">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ background: BRAND }}>
                   {i + 1}
                 </span>
                 <p className="text-sm text-muted-foreground leading-relaxed">{step}</p>
@@ -167,71 +174,42 @@ export default function Ridi() {
         </div>
       </section>
 
-      {/* Programmes */}
-      <section className="section-padding" style={{ background: "white" }}>
-        <div className="container">
-          <div className="max-w-xl mb-12">
-            <span className="brand-rule" />
-            <h2 className="text-2xl md:text-3xl font-semibold mb-4" style={{ color: "var(--charcoal)" }}>
-              Active Programmes
-            </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Each programme is funded by the RIDI allocation and executed through HAMZURY's
-              department structure — with the same quality standards applied to external client work.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {PROGRAMMES.map((p) => (
-              <div key={p.title} className="luxury-card">
-                <div
-                  className="w-9 h-9 rounded-sm flex items-center justify-center mb-5"
-                  style={{ background: "var(--brand-muted)", color: "var(--brand)" }}
-                >
-                  {p.icon}
-                </div>
-                <h3 className="text-base font-semibold mb-3" style={{ color: "var(--charcoal)" }}>
-                  {p.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">{p.description}</p>
-                <p className="text-xs font-medium" style={{ color: "var(--brand)" }}>
-                  Delivered by: {p.partner}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Soul statement */}
-      <section className="section-padding border-t border-border" style={{ background: "var(--brand)" }}>
-        <div className="container max-w-2xl text-center">
-          <span className="block w-10 h-0.5 bg-white/40 mx-auto mb-8" />
-          <h2 className="text-2xl font-semibold text-white mb-4">
+      {/* Soul statement — dark brand CTA */}
+      <section className="py-20 border-t border-border grain-overlay" style={{ background: BRAND }}>
+        <div className="container max-w-xl text-center">
+          <span className="block w-8 h-px mx-auto mb-10 bg-white/30" />
+          <h2 className="text-3xl font-light mb-4 text-white">
             HAMZURY does not need to become something different to grow.
           </h2>
-          <p className="text-sm text-white/70 leading-relaxed mb-8">
-            It only needs more people doing the same excellent thing, in the same excellent way.
-            The RIDI soul is not a programme we run — it is who we are.
+          <p className="text-sm leading-relaxed mb-8 max-w-sm mx-auto text-white/70">
+            It only needs more people doing the same excellent thing, in the same excellent way. The RIDI soul is not a programme we run — it is who we are.
           </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-white border border-white/30 px-6 py-3 rounded-sm hover:bg-white/10 transition-colors"
-          >
-            <ArrowLeft size={14} />
-            Return to HAMZURY
+          <Link href="/" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg text-sm font-semibold bg-white" style={{ color: BRAND }}>
+            <ArrowLeft size={14} /> Return to HAMZURY
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border py-8 bg-white">
-        <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">
-            © HAMZURY 2026 · RIDI Soul · 10% Profits to Rural Impact
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Structure · Clarity · Calm Authority
-          </p>
+      <footer className="border-t border-border py-12 bg-white">
+        <div className="container flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div>
+            <Link href="/" className="flex items-center gap-2 mb-3">
+              <img src={HAMZURY_LOGO} alt="HAMZURY" className="h-7 w-7 object-contain rounded-sm" />
+              <span className="text-xs font-semibold tracking-[0.18em] uppercase" style={{ color: BRAND }}>HAMZURY</span>
+            </Link>
+            <p className="text-xs text-muted-foreground">Structure. Clarity. Calm authority.</p>
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
+            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
+            <Link href="/services" className="hover:text-foreground transition-colors">Services</Link>
+            <Link href="/services/bizdoc" className="hover:text-foreground transition-colors">Bizdoc</Link>
+            <Link href="/team" className="hover:text-foreground transition-colors">Team</Link>
+            <Link href="/policies" className="hover:text-foreground transition-colors">Policies</Link>
+            <Link href="/start" className="hover:text-foreground transition-colors">Start a Project</Link>
+            <Link href="/track" className="hover:text-foreground transition-colors">Track Project</Link>
+            <Link href="/portal" className="hover:text-foreground transition-colors">Partner Portal</Link>
+          </div>
         </div>
       </footer>
     </div>
