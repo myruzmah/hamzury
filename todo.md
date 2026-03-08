@@ -101,3 +101,8 @@
 - [ ] Admin: register agents and view referral summary
 - [ ] Admin: post communications log entries for clients
 - [ ] Admin: view all tasks across all staff
+
+## Super Admin
+- [x] Create hidden unguessable super admin login URL
+- [x] Dedicated super admin credentials (not on public portal)
+- [x] Direct redirect to /admin after super admin login

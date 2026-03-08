@@ -21,6 +21,7 @@ import StaffDashboard from "./pages/StaffDashboard";
 import ClientView from "./pages/ClientView";
 import AgentDashboard from "./pages/AgentDashboard";
 import AdminPanel from "./pages/AdminPanel";
+import SuperAdminLogin from "./pages/SuperAdminLogin";
 
 function Router() {
   return (
@@ -46,6 +47,9 @@ function Router() {
       <Route path="/admin" component={AdminPanel} />
       <Route path="/admin/:tab" component={AdminPanel} />
       <Route path="/staff/dashboard/admin" component={AdminPanel} />
+
+      {/* Secret super admin login — not linked anywhere on the public site */}
+      <Route path="/hq-access-9f3k2" component={SuperAdminLogin} />
 
       {/* Fallback */}
       <Route path="/404" component={NotFound} />

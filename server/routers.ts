@@ -452,6 +452,36 @@ const adminRouter = router({
   }),
 });
 
+// ─── Super Admin router (secret URL, not exposed on public portal) ───────────
+const SUPER_ADMIN_EMAIL = "hamzury.superadmin@hamzury.com";
+const SUPER_ADMIN_PASSWORD = "H@mzury$ysAdmin2026!";
+
+const superAdminRouter = router({
+  login: publicProcedure
+    .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      if (input.email !== SUPER_ADMIN_EMAIL || input.password !== SUPER_ADMIN_PASSWORD) {
+        // Intentional delay to slow brute force
+        await new Promise((r) => setTimeout(r, 1200));
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid credentials." });
+      }
+      const { SignJWT } = await import("jose");
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET ?? "fallback-secret");
+      const token = await new SignJWT({
+        sub: "superadmin",
+        role: "admin",
+        email: SUPER_ADMIN_EMAIL,
+        name: "Super Admin",
+      })
+        .setProtectedHeader({ alg: "HS256" })
+        .setExpirationTime("12h")
+        .sign(secret);
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 12 * 60 * 60 * 1000 });
+      return { success: true };
+    }),
+});
+
 // ─── App router ───────────────────────────────────────────────────────────────
 export const appRouter = router({
   system: systemRouter,
@@ -461,6 +491,7 @@ export const appRouter = router({
   agent: agentRouter,
   admin: adminRouter,
   diagnosis: diagnosisRouter,
+  superAdmin: superAdminRouter,
 });
 
 export type AppRouter = typeof appRouter;
