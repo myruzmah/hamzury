@@ -68,8 +68,11 @@ const JOURNEY_STEPS = [
   },
 ];
 
+// Nav links: Services, RIDI, Bizdoc, Portal
 const NAV_LINKS = [
   { href: "/services", label: "Services" },
+  { href: "/ridi", label: "RIDI" },
+  { href: "https://bizdoc.hamzury.com", label: "Bizdoc", external: true },
   { href: "/portal", label: "Portal" },
 ];
 
@@ -99,46 +102,62 @@ export default function Home() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="nav-link">
-                {l.label}
-              </Link>
-            ))}
+            {NAV_LINKS.map((l) =>
+              l.external ? (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-link"
+                >
+                  {l.label}
+                </a>
+              ) : (
+                <Link key={l.href} href={l.href} className="nav-link">
+                  {l.label}
+                </Link>
+              )
+            )}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <Link
-              href="/start"
-              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-sm"
-              style={{ background: "var(--brand)", color: "white" }}
-            >
-              Start a Project
-            </Link>
-            {/* Mobile hamburger */}
-            <button
-              className="md:hidden p-2 rounded-sm text-muted-foreground hover:text-foreground transition-colors"
-              onClick={() => setMobileOpen((o) => !o)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            </button>
-          </div>
+          {/* Mobile hamburger only — no Start a Project button in header */}
+          <button
+            className="md:hidden p-2 rounded-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setMobileOpen((o) => !o)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
 
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="md:hidden border-t border-border bg-white">
             <nav className="container py-4 flex flex-col gap-1">
-              {NAV_LINKS.map((l) => (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  className="py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {l.label}
-                </Link>
-              ))}
+              {NAV_LINKS.map((l) =>
+                l.external ? (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    className="py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {l.label}
+                  </Link>
+                )
+              )}
               <Link
                 href="/start"
                 className="mt-3 inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-sm"
@@ -193,24 +212,24 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── What We Build ──────────────────────────────────────────────────── */}
+      {/* ── Our Services ───────────────────────────────────────────────────── */}
       <section className="section-padding" style={{ background: "white" }}>
         <div className="container">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 gap-4">
             <div className="max-w-sm">
               <span className="brand-rule" />
-              <h2 style={{ color: "var(--charcoal)" }}>What we build.</h2>
+              <h2 style={{ color: "var(--charcoal)" }}>Our services.</h2>
             </div>
             <Link
               href="/services"
               className="flex items-center gap-2 text-xs font-semibold self-start md:self-auto"
               style={{ color: "var(--brand)" }}
             >
-              All services <ArrowRight size={12} />
+              View all <ArrowRight size={12} />
             </Link>
           </div>
 
-          {/* 4 service cards — 2×2 grid */}
+          {/* 4 service cards — 2x2 grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border">
             {SERVICES.map((svc) => {
               const inner = (
@@ -226,11 +245,9 @@ export default function Home() {
                   <h3 className="text-base font-semibold mb-3" style={{ color: "var(--charcoal)" }}>
                     {svc.name}
                   </h3>
-                  {/* Problem statement */}
                   <p className="text-xs font-medium mb-3 italic" style={{ color: "var(--muted-text)" }}>
                     {svc.problem}
                   </p>
-                  {/* Outcome */}
                   <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
                     {svc.outcome}
                   </p>
@@ -265,7 +282,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── 5-Step Client Journey ──────────────────────────────────────────── */}
+      {/* ── How It Works: Client Journey ───────────────────────────────────── */}
       <section
         className="section-padding grain-overlay"
         style={{ background: "var(--brand)" }}
@@ -316,7 +333,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── About ──────────────────────────────────────────────────────────── */}
+      {/* ── About HAMZURY ──────────────────────────────────────────────────── */}
       <section className="section-padding" style={{ background: "white" }}>
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-4xl">
@@ -328,10 +345,10 @@ export default function Home() {
             </div>
             <div className="space-y-4">
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                HAMZURY is an institutional business development firm operating across Nigeria.
+                HAMZURY is an institutional business development firm operating across Nigeria. We do not offer generic services — we build the foundations that allow organisations to operate with structure, grow with clarity, and deliver with consistency.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                Four departments — Innovation Hub, Studios, Systems, and Bizdoc — operate as independent service providers within one coordinated institution.
+                Four departments — Innovation Hub, Studios, Systems, and Bizdoc — operate as independent service providers within one coordinated institution. Each department is led by a specialist and governed by the same standard of documentation, accountability, and delivery.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
                 Every engagement is structured, documented, and delivered to a standard that outlasts the project.
@@ -366,24 +383,38 @@ export default function Home() {
             {/* Links */}
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
               {[
-                { href: "/services", label: "Services" },
-                { href: "/start", label: "Start a Project" },
-                { href: "/track", label: "Track Project" },
-                { href: "/portal", label: "Partner Portal" },
-                { href: "/legal/privacy", label: "Privacy" },
-                { href: "/legal/terms", label: "Terms" },
-                { href: "/staff-login", label: "Staff" },
-              ].map((l) => (
-                <Link key={l.href} href={l.href} className="nav-link text-xs">
-                  {l.label}
-                </Link>
-              ))}
+                { href: "/services", label: "Services", external: false },
+                { href: "/ridi", label: "RIDI", external: false },
+                { href: "https://bizdoc.hamzury.com", label: "Bizdoc", external: true },
+                { href: "/start", label: "Start a Project", external: false },
+                { href: "/track", label: "Track Project", external: false },
+                { href: "/portal", label: "Partner Portal", external: false },
+                { href: "/legal/privacy", label: "Privacy", external: false },
+                { href: "/legal/terms", label: "Terms", external: false },
+                { href: "/staff-login", label: "Staff", external: false },
+              ].map((l) =>
+                l.external ? (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="nav-link text-xs"
+                  >
+                    {l.label}
+                  </a>
+                ) : (
+                  <Link key={l.href} href={l.href} className="nav-link text-xs">
+                    {l.label}
+                  </Link>
+                )
+              )}
             </nav>
           </div>
 
           <div className="mt-10 pt-6 border-t border-border flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <p className="text-xs" style={{ color: "var(--muted-text)" }}>
-              © {new Date().getFullYear()} HAMZURY. All rights reserved.
+              {new Date().getFullYear()} HAMZURY. All rights reserved.
             </p>
             <div className="flex gap-4">
               {[

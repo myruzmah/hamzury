@@ -204,3 +204,10 @@
 - [ ] Chat: full project intake flow inside the chat (dept selection → questions → submission)
 - [ ] Department pages: add department-specific intake forms
 - [ ] Build dedicated event/ticket form page at /form/:slug
+
+## Phase 14 — Nav, Homepage & Full Site Audit
+- [ ] Nav: Add RIDI and Bizdoc as direct nav links alongside Services and Portal, remove "Start a Project" button from header
+- [ ] Rename "What we build" section to "Our Services"
+- [ ] Replace Bizdoc section below services with the 5-step client journey ("How it works")
+- [ ] Rewrite all homepage copy with full HAMZURY brand wisdom
+- [ ] Audit and fix Services index, department pages, Portal, footer for consistency

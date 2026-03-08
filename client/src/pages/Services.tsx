@@ -1,5 +1,6 @@
 import { Link } from "wouter";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, ExternalLink, Menu, X } from "lucide-react";
+import { useState } from "react";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
@@ -76,6 +77,7 @@ const DEPARTMENTS = [
 ];
 
 export default function Services() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <div className="min-h-screen bg-white font-sans">
 
@@ -86,11 +88,27 @@ export default function Services() {
             <img src={HAMZURY_LOGO} alt="HAMZURY" className="h-9 w-9 object-contain rounded-sm" />
             <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: "var(--brand)" }}>HAMZURY</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/ridi" className="nav-link text-sm hidden md:block">RIDI</Link>
-            <Link href="/start" className="btn-primary text-xs px-4 py-2">Start a Project</Link>
-          </div>
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="/services" className="nav-link" style={{ color: "var(--brand)" }}>Services</Link>
+            <Link href="/ridi" className="nav-link">RIDI</Link>
+            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="nav-link">Bizdoc</a>
+            <Link href="/portal" className="nav-link">Portal</Link>
+          </nav>
+          <button className="md:hidden p-2 rounded-sm text-muted-foreground" onClick={() => setMobileOpen(o => !o)}>
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
+        {mobileOpen && (
+          <div className="md:hidden border-t border-border bg-white">
+            <nav className="container py-4 flex flex-col gap-1">
+              <Link href="/services" className="py-2.5 text-sm font-medium" style={{ color: "var(--brand)" }} onClick={() => setMobileOpen(false)}>Services</Link>
+              <Link href="/ridi" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>RIDI</Link>
+              <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Bizdoc</a>
+              <Link href="/portal" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Portal</Link>
+              <Link href="/start" className="mt-3 inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-sm" style={{ background: "var(--brand)", color: "white" }} onClick={() => setMobileOpen(false)}>Start a Project</Link>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero */}
@@ -98,10 +116,10 @@ export default function Services() {
         <div className="container max-w-3xl">
           <span className="brand-rule" />
           <h1 className="display mb-6" style={{ color: "var(--charcoal)" }}>
-            What HAMZURY builds.
+            Our services.
           </h1>
           <p className="text-base md:text-lg font-light leading-relaxed max-w-xl" style={{ color: "var(--body-text)" }}>
-            Four departments. Each one focused on a specific problem that businesses face. Each one built to deliver a clear, measurable outcome.
+            Four departments. Each one built around a specific problem that organisations face — and a clear, documented outcome that resolves it.
           </p>
         </div>
       </section>
@@ -178,11 +196,14 @@ export default function Services() {
       <footer className="border-t border-border py-10" style={{ background: "white" }}>
         <div className="container flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <p className="text-xs" style={{ color: "var(--muted-text)" }}>© {new Date().getFullYear()} HAMZURY. All rights reserved.</p>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             <Link href="/" className="nav-link text-xs">Home</Link>
+            <Link href="/ridi" className="nav-link text-xs">RIDI</Link>
+            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="nav-link text-xs">Bizdoc</a>
             <Link href="/start" className="nav-link text-xs">Start a Project</Link>
             <Link href="/track" className="nav-link text-xs">Track Project</Link>
             <Link href="/portal" className="nav-link text-xs">Partner Portal</Link>
+            <Link href="/staff-login" className="nav-link text-xs">Staff</Link>
           </div>
         </div>
       </footer>
