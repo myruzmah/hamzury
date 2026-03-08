@@ -119,13 +119,12 @@ export default function Bizdoc() {
             <img src={HAMZURY_LOGO} alt="HAMZURY" className="h-9 w-9 object-contain rounded-sm" />
             <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: "var(--brand)" }}>HAMZURY</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/services" className="nav-link text-sm hidden md:block">Services</Link>
-            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="nav-link text-sm hidden md:flex items-center gap-1">
-              Bizdoc Site <ExternalLink size={11} />
-            </a>
-            <Link href="/start" className="btn-primary text-xs px-4 py-2">Start a Project</Link>
-          </div>
+          <nav className="hidden md:flex items-center gap-8">
+            <Link href="/services" className="nav-link">Services</Link>
+            <Link href="/ridi" className="nav-link">RIDI</Link>
+            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="nav-link">Bizdoc</a>
+            <Link href="/portal" className="nav-link">Portal</Link>
+          </nav>
         </div>
       </header>
 

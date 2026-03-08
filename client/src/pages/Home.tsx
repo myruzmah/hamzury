@@ -282,53 +282,45 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── How It Works: Client Journey ───────────────────────────────────── */}
-      <section
-        className="section-padding grain-overlay"
-        style={{ background: "var(--brand)" }}
-      >
+      {/* ── How It Works: compact strip ─────────────────────────────────────── */}
+      <section className="border-y border-border py-10" style={{ background: "var(--milk)" }}>
         <div className="container">
-          <div className="max-w-sm mb-14">
-            <span className="block w-8 h-px bg-white/30 mb-10" />
-            <p className="label mb-4" style={{ color: "rgba(255,255,255,0.5)" }}>
-              How it works
-            </p>
-            <h2 className="text-2xl md:text-3xl font-light" style={{ color: "white", letterSpacing: "-0.02em" }}>
-              From enquiry<br />to delivery.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-px bg-white/10">
-            {JOURNEY_STEPS.map((s, i) => (
-              <div
-                key={s.step}
-                className="p-6 md:p-8"
-                style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)" }}
-              >
-                <p className="label mb-4" style={{ color: "rgba(255,255,255,0.35)" }}>
-                  {s.step}
-                </p>
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle2 size={14} style={{ color: "rgba(255,255,255,0.5)" }} />
-                  <h3 className="text-sm font-semibold" style={{ color: "white" }}>
-                    {s.title}
-                  </h3>
+          <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-0">
+            {/* Label */}
+            <div className="md:w-40 shrink-0">
+              <p className="label" style={{ color: "var(--brand)" }}>How it works</p>
+            </div>
+            {/* Steps */}
+            <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-0">
+              {JOURNEY_STEPS.map((s, i) => (
+                <div key={s.step} className="flex items-center gap-0 flex-1">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
+                      style={{ background: "var(--brand)", color: "white" }}
+                    >
+                      {i + 1}
+                    </span>
+                    <span className="text-xs font-medium" style={{ color: "var(--charcoal)" }}>
+                      {s.title}
+                    </span>
+                  </div>
+                  {i < JOURNEY_STEPS.length - 1 && (
+                    <ArrowRight size={11} className="mx-3 shrink-0 hidden sm:block" style={{ color: "var(--muted-text)" }} />
+                  )}
                 </div>
-                <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-                  {s.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-10">
-            <Link
-              href="/start"
-              className="inline-flex items-center gap-2 px-6 py-3 text-xs font-semibold rounded-sm"
-              style={{ background: "white", color: "var(--brand)" }}
-            >
-              Begin your project <ArrowRight size={13} />
-            </Link>
+              ))}
+            </div>
+            {/* CTA */}
+            <div className="md:ml-8 shrink-0">
+              <Link
+                href="/start"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold"
+                style={{ color: "var(--brand)" }}
+              >
+                Begin <ArrowRight size={11} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
