@@ -9,12 +9,21 @@ import { toast } from "sonner";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
-type PortalTab = "staff" | "client" | "agent";
+type PortalTab = "staff" | "agent";
 
-const PORTALS: { id: PortalTab; label: string; welcome: string }[] = [
-  { id: "staff", label: "Staff", welcome: "Your workspace for tasks and resources." },
-  { id: "client", label: "Client", welcome: "Track your project and access deliverables." },
-  { id: "agent", label: "Agent", welcome: "Monitor referrals and commissions." },
+const PORTALS: { id: PortalTab; label: string; welcome: string; sub: string }[] = [
+  {
+    id: "staff",
+    label: "Staff",
+    welcome: "Your workspace for tasks and resources.",
+    sub: "HAMZURY team members only.",
+  },
+  {
+    id: "agent",
+    label: "Partner Agent",
+    welcome: "Monitor referrals and commissions.",
+    sub: "Authorised HAMZURY partners only.",
+  },
 ];
 
 export default function Portal() {
@@ -39,12 +48,23 @@ export default function Portal() {
           </Link>
 
           <span className="block w-8 h-px bg-white/30 mb-8" />
-          <p className="text-2xl font-light leading-snug text-white mb-4" style={{ letterSpacing: "-0.02em" }}>
+          <p className="text-2xl font-light leading-snug text-white mb-3" style={{ letterSpacing: "-0.02em" }}>
             {activePortal.welcome}
           </p>
           <p className="text-sm text-white/50 font-light">
-            Secure portal access.
+            {activePortal.sub}
           </p>
+        </div>
+
+        {/* Client redirect note */}
+        <div className="p-4 rounded-sm border border-white/10 bg-white/5 mb-6">
+          <p className="text-xs text-white/60 mb-2 font-medium">Looking for your project?</p>
+          <p className="text-xs text-white/50 mb-3 leading-relaxed">
+            Clients track projects using their reference code — no account required.
+          </p>
+          <Link href="/track" className="text-xs text-white/80 underline underline-offset-2 hover:text-white transition-colors">
+            Track my project →
+          </Link>
         </div>
 
         <div>
@@ -77,7 +97,7 @@ export default function Portal() {
             <div className="mb-8">
               <span className="brand-rule" />
               <h1 className="text-xl font-semibold mb-1" style={{ color: "var(--charcoal)" }}>
-                Portal Access
+                Partner Portal
               </h1>
               <p className="text-xs text-muted-foreground">
                 Select your access type to continue.
@@ -102,12 +122,18 @@ export default function Portal() {
               ))}
             </div>
 
+            {/* Mobile client redirect */}
+            <div className="md:hidden p-3.5 rounded-sm mb-6 text-xs leading-relaxed" style={{ background: "var(--milk)", color: "var(--body-text)" }}>
+              Looking for your project?{" "}
+              <Link href="/track" className="font-semibold underline" style={{ color: "var(--brand)" }}>
+                Track by reference code
+              </Link>
+              {" "}— no login required.
+            </div>
+
             {/* Forms */}
             {activeTab === "staff" && (
               <StaffLoginForm onSuccess={() => navigate("/staff/dashboard")} />
-            )}
-            {activeTab === "client" && (
-              <ClientAccessForm onSuccess={(ref) => navigate(`/client/${ref}`)} />
             )}
             {activeTab === "agent" && (
               <AgentLoginForm onSuccess={() => navigate("/agent/dashboard")} />
@@ -155,39 +181,6 @@ function StaffLoginForm({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-// ─── Client Access Form ───────────────────────────────────────────────────────
-function ClientAccessForm({ onSuccess }: { onSuccess: (ref: string) => void }) {
-  const [ref, setRef] = useState("");
-
-  const lookupMutation = trpc.auth.clientLookup.useMutation({
-    onSuccess: (data) => { toast.success("Project found."); onSuccess(data.clientRef); },
-    onError: (err) => toast.error(err.message),
-  });
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); lookupMutation.mutate({ clientRef: ref.toUpperCase().trim() }); }} className="space-y-4">
-      <div className="p-3.5 rounded-sm text-xs text-muted-foreground leading-relaxed" style={{ background: "var(--brand-muted)" }}>
-        Enter your client reference number (e.g. <strong className="text-foreground">CLT-001</strong>) provided by your CSO contact.
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="client-ref" className="label">Reference number</Label>
-        <Input id="client-ref" type="text" value={ref} onChange={(e) => setRef(e.target.value)}
-          placeholder="CLT-001" required className="h-11 rounded-sm text-sm font-mono uppercase" />
-      </div>
-      <Button type="submit" className="w-full h-11 rounded-sm text-sm font-semibold mt-2"
-        style={{ background: "var(--brand)" }} disabled={lookupMutation.isPending}>
-        {lookupMutation.isPending ? "Looking up…" : (
-          <span className="flex items-center gap-2">Access project <ArrowRight size={13} /></span>
-        )}
-      </Button>
-      <p className="text-xs text-muted-foreground text-center pt-1">
-        No reference?{" "}
-        <a href="mailto:cso@hamzury.com" className="underline" style={{ color: "var(--brand)" }}>Contact CSO</a>
-      </p>
-    </form>
-  );
-}
-
 // ─── Agent Login Form ─────────────────────────────────────────────────────────
 function AgentLoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [email, setEmail] = useState("");
@@ -217,7 +210,7 @@ function AgentLoginForm({ onSuccess }: { onSuccess: () => void }) {
         )}
       </Button>
       <p className="text-xs text-muted-foreground text-center pt-1">
-        Not yet an agent?{" "}
+        Not yet a partner?{" "}
         <a href="mailto:bizdev@hamzury.com" className="underline" style={{ color: "var(--brand)" }}>Apply to partner</a>
       </p>
     </form>

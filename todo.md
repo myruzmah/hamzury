@@ -169,3 +169,28 @@
 - [x] Build CSO AI Agent in Lead dashboard (drafts client messages, qualifies leads)
 - [x] Build Bizdoc AI Agent in Lead dashboard (compliance research, CAC/tax/PENCOM guidance)
 - [x] Staff list corrected to 14 real staff members with accurate names, roles, departments
+
+## Phase 11 — Public Experience Rebuild
+- [ ] Homepage: show only 4 departments (Innovation Hub, Studios, Systems, Bizdoc)
+- [ ] Nav: update department links to only 4 visible departments
+- [ ] Bizdoc: rename to "Bizdoc" (not "HAMZURY Bizdoc"), link to bizdoc.hamzury.com
+- [ ] AI chat: Apple-style redesign — welcome screen + 4 department cards with outcome statements
+- [ ] AI chat: Innovation Hub flow — list all services, luxury no-direct-enrol message, AI programme matching
+- [ ] AI chat: Studios flow — service selection, project brief questions, AI recommendation
+- [ ] AI chat: Systems flow — service selection, requirements questions, AI recommendation
+- [ ] AI chat: General Business Checkup flow — diagnostic questions, AI analysis report
+- [ ] AI chat: each flow ends with "Learn More" PDF trigger per department
+- [ ] Service sub-pages: clickable individual service pages for all 4 departments
+- [ ] Remove client login from portal — portal shows Staff and Agent only
+- [ ] Department landing pages: full content with case study placeholders
+
+## Phase 12 — Brand Language & Public Site Rebuild
+- [ ] Rewrite AI chat: 4 public depts only, outcome-focused copy, remove CSO/internal depts
+- [ ] Rewrite homepage: outcome-first dept cards, HAMZURY voice, remove generic phrases
+- [ ] Clean navigation: remove Contact link, keep Services + Partner Portal
+- [ ] Build /departments index page: all 4 depts with full features, direct to /start
+- [ ] Build /departments/innovation-hub page
+- [ ] Build /departments/studios page
+- [ ] Build /departments/systems page
+- [ ] Build /departments/bizdoc page (with external link to bizdoc.hamzury.com)
+- [ ] Remove client portal login, simplify portal to Staff and Agent only

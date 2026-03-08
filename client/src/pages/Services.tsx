@@ -1,114 +1,191 @@
 import { Link } from "wouter";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
 const DEPARTMENTS = [
-  { code: "01", slug: "cso", name: "HAMZURY CSO", tagline: "Your First Conversation", desc: "The gateway to HAMZURY. Every client relationship begins with a structured intake, the right recommendation, and a clear engagement pack.", client: true },
-  { code: "02", slug: "systems", name: "HAMZURY Systems", tagline: "Digital Infrastructure That Lasts", desc: "Business websites, CRM systems, AI workflows, and custom automation — built to institutional standard and maintained with rigour.", client: true },
-  { code: "03", slug: "studios", name: "HAMZURY Studios", tagline: "Brands Built to Endure", desc: "Brand identity, content systems, and visual production that stand the test of time. Apple-level clean, properly branded, ready to frame.", client: true },
-  { code: "04", slug: "bizdoc", name: "HAMZURY Bizdoc", tagline: "Building Businesses on Solid Foundations", desc: "CAC registration, tax compliance, PENCOM, SCUML, and all the documentation that makes your institution legally sound.", client: true },
-  { code: "05", slug: "innovation", name: "HAMZURY Innovation", tagline: "Learn What Actually Works", desc: "Cohort-based training, self-paced courses, business bootcamps, and kids robotics — developing the next generation of African professionals.", client: true },
-  { code: "06", slug: "growth", name: "HAMZURY Growth", tagline: "Partnerships That Matter", desc: "Strategic partnerships, grant applications, market research, and revenue channel development.", client: false },
-  { code: "07", slug: "people", name: "HAMZURY People", tagline: "Where Talent Thrives", desc: "Recruitment, onboarding, performance management, and staff development — the human infrastructure behind everything.", client: false },
-  { code: "08", slug: "ledger", name: "HAMZURY Ledger", tagline: "Clear Numbers, Calm Decisions", desc: "Invoicing, expense management, commission processing, and the 10% RIDI allocation — transparent and precise.", client: false },
-  { code: "09", slug: "executive", name: "HAMZURY Executive", tagline: "Operational Excellence", desc: "Cross-departmental oversight, strategic alignment, and institutional governance from the CEO office.", client: false },
-  { code: "10", slug: "founder", name: "HAMZURY Founder", tagline: "Vision That Outlasts", desc: "The founding vision, institutional philosophy, and long-term strategy that keeps HAMZURY true to its values.", client: false },
-  { code: "11", slug: "ridi", name: "HAMZURY RIDI", tagline: "10% Profits, 100% Impact", desc: "The Rural Innovation & Digital Literacy Development Initiative — 10% of every profit structurally committed to rural education.", client: false },
+  {
+    number: "01",
+    id: "innovation-hub",
+    name: "Innovation Hub",
+    tagline: "Build capability. Not just knowledge.",
+    description: "Training programmes, executive classes, and structured learning experiences that develop real, lasting capability — in individuals, teams, and communities.",
+    problem: "You or your team need to develop skills that will actually change how you work and lead.",
+    services: [
+      "Executive Class",
+      "Kids Robotics & STEM",
+      "Digital Skills Bootcamp",
+      "Internship Programme",
+      "Corporate Training",
+    ],
+    href: "/services/innovation-hub",
+    external: null,
+  },
+  {
+    number: "02",
+    id: "studios",
+    name: "Studios",
+    tagline: "Your brand should reflect what you actually do.",
+    description: "Brand identity, content strategy, social media management, podcast production, and event media coverage — built to institutional standard.",
+    problem: "Your brand does not communicate the quality of your work, or you have no consistent presence.",
+    services: [
+      "Brand Identity",
+      "Social Media Management",
+      "Content Strategy",
+      "Podcast Production",
+      "Event Media Coverage",
+    ],
+    href: "/services/studios",
+    external: null,
+  },
+  {
+    number: "03",
+    id: "systems",
+    name: "Systems",
+    tagline: "Stop running your business on manual processes.",
+    description: "Websites, web applications, dashboards, automation systems, and AI workflows — built to replace the manual work that is slowing your business down.",
+    problem: "Your business is growing but your systems, tools, and processes have not kept up.",
+    services: [
+      "Business Website",
+      "Web Application",
+      "Staff or Client Dashboard",
+      "Automation & AI Workflow",
+      "CRM System",
+    ],
+    href: "/services/systems",
+    external: null,
+  },
+  {
+    number: "04",
+    id: "bizdoc",
+    name: "Bizdoc",
+    tagline: "Your business should be registered, compliant, protected.",
+    description: "CAC registration, annual returns, tax filings, PENCOM compliance, industry licensing, and regulatory advisory — handled properly, from start to finish.",
+    problem: "Your business is not registered, not compliant, or you are unsure what regulatory obligations apply to you.",
+    services: [
+      "CAC Business Registration",
+      "Annual Returns Filing",
+      "Tax Registration",
+      "PENCOM Compliance",
+      "Industry Licensing",
+      "Compliance Advisory",
+    ],
+    href: "/services/bizdoc",
+    external: "https://bizdoc.hamzury.com",
+  },
 ];
 
 export default function Services() {
-  const clientFacing = DEPARTMENTS.filter((d) => d.client);
-  const internal = DEPARTMENTS.filter((d) => !d.client);
-
   return (
     <div className="min-h-screen bg-white font-sans">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
+
+      {/* Nav */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/96 backdrop-blur-sm border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3">
-            <img src={HAMZURY_LOGO} alt="HAMZURY" className="h-8 w-8 object-contain rounded-sm" />
-            <span className="font-semibold text-sm tracking-widest uppercase" style={{ color: "var(--brand)" }}>HAMZURY</span>
+            <img src={HAMZURY_LOGO} alt="HAMZURY" className="h-9 w-9 object-contain rounded-sm" />
+            <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: "var(--brand)" }}>HAMZURY</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">Home</Link>
-            <Link href="/ridi" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">RIDI</Link>
-            <Link href="/contact" className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors">Contact</Link>
-            <Link href="/portal" className="text-xs font-semibold px-4 py-2 rounded-sm" style={{ background: "var(--brand)", color: "white" }}>Portal</Link>
-          </nav>
+          <div className="flex items-center gap-4">
+            <Link href="/ridi" className="nav-link text-sm hidden md:block">RIDI</Link>
+            <Link href="/start" className="btn-primary text-xs px-4 py-2">Start a Project</Link>
+          </div>
         </div>
       </header>
 
-      <section className="pt-32 pb-20 md:pt-40 md:pb-28" style={{ background: "var(--milk)" }}>
-        <div className="container max-w-2xl">
+      {/* Hero */}
+      <section className="pt-32 pb-20 grain-overlay" style={{ background: "var(--milk)" }}>
+        <div className="container max-w-3xl">
           <span className="brand-rule" />
-          <h1 className="text-4xl md:text-5xl font-semibold mb-4 leading-tight" style={{ color: "var(--charcoal)", letterSpacing: "-0.02em" }}>
+          <h1 className="display mb-6" style={{ color: "var(--charcoal)" }}>
             What HAMZURY builds.
           </h1>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Eleven departments. One institutional standard. Every service is documented, quality-gated, and delivered with the same rigour — regardless of the engagement size.
+          <p className="text-base md:text-lg font-light leading-relaxed max-w-xl" style={{ color: "var(--body-text)" }}>
+            Four departments. Each one focused on a specific problem that businesses face. Each one built to deliver a clear, measurable outcome.
           </p>
         </div>
       </section>
 
-      {/* Client-facing services */}
+      {/* Department list */}
       <section className="section-padding" style={{ background: "white" }}>
         <div className="container">
-          <div className="max-w-xl mb-12">
-            <span className="brand-rule" />
-            <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--charcoal)" }}>Client Services</h2>
-            <p className="text-sm text-muted-foreground">Available to external clients and businesses.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {clientFacing.map((dept) => (
-              <Link key={dept.slug} href={`/department/${dept.slug}`} className="bg-white p-8 group hover:bg-gray-50 transition-colors block">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono font-semibold tracking-widest" style={{ color: "var(--brand)" }}>{dept.code}</span>
-                  <ArrowRight size={14} className="text-muted-foreground group-hover:translate-x-1 transition-transform" style={{ color: "var(--brand)" }} />
+          <div className="space-y-0 divide-y divide-border">
+            {DEPARTMENTS.map((dept) => (
+              <div key={dept.id} className="py-14 md:py-16">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
+                  {/* Left: number + name */}
+                  <div className="md:col-span-3">
+                    <p className="label mb-3" style={{ color: "var(--brand)" }}>{dept.number}</p>
+                    <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--charcoal)" }}>{dept.name}</h2>
+                    <p className="text-sm font-medium leading-snug" style={{ color: "var(--muted-text)" }}>{dept.tagline}</p>
+                  </div>
+
+                  {/* Middle: description + problem */}
+                  <div className="md:col-span-5">
+                    <p className="text-sm leading-relaxed mb-5" style={{ color: "var(--body-text)" }}>{dept.description}</p>
+                    <div className="p-4 rounded-sm border border-border" style={{ background: "var(--milk)" }}>
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--charcoal)" }}>The problem it solves</p>
+                      <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>{dept.problem}</p>
+                    </div>
+                  </div>
+
+                  {/* Right: services + CTA */}
+                  <div className="md:col-span-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--charcoal)" }}>Services</p>
+                    <ul className="space-y-2 mb-8">
+                      {dept.services.map((s) => (
+                        <li key={s} className="flex items-center gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "var(--brand)" }} />
+                          <span className="text-sm" style={{ color: "var(--body-text)" }}>{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex flex-col gap-3">
+                      <Link href={dept.href} className="inline-flex items-center gap-2 text-xs font-semibold" style={{ color: "var(--brand)" }}>
+                        View {dept.name} <ArrowRight size={12} />
+                      </Link>
+                      {dept.external && (
+                        <a href={dept.external} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs" style={{ color: "var(--muted-text)" }}>
+                          Visit {dept.name} site <ExternalLink size={11} />
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-sm font-semibold mb-1" style={{ color: "var(--charcoal)" }}>{dept.name}</h3>
-                <p className="text-xs font-medium mb-3" style={{ color: "var(--brand)" }}>{dept.tagline}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{dept.desc}</p>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Internal departments */}
-      <section className="section-padding border-t border-border" style={{ background: "var(--milk)" }}>
-        <div className="container">
-          <div className="max-w-xl mb-12">
-            <span className="brand-rule" />
-            <h2 className="text-2xl font-semibold mb-2" style={{ color: "var(--charcoal)" }}>Internal Departments</h2>
-            <p className="text-sm text-muted-foreground">The infrastructure that makes everything else possible.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
-            {internal.map((dept) => (
-              <Link key={dept.slug} href={`/department/${dept.slug}`} className="bg-white p-8 group hover:bg-gray-50 transition-colors block">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono font-semibold tracking-widest" style={{ color: "var(--brand)" }}>{dept.code}</span>
-                  <ArrowRight size={14} className="text-muted-foreground group-hover:translate-x-1 transition-transform" style={{ color: "var(--brand)" }} />
-                </div>
-                <h3 className="text-sm font-semibold mb-1" style={{ color: "var(--charcoal)" }}>{dept.name}</h3>
-                <p className="text-xs font-medium mb-3" style={{ color: "var(--brand)" }}>{dept.tagline}</p>
-                <p className="text-xs text-muted-foreground leading-relaxed">{dept.desc}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 border-t border-border" style={{ background: "white" }}>
+      {/* Bottom CTA */}
+      <section className="py-20 border-t border-border grain-overlay" style={{ background: "var(--brand)" }}>
         <div className="container max-w-xl text-center">
-          <span className="block w-10 h-0.5 mx-auto mb-6" style={{ background: "var(--brand)" }} />
-          <h2 className="text-2xl font-semibold mb-4" style={{ color: "var(--charcoal)" }}>Not sure where to start?</h2>
-          <p className="text-sm text-muted-foreground mb-8">Take our free Business Health Diagnosis. We will recommend the right combination of services for your situation.</p>
-          <a href="/diagnosis" className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold rounded-sm" style={{ background: "var(--brand)", color: "white" }}>
-            Free Business Diagnosis <ArrowRight size={14} />
-          </a>
+          <span className="block w-8 h-px mx-auto mb-10 bg-white/40" />
+          <h2 className="text-2xl font-light mb-4 text-white" style={{ letterSpacing: "-0.02em" }}>
+            Not sure which department you need?
+          </h2>
+          <p className="text-sm leading-relaxed mb-8 max-w-sm mx-auto text-white/70">
+            Submit your project brief and our team will route it to the right department and follow up within 24 hours.
+          </p>
+          <Link href="/start" className="inline-flex items-center gap-2 px-6 py-3.5 rounded-sm text-sm font-semibold bg-white" style={{ color: "var(--brand)" }}>
+            Start a Project <ArrowRight size={14} />
+          </Link>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-10" style={{ background: "white" }}>
+        <div className="container flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <p className="text-xs" style={{ color: "var(--muted-text)" }}>© {new Date().getFullYear()} HAMZURY. All rights reserved.</p>
+          <div className="flex gap-6">
+            <Link href="/" className="nav-link text-xs">Home</Link>
+            <Link href="/start" className="nav-link text-xs">Start a Project</Link>
+            <Link href="/track" className="nav-link text-xs">Track Project</Link>
+            <Link href="/portal" className="nav-link text-xs">Partner Portal</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

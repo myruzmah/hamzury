@@ -28,6 +28,12 @@ import StaffLogin from "./pages/StaffLogin";
 import ClientIntake from "./pages/ClientIntake";
 import TrackProject from "./pages/TrackProject";
 
+// Department pages
+import InnovationHub from "./pages/departments/InnovationHub";
+import Studios from "./pages/departments/Studios";
+import Systems from "./pages/departments/Systems";
+import Bizdoc from "./pages/departments/Bizdoc";
+
 // Institutional dashboards
 import CEODashboard from "./pages/ceo-dashboard";
 import FounderDashboard from "./pages/founder-dashboard";
@@ -70,6 +76,12 @@ function Router() {
       <Route path="/founder-access-k8p1q" component={FounderDashboard} />
       <Route path="/lead-dashboard" component={LeadDashboard} />
       <Route path="/my-tasks" component={MyTasksDashboard} />
+
+      {/* Department pages */}
+      <Route path="/services/innovation-hub" component={InnovationHub} />
+      <Route path="/services/studios" component={Studios} />
+      <Route path="/services/systems" component={Systems} />
+      <Route path="/services/bizdoc" component={Bizdoc} />
 
       {/* Frictionless client intake — no login required */}
       <Route path="/start" component={ClientIntake} />

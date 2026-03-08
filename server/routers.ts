@@ -601,6 +601,42 @@ Be structured and clear — use numbered steps when explaining processes.`;
       return { reply: result.text };
     }),
 
+  // ── Public: AI programme matching for the chat widget ──────────────────────
+  analyseResponses: publicProcedure
+    .input(z.object({
+      department: z.string(),
+      service: z.string(),
+      questions: z.array(z.string()),
+      answers: z.array(z.string()),
+    }))
+    .mutation(async ({ input }) => {
+      const { department, service, questions, answers } = input;
+      const qa = questions.map((q, i) => `Q: ${q}\nA: ${answers[i] ?? "(no answer"}`).join("\n\n");
+
+      const systemPrompt = `You are the HAMZURY Advisor — an AI that analyses client assessment responses and provides a personalised programme or service recommendation.
+
+HAMZURY is an institutional business development company in Nigeria. Brand voice: calm, precise, structured, warm but never casual.
+
+Based on the department (${department}), service interest (${service}), and the Q&A below, write a personalised recommendation in 2–3 short paragraphs:
+1. Acknowledge what you understood about the client's situation
+2. Recommend the most suitable programme, class, cohort, or service tier
+3. Explain why this is the right fit and what the next step is
+
+Do not use bullet points. Write in flowing, professional prose. End with a clear call to action to submit a formal request.`;
+
+      try {
+        const result = await generateText({
+          model: agentModel,
+          system: systemPrompt,
+          messages: [{ role: "user" as const, content: `Department: ${department}\nService: ${service}\n\n${qa}` }],
+          maxOutputTokens: 600,
+        });
+        return { recommendation: result.text };
+      } catch {
+        return { recommendation: `Based on your responses, you appear to be a strong candidate for our ${service} offering within the ${department} department.\n\nOur team will review your profile and reach out with a tailored recommendation within 24 hours. In the meantime, you can submit a formal request to get the process started.` };
+      }
+    }),
+
   myReferrals: publicProcedure.query(async ({ ctx }) => {
     const agentId = "AGT-DEMO";
     const dbRefs = await getReferralsByAgent(agentId);
