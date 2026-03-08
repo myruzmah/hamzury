@@ -35,8 +35,7 @@ const SERVICES = [
     name: "Bizdoc",
     problem: "Your business is not properly registered, compliant, or legally protected.",
     outcome: "CAC registration, annual returns, tax filings, PENCOM compliance, and full regulatory advisory — done correctly, on time.",
-    external: true,
-    externalUrl: "https://bizdoc.hamzury.com",
+    external: false,
   },
 ];
 
@@ -69,10 +68,10 @@ const JOURNEY_STEPS = [
 ];
 
 // Nav links: Services, RIDI, Bizdoc, Portal
-const NAV_LINKS = [
+const NAV_LINKS: { href: string; label: string }[] = [
   { href: "/services", label: "Services" },
   { href: "/ridi", label: "RIDI" },
-  { href: "https://bizdoc.hamzury.com", label: "Bizdoc", external: true },
+  { href: "/services/bizdoc", label: "Bizdoc" },
   { href: "/portal", label: "Portal" },
 ];
 
@@ -102,23 +101,11 @@ export default function Home() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
-            {NAV_LINKS.map((l) =>
-              l.external ? (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="nav-link"
-                >
-                  {l.label}
-                </a>
-              ) : (
-                <Link key={l.href} href={l.href} className="nav-link">
-                  {l.label}
-                </Link>
-              )
-            )}
+            {NAV_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="nav-link">
+                {l.label}
+              </Link>
+            ))}
           </nav>
 
           {/* Mobile hamburger only — no Start a Project button in header */}
@@ -135,29 +122,16 @@ export default function Home() {
         {mobileOpen && (
           <div className="md:hidden border-t border-border bg-white">
             <nav className="container py-4 flex flex-col gap-1">
-              {NAV_LINKS.map((l) =>
-                l.external ? (
-                  <a
-                    key={l.href}
-                    href={l.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {l.label}
-                  </a>
-                ) : (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    className="py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {l.label}
-                  </Link>
-                )
-              )}
+              {NAV_LINKS.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {l.label}
+                </Link>
+              ))}
               <Link
                 href="/start"
                 className="mt-3 inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-sm"
@@ -251,27 +225,14 @@ export default function Home() {
                   <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
                     {svc.outcome}
                   </p>
-                  {svc.external && (
-                    <p className="mt-4 text-xs font-semibold flex items-center gap-1" style={{ color: "var(--brand)" }}>
-                      Visit Bizdoc <ArrowRight size={11} />
-                    </p>
-                  )}
+
                 </>
               );
-              return svc.external ? (
-                <a
-                  key={svc.slug}
-                  href={svc.externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group bg-white p-8 md:p-10 hover:bg-gray-50 transition-colors block"
-                >
-                  {inner}
-                </a>
-              ) : (
+              const deptHref = svc.slug === "innovation" ? "/services/innovation-hub" : svc.slug === "studios" ? "/services/studios" : svc.slug === "systems" ? "/services/systems" : "/services/bizdoc";
+              return (
                 <Link
                   key={svc.slug}
-                  href={`/department/${svc.slug}`}
+                  href={deptHref}
                   className="group bg-white p-8 md:p-10 hover:bg-gray-50 transition-colors block"
                 >
                   {inner}
@@ -375,32 +336,21 @@ export default function Home() {
             {/* Links */}
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
               {[
-                { href: "/services", label: "Services", external: false },
-                { href: "/ridi", label: "RIDI", external: false },
-                { href: "https://bizdoc.hamzury.com", label: "Bizdoc", external: true },
-                { href: "/start", label: "Start a Project", external: false },
-                { href: "/track", label: "Track Project", external: false },
-                { href: "/portal", label: "Partner Portal", external: false },
-                { href: "/legal/privacy", label: "Privacy", external: false },
-                { href: "/legal/terms", label: "Terms", external: false },
-                { href: "/staff-login", label: "Staff", external: false },
-              ].map((l) =>
-                l.external ? (
-                  <a
-                    key={l.href}
-                    href={l.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="nav-link text-xs"
-                  >
-                    {l.label}
-                  </a>
-                ) : (
-                  <Link key={l.href} href={l.href} className="nav-link text-xs">
-                    {l.label}
-                  </Link>
-                )
-              )}
+                { href: "/services", label: "Services" },
+                { href: "/ridi", label: "RIDI" },
+                { href: "/services/bizdoc", label: "Bizdoc" },
+                { href: "/team", label: "Team" },
+                { href: "/policies", label: "Policies" },
+                { href: "/contact", label: "Contact" },
+                { href: "/start", label: "Start a Project" },
+                { href: "/track", label: "Track Project" },
+                { href: "/portal", label: "Partner Portal" },
+                { href: "/staff-login", label: "Staff" },
+              ].map((l) => (
+                <Link key={l.href} href={l.href} className="nav-link text-xs">
+                  {l.label}
+                </Link>
+              ))}
             </nav>
           </div>
 

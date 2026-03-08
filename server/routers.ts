@@ -981,11 +981,19 @@ const intakeRouter = router({
       attachmentUrl: z.string().optional(),
       attachmentName: z.string().optional(),
     }))
-    .mutation(async ({ input }) => {
-      const referenceCode = await generateIntakeReference();
-      const intake = await createClientIntake({ ...input, referenceCode, status: "new" });
-      return { referenceCode, intake };
-    }),
+     .mutation(async ({ input }) => {
+       const referenceCode = await generateIntakeReference();
+       const intake = await createClientIntake({ ...input, referenceCode, status: "new" });
+       // Notify owner of new intake
+       try {
+         const { notifyOwner } = await import("./_core/notification");
+         await notifyOwner({
+           title: `New intake: ${input.department} — ${input.serviceType}`,
+           content: `Ref: ${referenceCode}\nName: ${input.name}\nEmail: ${input.email}\nPhone: ${input.phone}\n\n${input.description}`,
+         });
+       } catch (_) { /* non-blocking */ }
+       return { referenceCode, intake };
+     }),
 
   // Public: check status by reference code
   checkStatus: publicProcedure
@@ -1024,6 +1032,26 @@ const intakeRouter = router({
     }),
 });
 
+const contactRouter = router({
+  send: publicProcedure
+    .input(z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      subject: z.string().min(2),
+      message: z.string().min(10),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        await notifyOwner({
+          title: `Contact: ${input.subject} — ${input.name}`,
+          content: `From: ${input.name} <${input.email}>\n\n${input.message}`,
+        });
+      } catch (_) { /* non-blocking */ }
+      return { success: true };
+    }),
+});
+
 export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
@@ -1037,6 +1065,7 @@ export const appRouter = router({
   weeklyReport: weeklyReportRouter,
   ridi: ridiRouter,
   intake: intakeRouter,
+  contact: contactRouter,
 });
 
 export type AppRouter = typeof appRouter;

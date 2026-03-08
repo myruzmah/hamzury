@@ -228,3 +228,10 @@
 - [x] Rebuild Bizdoc as standalone department page (service cards, brief forms, no external link)
 - [x] Redesign RIDI page to match department page visual style (dark hero, sections, consistent typography)
 - [x] Remove Bizdoc external link from Services page
+
+## Phase 18 — Pre-Launch Audit & Fixes
+- [x] Fix Home.tsx: remove Bizdoc external link, all nav/footer links now internal
+- [x] Add Team and Policies to Home footer nav
+- [x] Add owner notification on every new intake submission
+- [x] Add /contact link to footer nav
+- [x] Wire Contact page form to tRPC (now calls contact.send mutation, notifies owner)
