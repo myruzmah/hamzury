@@ -42,6 +42,10 @@ import CEODashboard from "./pages/ceo-dashboard";
 import FounderDashboard from "./pages/founder-dashboard";
 import LeadDashboard from "./pages/lead-dashboard";
 import MyTasksDashboard from "./pages/staff/my-tasks";
+import CSODashboard from "./pages/cso-dashboard";
+import FinanceDashboard from "./pages/finance-dashboard";
+import RidiDashboard from "./pages/ridi-dashboard";
+import InnovationDashboard from "./pages/innovation-dashboard";
 
 function Router() {
   return (
@@ -79,6 +83,10 @@ function Router() {
       <Route path="/founder-access-k8p1q" component={FounderDashboard} />
       <Route path="/lead-dashboard" component={LeadDashboard} />
       <Route path="/my-tasks" component={MyTasksDashboard} />
+      <Route path="/cso-dashboard" component={CSODashboard} />
+      <Route path="/finance-dashboard" component={FinanceDashboard} />
+      <Route path="/ridi-dashboard" component={RidiDashboard} />
+      <Route path="/innovation-dashboard" component={InnovationDashboard} />
 
       {/* Department pages */}
       <Route path="/services/innovation-hub" component={InnovationHub} />

@@ -834,3 +834,175 @@ export async function getAllDonations() {
   const { ridiDonations } = await import("../drizzle/schema");
   return db.select().from(ridiDonations).orderBy(ridiDonations.createdAt);
 }
+
+// ─── Task Comments ────────────────────────────────────────────────────────────
+export async function addTaskComment(data: {
+  taskRef: string; authorStaffId: string; authorName: string;
+  authorRole: string; message: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const { taskComments } = await import("../drizzle/schema");
+  const [result] = await db.insert(taskComments).values(data);
+  return result;
+}
+export async function getTaskComments(taskRef: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const { taskComments } = await import("../drizzle/schema");
+  return db.select().from(taskComments)
+    .where(eq(taskComments.taskRef, taskRef))
+    .orderBy(taskComments.createdAt);
+}
+
+// ─── Invoices ─────────────────────────────────────────────────────────────────
+export async function createInvoice(data: {
+  clientName: string; clientEmail?: string; clientRef?: string;
+  taskRef?: string; description: string; amountNaira: number;
+  dueDate?: Date; notes?: string; createdByStaffId: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const { invoices } = await import("../drizzle/schema");
+  const invoiceRef = `INV-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+  const ridiAllocation = Math.floor(data.amountNaira * 0.1);
+  await db.insert(invoices).values({ invoiceRef, ridiAllocation, ...data });
+  return invoiceRef;
+}
+export async function getAllInvoices() {
+  const db = await getDb();
+  if (!db) return [];
+  const { invoices } = await import("../drizzle/schema");
+  return db.select().from(invoices).orderBy(desc(invoices.createdAt));
+}
+export async function updateInvoiceStatus(invoiceRef: string, status: "Draft"|"Sent"|"Paid"|"Overdue"|"Cancelled") {
+  const db = await getDb();
+  if (!db) return;
+  const { invoices } = await import("../drizzle/schema");
+  const paidAt = status === "Paid" ? new Date() : undefined;
+  await db.update(invoices).set({ status, ...(paidAt ? { paidAt } : {}) }).where(eq(invoices.invoiceRef, invoiceRef));
+}
+
+// ─── Expenses ─────────────────────────────────────────────────────────────────
+export async function createExpense(data: {
+  submittedByStaffId: string; submittedByName: string; department: string;
+  description: string; amountNaira: number;
+  category: "Operations"|"Travel"|"Equipment"|"Software"|"Training"|"Marketing"|"Other";
+  receiptUrl?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const { expenses } = await import("../drizzle/schema");
+  const expenseRef = `EXP-${new Date().getFullYear()}-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+  // Determine approval level by amount
+  const approvalLevel = data.amountNaira <= 50000 ? "lead" : data.amountNaira <= 200000 ? "ceo" : "founder";
+  await db.insert(expenses).values({ expenseRef, approvalLevel, ...data });
+  return expenseRef;
+}
+export async function getAllExpenses(approvalLevel?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const { expenses } = await import("../drizzle/schema");
+  if (approvalLevel) {
+    return db.select().from(expenses)
+      .where(eq(expenses.approvalLevel, approvalLevel as any))
+      .orderBy(desc(expenses.createdAt));
+  }
+  return db.select().from(expenses).orderBy(desc(expenses.createdAt));
+}
+export async function getExpensesByStaff(staffId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const { expenses } = await import("../drizzle/schema");
+  return db.select().from(expenses)
+    .where(eq(expenses.submittedByStaffId, staffId))
+    .orderBy(desc(expenses.createdAt));
+}
+export async function approveExpense(expenseRef: string, approvedByStaffId: string, approvedByName: string) {
+  const db = await getDb();
+  if (!db) return;
+  const { expenses } = await import("../drizzle/schema");
+  await db.update(expenses).set({
+    status: "Approved", approvedByStaffId, approvedByName, approvedAt: new Date()
+  }).where(eq(expenses.expenseRef, expenseRef));
+}
+export async function rejectExpense(expenseRef: string, approvedByStaffId: string, approvedByName: string, rejectionReason: string) {
+  const db = await getDb();
+  if (!db) return;
+  const { expenses } = await import("../drizzle/schema");
+  await db.update(expenses).set({
+    status: "Rejected", approvedByStaffId, approvedByName, approvedAt: new Date(), rejectionReason
+  }).where(eq(expenses.expenseRef, expenseRef));
+}
+
+// ─── UCC Forms ────────────────────────────────────────────────────────────────
+export async function createUccForm(data: {
+  businessName: string; contactName: string; contactEmail: string;
+  contactPhone: string; industry: string; businessGoals: string;
+  currentChallenges: string; targetAudience?: string;
+  budgetRange: "Under ₦100k"|"₦100k–₦500k"|"₦500k–₦1m"|"₦1m–₦5m"|"Above ₦5m";
+  timeline: "Urgent (under 2 weeks)"|"1 month"|"2–3 months"|"3–6 months"|"Flexible";
+  preferredContact: "Email"|"WhatsApp"|"Phone"|"Any";
+  additionalNotes?: string; csoLeadId?: string; intakeRef?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const { uccForms } = await import("../drizzle/schema");
+  const now = new Date();
+  const day = String(now.getDate()).padStart(2, "0");
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const seq = Date.now().toString().slice(-4);
+  const clientId = `${day}/${month}-${seq}`;
+  await db.insert(uccForms).values({ clientId, ...data });
+  return clientId;
+}
+export async function getAllUccForms() {
+  const db = await getDb();
+  if (!db) return [];
+  const { uccForms } = await import("../drizzle/schema");
+  return db.select().from(uccForms).orderBy(desc(uccForms.createdAt));
+}
+export async function updateUccStatus(clientId: string, status: "Submitted"|"Reviewed"|"Clarity Sent"|"Converted"|"Lost") {
+  const db = await getDb();
+  if (!db) return;
+  const { uccForms } = await import("../drizzle/schema");
+  await db.update(uccForms).set({ status }).where(eq(uccForms.clientId, clientId));
+}
+
+// ─── Innovation Hub Enrolments ────────────────────────────────────────────────
+export async function createEnrolment(data: {
+  participantName: string; participantEmail: string; participantPhone?: string;
+  programmeType: "Executive Class"|"Young Innovators"|"Tech Bootcamp"|"Internship"|"Corporate Training"|"Robotics";
+  cohort?: string; source?: "Direct"|"RIDI Scholarship"|"Corporate"|"Agent Referral"; notes?: string;
+}) {
+  const db = await getDb();
+  if (!db) return null;
+  const { innovationEnrolments } = await import("../drizzle/schema");
+  const enrolmentRef = `ENR-${Date.now().toString(36).toUpperCase()}`;
+  await db.insert(innovationEnrolments).values({ enrolmentRef, ...data });
+  return enrolmentRef;
+}
+export async function getAllEnrolments() {
+  const db = await getDb();
+  if (!db) return [];
+  const { innovationEnrolments } = await import("../drizzle/schema");
+  return db.select().from(innovationEnrolments).orderBy(desc(innovationEnrolments.createdAt));
+}
+export async function updateEnrolmentStatus(enrolmentRef: string, status: "Applied"|"Shortlisted"|"Enrolled"|"Completed"|"Withdrawn") {
+  const db = await getDb();
+  if (!db) return;
+  const { innovationEnrolments } = await import("../drizzle/schema");
+  await db.update(innovationEnrolments).set({ status }).where(eq(innovationEnrolments.enrolmentRef, enrolmentRef));
+}
+export async function updateScholarshipStatus(applicationRef: string, status: "Pending"|"Shortlisted"|"Accepted"|"Declined") {
+  const db = await getDb();
+  if (!db) return;
+  const { ridiScholarshipApplications } = await import("../drizzle/schema");
+  await db.update(ridiScholarshipApplications).set({ status }).where(eq(ridiScholarshipApplications.applicationRef, applicationRef));
+}
+export async function updateDonationStatus(donationRef: string, status: "Pending"|"Confirmed") {
+  const db = await getDb();
+  if (!db) return;
+  const { ridiDonations } = await import("../drizzle/schema");
+  await db.update(ridiDonations).set({ status }).where(eq(ridiDonations.donationRef, donationRef));
+}

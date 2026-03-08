@@ -2,15 +2,20 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 
-// ─── Role → Dashboard routing ─────────────────────────────────────────────────
-function getDashboardPath(institutionalRole: string): string {
+function getDashboardPath(institutionalRole: string, department?: string): string {
   switch (institutionalRole) {
     case "founder":
       return "/founder-access-k8p1q";
     case "ceo":
       return "/ceo-access-7x9m4";
-    case "lead":
+    case "lead": {
+      const dept = (department ?? "").toLowerCase();
+      if (dept.includes("cso") || dept.includes("client success")) return "/cso-dashboard";
+      if (dept.includes("ledger") || dept.includes("finance")) return "/finance-dashboard";
+      if (dept.includes("ridi")) return "/ridi-dashboard";
+      if (dept.includes("innovation") || dept.includes("hub")) return "/innovation-dashboard";
       return "/lead-dashboard";
+    }
     case "staff":
     default:
       return "/my-tasks";
@@ -26,7 +31,7 @@ export default function StaffLogin() {
 
   const loginMutation = trpc.auth.staffLogin.useMutation({
     onSuccess: (data) => {
-      const path = getDashboardPath(data.institutionalRole);
+      const path = getDashboardPath(data.institutionalRole, data.department);
       navigate(path);
     },
     onError: (err) => {
@@ -47,7 +52,6 @@ export default function StaffLogin() {
   return (
     <div className="min-h-screen bg-[#F9F6F1] flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-[#1B4D3E] rounded-xl mb-4">
             <span className="text-white font-bold text-lg">H</span>
@@ -55,8 +59,6 @@ export default function StaffLogin() {
           <h1 className="text-xl font-semibold text-stone-900">HAMZURY Staff Portal</h1>
           <p className="text-sm text-stone-400 mt-1">Sign in with your institutional account</p>
         </div>
-
-        {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-stone-100 p-8 shadow-sm space-y-5">
           <div>
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider">Email Address</label>
@@ -70,7 +72,6 @@ export default function StaffLogin() {
               disabled={loginMutation.isPending}
             />
           </div>
-
           <div>
             <label className="text-xs font-medium text-stone-500 uppercase tracking-wider">Password</label>
             <div className="relative mt-1.5">
@@ -92,22 +93,19 @@ export default function StaffLogin() {
               </button>
             </div>
           </div>
-
           {error && (
             <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-700">
               {error}
             </div>
           )}
-
           <button
             type="submit"
             disabled={loginMutation.isPending}
             className="w-full bg-[#1B4D3E] text-white rounded-xl py-3 text-sm font-medium hover:bg-[#163d30] transition-colors disabled:opacity-50"
           >
-            {loginMutation.isPending ? "Signing in…" : "Sign In"}
+            {loginMutation.isPending ? "Signing in..." : "Sign In"}
           </button>
         </form>
-
         <p className="text-center text-xs text-stone-400 mt-6">
           Not a staff member?{" "}
           <a href="/portal" className="text-[#1B4D3E] hover:underline">

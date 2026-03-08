@@ -283,9 +283,9 @@
 - [x] Approve or Return with comment — every action logged
 
 ### 20G — Task Comment Thread
-- [ ] Add comment thread to every task detail view
-- [ ] Staff and leads can post text comments inside a task
-- [ ] Every comment timestamped and attributed — replaces WhatsApp for task communication
+- [x] Add comment thread to every task detail view
+- [x] Staff and leads can post text comments inside a task
+- [x] Every comment timestamped and attributed — replaces WhatsApp for task communication
 
 ## Phase 21 — Luxury Brand Copy & UX Standard (Apple-tier)
 - [x] Home: add proof statement above fold, upgrade How It Works step copy, apply brand voice rules
@@ -300,3 +300,50 @@
 - [ ] RIDI: apply brand copy standard
 - [ ] Remove all exclamation marks, "amazing", "passionate", "dedicated", "solutions" sitewide
 - [ ] All CTAs: "Start your project" / "Continue when ready" — never "Submit" / "Send"
+
+## Phase 22 — Final Complete Build (All Remaining Modules)
+
+### 22A — Staff Roster Correction
+- [x] Verify/update staff seed with correct names and roles
+- [x] Add Amina Ibrahim Musa as CSO Lead
+- [x] Run updated seed against database
+
+### 22B — Schema Additions
+- [x] Add taskComments table
+- [x] Add invoices table
+- [x] Add expenses table with approval chain
+- [x] Add uccForms table
+- [x] Add clientPipelineStatus to clientIntake
+- [x] Run pnpm db:push
+
+### 22C — CSO Dashboard
+- [x] Build /cso-dashboard for Amina Ibrahim Musa
+- [x] Pipeline view, UCC Form tab, Nurture tab
+
+### 22D — Finance Dashboard
+- [x] Build /finance-dashboard for Muhammad Ismail Adam
+- [x] Invoices, expenses, RIDI 10%, commissions
+
+### 22E — RIDI Lead Dashboard
+- [x] Build /ridi-dashboard for Zainab Umar
+- [x] Scholarship, donations, programmes, impact tabs
+
+### 22F — Innovation Hub Lead Dashboard
+- [x] Build /innovation-dashboard for Habiba Shuaibu Dajot
+- [x] Enrolments, cohorts, interns, Hackathon/Ventures/Alumni placeholders
+
+### 22G — Task Comment Thread
+- [x] Add comment thread to all task detail views
+
+### 22H — Expense Approval Workflow
+- [x] Expense submission on all dashboards
+- [x] Tiered approval: Lead/CEO/Founder
+
+### 22I — UCC Form
+- [x] UCC form on CSO dashboard, generates Client ID
+
+### 22J — AI Agents
+- [x] Reporting Agent, Lead Qualification Agent, Clarity Report Agent
+
+### 22K — Brand Copy Completions
+- [ ] Footer, /track, RIDI copy, remove exclamation marks

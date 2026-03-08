@@ -50,6 +50,13 @@
       "when": 1772980292291,
       "tag": "0006_unknown_mach_iv",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1772988156512,
+      "tag": "0007_slim_pretty_boy",
+      "breakpoints": true
     }
   ]
 }

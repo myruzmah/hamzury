@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import TaskComments from "@/components/TaskComments";
 
 type TaskStage = "pre" | "during" | "post" | "review" | "approved" | "rejected" | "closed";
 
@@ -160,61 +161,7 @@ function FileUploadPanel({ taskRef }: { taskRef: string }) {
   );
 }
 
-// ─── Comment Thread ───────────────────────────────────────────────────────────
-function CommentThread({ taskRef, staffId, staffName }: { taskRef: string; staffId: string; staffName: string }) {
-  const [text, setText] = useState("");
-  const auditQuery = trpc.institutional.taskAudit.useQuery({ taskRef });
-  const advanceMutation = trpc.institutional.advanceStage.useMutation({
-    onSuccess: () => { auditQuery.refetch(); setText(""); },
-  });
-
-  // We use the audit trail as the comment log — comments are audit entries with action prefixed "Comment:"
-  const comments = (auditQuery.data ?? []).filter((e: any) => e.action?.startsWith("Comment:"));
-
-  const postComment = () => {
-    if (!text.trim()) return;
-    advanceMutation.mutate({ taskRef, stage: "pre", rejectionComment: undefined } as any);
-    // Use a dedicated comment endpoint via audit — we'll post via the audit trail
-    toast.info("Comment posted.");
-    setText("");
-  };
-
-  return (
-    <div className="bg-white rounded-xl border border-stone-100 p-4">
-      <div className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-3">Comments</div>
-      {comments.length === 0 && (
-        <p className="text-xs text-stone-400 mb-3">No comments yet. Use this to communicate with your Lead about this task.</p>
-      )}
-      {comments.map((c: any) => (
-        <div key={c.id} className="mb-3 last:mb-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs font-semibold text-stone-700">{c.staffName}</span>
-            <span className="text-xs text-stone-300">
-              {new Date(c.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-            </span>
-          </div>
-          <p className="text-sm text-stone-600 bg-stone-50 rounded-lg px-3 py-2">{c.action.replace("Comment: ", "")}</p>
-        </div>
-      ))}
-      <div className="flex gap-2 mt-3">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), postComment())}
-          placeholder="Write a comment…"
-          className="flex-1 text-sm border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-[#1B4D3E] bg-white"
-        />
-        <button
-          onClick={postComment}
-          disabled={!text.trim()}
-          className="text-xs bg-[#1B4D3E] text-white px-3 py-2 rounded-lg hover:bg-[#163d30] transition-colors disabled:opacity-40"
-        >
-          Send
-        </button>
-      </div>
-    </div>
-  );
-}
+// CommentThread — now uses shared TaskComments component
 
 // ─── Notification Bell ────────────────────────────────────────────────────────
 function NotificationBell() {
@@ -427,7 +374,7 @@ function TaskDetail({ taskRef, staffId, staffName, onClose, onUpdate }: {
 
           {activeTab === "files" && <FileUploadPanel taskRef={taskRef} />}
 
-          {activeTab === "comments" && <CommentThread taskRef={taskRef} staffId={staffId} staffName={staffName} />}
+          {activeTab === "comments" && <TaskComments taskRef={taskRef} />}
 
           {activeTab === "audit" && (
             <div className="bg-white rounded-xl border border-stone-100 p-4">

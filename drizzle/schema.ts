@@ -444,3 +444,116 @@ export const ridiDonations = mysqlTable("ridiDonations", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type RidiDonation = typeof ridiDonations.$inferSelect;
+
+// ─── Task Comments (replaces WhatsApp for task communication) ─────────────────
+export const taskComments = mysqlTable("taskComments", {
+  id: int("id").autoincrement().primaryKey(),
+  taskRef: varchar("taskRef", { length: 32 }).notNull(),
+  authorStaffId: varchar("authorStaffId", { length: 32 }).notNull(),
+  authorName: varchar("authorName", { length: 256 }).notNull(),
+  authorRole: varchar("authorRole", { length: 64 }).notNull(), // founder/ceo/lead/staff
+  message: text("message").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type TaskComment = typeof taskComments.$inferSelect;
+
+// ─── Invoices ─────────────────────────────────────────────────────────────────
+export const invoices = mysqlTable("invoices", {
+  id: int("id").autoincrement().primaryKey(),
+  invoiceRef: varchar("invoiceRef", { length: 32 }).notNull().unique(), // e.g. INV-2026-001
+  clientRef: varchar("clientRef", { length: 32 }),
+  clientName: varchar("clientName", { length: 256 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }),
+  taskRef: varchar("taskRef", { length: 32 }),
+  description: text("description").notNull(),
+  amountNaira: int("amountNaira").notNull().default(0),
+  ridiAllocation: int("ridiAllocation").notNull().default(0), // 10% of amountNaira
+  status: mysqlEnum("status", ["Draft", "Sent", "Paid", "Overdue", "Cancelled"]).default("Draft").notNull(),
+  dueDate: timestamp("dueDate"),
+  paidAt: timestamp("paidAt"),
+  createdByStaffId: varchar("createdByStaffId", { length: 32 }).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = typeof invoices.$inferInsert;
+
+// ─── Expenses (with tiered approval chain) ────────────────────────────────────
+export const expenses = mysqlTable("expenses", {
+  id: int("id").autoincrement().primaryKey(),
+  expenseRef: varchar("expenseRef", { length: 32 }).notNull().unique(), // e.g. EXP-2026-001
+  submittedByStaffId: varchar("submittedByStaffId", { length: 32 }).notNull(),
+  submittedByName: varchar("submittedByName", { length: 256 }).notNull(),
+  department: varchar("department", { length: 128 }).notNull(),
+  description: text("description").notNull(),
+  amountNaira: int("amountNaira").notNull(),
+  category: mysqlEnum("category", ["Operations", "Travel", "Equipment", "Software", "Training", "Marketing", "Other"]).default("Operations").notNull(),
+  // Approval chain — determined by amount
+  // ≤50k: Lead approves, 50k-200k: CEO approves, >200k: Founder approves
+  approvalLevel: mysqlEnum("approvalLevel", ["lead", "ceo", "founder"]).notNull(),
+  status: mysqlEnum("status", ["Pending", "Approved", "Rejected"]).default("Pending").notNull(),
+  approvedByStaffId: varchar("approvedByStaffId", { length: 32 }),
+  approvedByName: varchar("approvedByName", { length: 256 }),
+  approvedAt: timestamp("approvedAt"),
+  rejectionReason: text("rejectionReason"),
+  receiptUrl: text("receiptUrl"), // S3 URL
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type Expense = typeof expenses.$inferSelect;
+export type InsertExpense = typeof expenses.$inferInsert;
+
+// ─── UCC Forms (Understanding Client Context — qualification form) ────────────
+export const uccForms = mysqlTable("uccForms", {
+  id: int("id").autoincrement().primaryKey(),
+  clientId: varchar("clientId", { length: 32 }).notNull().unique(), // format: DD/MM-sequential
+  intakeRef: varchar("intakeRef", { length: 32 }), // links to clientIntake
+  // Contact
+  businessName: varchar("businessName", { length: 256 }).notNull(),
+  contactName: varchar("contactName", { length: 256 }).notNull(),
+  contactEmail: varchar("contactEmail", { length: 320 }).notNull(),
+  contactPhone: varchar("contactPhone", { length: 32 }).notNull(),
+  // Business context
+  industry: varchar("industry", { length: 256 }).notNull(),
+  businessGoals: text("businessGoals").notNull(),
+  currentChallenges: text("currentChallenges").notNull(),
+  targetAudience: text("targetAudience"),
+  // Scope
+  budgetRange: mysqlEnum("budgetRange", [
+    "Under ₦100k", "₦100k–₦500k", "₦500k–₦1m", "₦1m–₦5m", "Above ₦5m"
+  ]).notNull(),
+  timeline: mysqlEnum("timeline", [
+    "Urgent (under 2 weeks)", "1 month", "2–3 months", "3–6 months", "Flexible"
+  ]).notNull(),
+  preferredContact: mysqlEnum("preferredContact", ["Email", "WhatsApp", "Phone", "Any"]).default("WhatsApp").notNull(),
+  additionalNotes: text("additionalNotes"),
+  // CSO internal
+  csoLeadId: varchar("csoLeadId", { length: 32 }),
+  status: mysqlEnum("status", ["Submitted", "Reviewed", "Clarity Sent", "Converted", "Lost"]).default("Submitted").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type UccForm = typeof uccForms.$inferSelect;
+export type InsertUccForm = typeof uccForms.$inferInsert;
+
+// ─── Innovation Hub Enrolments ────────────────────────────────────────────────
+export const innovationEnrolments = mysqlTable("innovationEnrolments", {
+  id: int("id").autoincrement().primaryKey(),
+  enrolmentRef: varchar("enrolmentRef", { length: 32 }).notNull().unique(),
+  participantName: varchar("participantName", { length: 256 }).notNull(),
+  participantEmail: varchar("participantEmail", { length: 320 }).notNull(),
+  participantPhone: varchar("participantPhone", { length: 32 }),
+  programmeType: mysqlEnum("programmeType", [
+    "Executive Class", "Young Innovators", "Tech Bootcamp",
+    "Internship", "Corporate Training", "Robotics"
+  ]).notNull(),
+  cohort: varchar("cohort", { length: 64 }), // e.g. "Cohort 1 — March 2026"
+  status: mysqlEnum("status", ["Applied", "Shortlisted", "Enrolled", "Completed", "Withdrawn"]).default("Applied").notNull(),
+  source: mysqlEnum("source", ["Direct", "RIDI Scholarship", "Corporate", "Agent Referral"]).default("Direct").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type InnovationEnrolment = typeof innovationEnrolments.$inferSelect;
+export type InsertInnovationEnrolment = typeof innovationEnrolments.$inferInsert;

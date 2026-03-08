@@ -88,6 +88,26 @@ import {
   markAllNotificationsRead,
   changeStaffPassword,
   getDb,
+  addTaskComment,
+  getTaskComments,
+  createInvoice,
+  getAllInvoices,
+  updateInvoiceStatus,
+  createExpense,
+  getAllExpenses,
+  getExpensesByStaff,
+  approveExpense,
+  rejectExpense,
+  createUccForm,
+  getAllUccForms,
+  updateUccStatus,
+  createEnrolment,
+  getAllEnrolments,
+  updateEnrolmentStatus,
+  getAllScholarshipApplications,
+  getAllDonations,
+  updateScholarshipStatus,
+  updateDonationStatus,
 } from "./db";
 import { staffMembers } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -1350,6 +1370,276 @@ const contactRouter = router({
     }),
 });
 
+// ─── Task Comments Router ─────────────────────────────────────────────────────
+const taskCommentsRouter = router({
+  add: protectedProcedure
+    .input(z.object({
+      taskRef: z.string(),
+      message: z.string().min(1).max(2000),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "unknown";
+      const name = ctx.user?.name ?? "Unknown";
+      const role = (ctx.user as any)?.institutionalRole ?? "staff";
+      await addTaskComment({ taskRef: input.taskRef, authorStaffId: staffId, authorName: name, authorRole: role, message: input.message });
+      return { success: true };
+    }),
+  getByTask: protectedProcedure
+    .input(z.object({ taskRef: z.string() }))
+    .query(async ({ input }) => getTaskComments(input.taskRef)),
+});
+
+// ─── Finance Router ───────────────────────────────────────────────────────────
+const financeRouter = router({
+  createInvoice: protectedProcedure
+    .input(z.object({
+      clientName: z.string().min(1),
+      clientEmail: z.string().email().optional(),
+      clientRef: z.string().optional(),
+      taskRef: z.string().optional(),
+      description: z.string().min(1),
+      amountNaira: z.number().min(1),
+      dueDate: z.date().optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "STF-001";
+      const ref = await createInvoice({ ...input, createdByStaffId: staffId });
+      return { invoiceRef: ref };
+    }),
+  getAllInvoices: protectedProcedure.query(() => getAllInvoices()),
+  updateStatus: protectedProcedure
+    .input(z.object({
+      invoiceRef: z.string(),
+      status: z.enum(["Draft","Sent","Paid","Overdue","Cancelled"]),
+    }))
+    .mutation(async ({ input }) => {
+      await updateInvoiceStatus(input.invoiceRef, input.status);
+      return { success: true };
+    }),
+  submitExpense: protectedProcedure
+    .input(z.object({
+      department: z.string(),
+      description: z.string().min(1),
+      amountNaira: z.number().min(1),
+      category: z.enum(["Operations","Travel","Equipment","Software","Training","Marketing","Other"]),
+      receiptUrl: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "unknown";
+      const name = ctx.user?.name ?? "Unknown";
+      const ref = await createExpense({ submittedByStaffId: staffId, submittedByName: name, ...input });
+      return { expenseRef: ref };
+    }),
+  getAllExpenses: protectedProcedure
+    .input(z.object({ approvalLevel: z.string().optional() }))
+    .query(async ({ input }) => getAllExpenses(input.approvalLevel)),
+  getMyExpenses: protectedProcedure.query(async ({ ctx }) => {
+    const staffId = (ctx.user as any)?.staffId ?? "unknown";
+    return getExpensesByStaff(staffId);
+  }),
+  approveExpense: protectedProcedure
+    .input(z.object({ expenseRef: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "unknown";
+      const name = ctx.user?.name ?? "Unknown";
+      await approveExpense(input.expenseRef, staffId, name);
+      return { success: true };
+    }),
+  rejectExpense: protectedProcedure
+    .input(z.object({ expenseRef: z.string(), reason: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId ?? "unknown";
+      const name = ctx.user?.name ?? "Unknown";
+      await rejectExpense(input.expenseRef, staffId, name, input.reason);
+      return { success: true };
+    }),
+});
+
+// ─── CSO Router ───────────────────────────────────────────────────────────────
+const csoRouter = router({
+  createUcc: protectedProcedure
+    .input(z.object({
+      businessName: z.string().min(1),
+      contactName: z.string().min(1),
+      contactEmail: z.string().email(),
+      contactPhone: z.string().min(7),
+      industry: z.string().min(1),
+      businessGoals: z.string().min(10),
+      currentChallenges: z.string().min(10),
+      targetAudience: z.string().optional(),
+      budgetRange: z.enum(["Under \u20a6100k","\u20a6100k\u2013\u20a6500k","\u20a6500k\u2013\u20a61m","\u20a61m\u2013\u20a65m","Above \u20a65m"]),
+      timeline: z.enum(["Urgent (under 2 weeks)","1 month","2\u20133 months","3\u20136 months","Flexible"]),
+      preferredContact: z.enum(["Email","WhatsApp","Phone","Any"]),
+      additionalNotes: z.string().optional(),
+      intakeRef: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const staffId = (ctx.user as any)?.staffId;
+      const clientId = await createUccForm({ ...input, csoLeadId: staffId });
+      return { clientId };
+    }),
+  getAllUcc: protectedProcedure.query(() => getAllUccForms()),
+  updateUccStatus: protectedProcedure
+    .input(z.object({
+      clientId: z.string(),
+      status: z.enum(["Submitted","Reviewed","Clarity Sent","Converted","Lost"]),
+    }))
+    .mutation(async ({ input }) => {
+      await updateUccStatus(input.clientId, input.status);
+      return { success: true };
+    }),
+  // AI Lead Qualification Agent
+  qualifyLead: protectedProcedure
+    .input(z.object({
+      businessName: z.string(),
+      industry: z.string(),
+      businessGoals: z.string(),
+      currentChallenges: z.string(),
+      budgetRange: z.string(),
+      timeline: z.string(),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const prompt = `You are the HAMZURY Lead Qualification Agent. Analyse this prospect and provide a brief qualification score and recommendation.
+
+Business: ${input.businessName}
+Industry: ${input.industry}
+Goals: ${input.businessGoals}
+Challenges: ${input.currentChallenges}
+Budget: ${input.budgetRange}
+Timeline: ${input.timeline}
+
+Provide:
+1. Qualification Score (1-10)
+2. Recommended HAMZURY service(s)
+3. Key insight (1-2 sentences)
+4. Suggested next step
+
+Be concise. Max 150 words.`;
+        const result = await generateText({ model: agentModel, prompt });
+        return { analysis: result.text };
+      } catch (_) {
+        return { analysis: "Lead qualification service temporarily unavailable. Review manually." };
+      }
+    }),
+  // AI Clarity Report Agent
+  generateClarityReport: protectedProcedure
+    .input(z.object({ clientId: z.string() }))
+    .mutation(async ({ input }) => {
+      const forms = await getAllUccForms();
+      const form = forms.find(f => f.clientId === input.clientId);
+      if (!form) throw new Error("UCC form not found");
+      try {
+        const prompt = `You are the HAMZURY Clarity Report Agent. Draft a Business Health Report for this client.
+
+Business: ${form.businessName}
+Industry: ${form.industry}
+Goals: ${form.businessGoals}
+Challenges: ${form.currentChallenges}
+Budget: ${form.budgetRange}
+Timeline: ${form.timeline}
+
+Draft a professional Business Health Report (300-400 words) that:
+1. Acknowledges their current situation
+2. Identifies 2-3 key opportunities
+3. Recommends HAMZURY services with rationale
+4. Sets clear next steps
+
+Write in HAMZURY's calm, institutional voice. No hype. No exclamation marks.`;
+        const result = await generateText({ model: agentModel, prompt });
+        return { report: result.text };
+      } catch (_) {
+        return { report: "Clarity report generation temporarily unavailable." };
+      }
+    }),
+});
+
+// ─── Innovation Router ────────────────────────────────────────────────────────
+const innovationRouter = router({
+  createEnrolment: protectedProcedure
+    .input(z.object({
+      participantName: z.string().min(1),
+      participantEmail: z.string().email(),
+      participantPhone: z.string().optional(),
+      programmeType: z.enum(["Executive Class","Young Innovators","Tech Bootcamp","Internship","Corporate Training","Robotics"]),
+      cohort: z.string().optional(),
+      source: z.enum(["Direct","RIDI Scholarship","Corporate","Agent Referral"]).optional(),
+      notes: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      const ref = await createEnrolment(input);
+      return { enrolmentRef: ref };
+    }),
+  getAllEnrolments: protectedProcedure.query(() => getAllEnrolments()),
+  updateStatus: protectedProcedure
+    .input(z.object({
+      enrolmentRef: z.string(),
+      status: z.enum(["Applied","Shortlisted","Enrolled","Completed","Withdrawn"]),
+    }))
+    .mutation(async ({ input }) => {
+      await updateEnrolmentStatus(input.enrolmentRef, input.status);
+      return { success: true };
+    }),
+});
+
+// ─── RIDI Extended Router ─────────────────────────────────────────────────────
+const ridiExtRouter = router({
+  getAllScholarships: protectedProcedure.query(() => getAllScholarshipApplications()),
+  updateScholarshipStatus: protectedProcedure
+    .input(z.object({
+      applicationRef: z.string(),
+      status: z.enum(["Pending","Shortlisted","Accepted","Declined"]),
+    }))
+    .mutation(async ({ input }) => {
+      await updateScholarshipStatus(input.applicationRef, input.status);
+      return { success: true };
+    }),
+  getAllDonations: protectedProcedure.query(() => getAllDonations()),
+  updateDonationStatus: protectedProcedure
+    .input(z.object({
+      donationRef: z.string(),
+      status: z.enum(["Pending","Confirmed"]),
+    }))
+    .mutation(async ({ input }) => {
+      await updateDonationStatus(input.donationRef, input.status);
+      return { success: true };
+    }),
+  // AI Reporting Agent — compile weekly KPI summary
+  generateWeeklyReport: protectedProcedure.mutation(async () => {
+    try {
+      const [tasks, intakes, invoices] = await Promise.all([
+        getAllTaskLifecycle(),
+        getAllIntakes(),
+        getAllInvoices(),
+      ]);
+      const activeTasks = tasks.filter(t => !["closed","approved"].includes(t.lifecycleStage)).length;
+      const completedThisWeek = tasks.filter(t => t.lifecycleStage === "closed").length;
+      const newIntakes = intakes.filter(i => i.status === "new").length;
+      const paidInvoices = invoices.filter(i => i.status === "Paid");
+      const totalRevenue = paidInvoices.reduce((s, i) => s + i.amountNaira, 0);
+      const prompt = `You are the HAMZURY Reporting Agent. Generate a concise Friday CEO Report summary.
+
+Data:
+- Active tasks: ${activeTasks}
+- Tasks completed: ${completedThisWeek}
+- New client intakes: ${newIntakes}
+- Total confirmed revenue: ₦${totalRevenue.toLocaleString()}
+
+Write a 3-paragraph operational summary for the CEO:
+1. What went well this week
+2. What needs attention
+3. Key recommendation for next week
+
+Calm, institutional tone. No hype. Max 200 words.`;
+      const result = await generateText({ model: agentModel, prompt });
+      return { report: result.text, generatedAt: new Date().toISOString() };
+    } catch (_) {
+      return { report: "Reporting agent temporarily unavailable.", generatedAt: new Date().toISOString() };
+    }
+  }),
+});
+
 export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
@@ -1364,6 +1654,11 @@ export const appRouter = router({
   ridi: ridiRouter,
   intake: intakeRouter,
   contact: contactRouter,
+  comments: taskCommentsRouter,
+  finance: financeRouter,
+  cso: csoRouter,
+  innovation: innovationRouter,
+  ridiExt: ridiExtRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { CSOAgent } from "@/components/CSOAgent";
 import { BizdocAgent } from "@/components/BizdocAgent";
 import { toast } from "sonner";
+import TaskComments from "@/components/TaskComments";
 
 // ─── Notification Bell ────────────────────────────────────────────────────────
 function NotificationBell() {
@@ -494,6 +495,10 @@ function ReviewModal({
           ))}
         </div>
 
+        {/* Task Thread */}
+        <div className="mb-6">
+          <TaskComments taskRef={task.taskRef} compact />
+        </div>
         {/* Audit trail */}
         {audit.length > 0 && (
           <div className="mb-6">
