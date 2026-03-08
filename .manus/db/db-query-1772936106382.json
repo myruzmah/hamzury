@@ -1,0 +1,9 @@
+{
+  "query": "\nDELETE FROM staffMembers WHERE staffId NOT IN ('STF-001', 'STF-002');\nUPDATE staffMembers SET name='Haruna Muhammad', email='haruna@hamzury.com', institutionalRole='founder', primaryDepartment='Founder', secondaryDepartments='[]', updatedAt=NOW() WHERE staffId='STF-001';\nUPDATE staffMembers SET name='Idris Ibrahim', email='idris@hamzury.com', institutionalRole='ceo', primaryDepartment='Executive', secondaryDepartments='[\"Systems\"]', updatedAt=NOW() WHERE staffId='STF-002';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3J9k2MXu4QeFXf3.d7e2c34337b4 --database i9aHLqTuJkXG4gxXzw9582 --execute \nDELETE FROM staffMembers WHERE staffId NOT IN ('STF-001', 'STF-002');\nUPDATE staffMembers SET name='Haruna Muhammad', email='haruna@hamzury.com', institutionalRole='founder', primaryDepartment='Founder', secondaryDepartments='[]', updatedAt=NOW() WHERE staffId='STF-001';\nUPDATE staffMembers SET name='Idris Ibrahim', email='idris@hamzury.com', institutionalRole='ceo', primaryDepartment='Executive', secondaryDepartments='[\"Systems\"]', updatedAt=NOW() WHERE staffId='STF-002';\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 103
+}

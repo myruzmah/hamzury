@@ -1,0 +1,87 @@
+{
+  "query": "SELECT staffId, name, email, institutionalRole, primaryDepartment FROM staffMembers ORDER BY id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3J9k2MXu4QeFXf3.d7e2c34337b4 --database i9aHLqTuJkXG4gxXzw9582 --execute SELECT staffId, name, email, institutionalRole, primaryDepartment FROM staffMembers ORDER BY id;",
+  "rows": [
+    {
+      "staffId": "STF-001",
+      "name": "Haruna Muhammad",
+      "email": "haruna@hamzury.com",
+      "institutionalRole": "founder",
+      "primaryDepartment": "Founder"
+    },
+    {
+      "staffId": "STF-002",
+      "name": "Idris Ibrahim",
+      "email": "idris@hamzury.com",
+      "institutionalRole": "ceo",
+      "primaryDepartment": "Executive"
+    },
+    {
+      "staffId": "STF-003",
+      "name": "Aisha Musa",
+      "email": "aisha@hamzury.com",
+      "institutionalRole": "lead",
+      "primaryDepartment": "Studios"
+    },
+    {
+      "staffId": "STF-004",
+      "name": "Fatima Yusuf",
+      "email": "fatima@hamzury.com",
+      "institutionalRole": "lead",
+      "primaryDepartment": "Bizdoc"
+    },
+    {
+      "staffId": "STF-005",
+      "name": "Ahmad Lawal",
+      "email": "ahmad@hamzury.com",
+      "institutionalRole": "lead",
+      "primaryDepartment": "Growth"
+    },
+    {
+      "staffId": "STF-006",
+      "name": "Maryam Sani",
+      "email": "maryam@hamzury.com",
+      "institutionalRole": "lead",
+      "primaryDepartment": "People"
+    },
+    {
+      "staffId": "STF-007",
+      "name": "Umar Abdullahi",
+      "email": "umar@hamzury.com",
+      "institutionalRole": "lead",
+      "primaryDepartment": "Ledger"
+    },
+    {
+      "staffId": "STF-008",
+      "name": "Ibrahim Hassan",
+      "email": "ibrahim@hamzury.com",
+      "institutionalRole": "lead",
+      "primaryDepartment": "Innovation"
+    },
+    {
+      "staffId": "STF-009",
+      "name": "Zainab Umar",
+      "email": "zainab@hamzury.com",
+      "institutionalRole": "lead",
+      "primaryDepartment": "RIDI"
+    },
+    {
+      "staffId": "STF-010",
+      "name": "Suleiman Ahmad Bashir",
+      "email": "suleiman@hamzury.com",
+      "institutionalRole": "staff",
+      "primaryDepartment": "Studios"
+    },
+    {
+      "staffId": "STF-011",
+      "name": "Abubakar Bashir",
+      "email": "abubakar@hamzury.com",
+      "institutionalRole": "staff",
+      "primaryDepartment": "Studios"
+    }
+  ],
+  "messages": [],
+  "stdout": "staffId\tname\temail\tinstitutionalRole\tprimaryDepartment\nSTF-001\tHaruna Muhammad\tharuna@hamzury.com\tfounder\tFounder\nSTF-002\tIdris Ibrahim\tidris@hamzury.com\tceo\tExecutive\nSTF-003\tAisha Musa\taisha@hamzury.com\tlead\tStudios\nSTF-004\tFatima Yusuf\tfatima@hamzury.com\tlead\tBizdoc\nSTF-005\tAhmad Lawal\tahmad@hamzury.com\tlead\tGrowth\nSTF-006\tMaryam Sani\tmaryam@hamzury.com\tlead\tPeople\nSTF-007\tUmar Abdullahi\tumar@hamzury.com\tlead\tLedger\nSTF-008\tIbrahim Hassan\tibrahim@hamzury.com\tlead\tInnovation\nSTF-009\tZainab Umar\tzainab@hamzury.com\tlead\tRIDI\nSTF-010\tSuleiman Ahmad Bashir\tsuleiman@hamzury.com\tstaff\tStudios\nSTF-011\tAbubakar Bashir\tabubakar@hamzury.com\tstaff\tStudios\n",
+  "stderr": "",
+  "execution_time_ms": 61
+}
