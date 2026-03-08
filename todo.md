@@ -220,3 +220,6 @@
 - [x] Build Policies page (/policies): Privacy, Terms of Engagement, Refund Policy
 - [x] Build Team page (/team): department leads only, name + title + department cards
 - [x] Update Services index with problem-solution comparison table
+
+## Phase 16 — Services Page Visual Redesign
+- [x] Redesign Services index page to match department page style (dark brand hero, card grid, consistent typography)
