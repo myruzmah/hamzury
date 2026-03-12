@@ -84,8 +84,8 @@ export default function RidiDashboard() {
 
   const scholarshipsQ = trpc.ridiExt.getAllScholarships.useQuery();
   const donationsQ = trpc.ridiExt.getAllDonations.useQuery();
-  const programsQ = trpc.ridi.getAll.useQuery();
-  const totalsQ = trpc.ridi.getTotals.useQuery();
+  const programsQ = trpc.ridi.programs.useQuery();
+  const totalsQ = trpc.ridi.totals.useQuery();
 
   const updateScholarshipMut = trpc.ridiExt.updateScholarshipStatus.useMutation({
     onSuccess: () => utils.ridiExt.getAllScholarships.invalidate(),
@@ -233,7 +233,7 @@ export default function RidiDashboard() {
         {/* Programmes Tab */}
         {tab === "programmes" && (
           <div className="space-y-3">
-            {programs.map(p => (
+            {programs.map((p: any) => (
               <div key={p.id} className="bg-white rounded-xl border border-stone-100 p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -274,7 +274,7 @@ export default function RidiDashboard() {
                     { label: "Women", value: totals?.women ?? 0, color: "text-pink-600" },
                     { label: "Youth", value: totals?.youth ?? 0, color: "text-blue-600" },
                     { label: "Men", value: totals?.men ?? 0, color: "text-stone-600" },
-                    { label: "Referrals to HAMZURY", value: totals?.referralsToHamzury ?? 0, color: "text-emerald-600" },
+                    { label: "Referrals to HAMZURY", value: totals?.referrals ?? 0, color: "text-emerald-600" },
                   ].map(row => (
                     <div key={row.label} className="flex items-center justify-between">
                       <span className="text-sm text-stone-500">{row.label}</span>
@@ -287,7 +287,7 @@ export default function RidiDashboard() {
                 <p className="text-xs font-medium text-stone-400 uppercase tracking-wide mb-3">Programme Status</p>
                 <div className="space-y-2">
                   {["Planning","Active","Completed","On Hold"].map(s => {
-                    const count = programs.filter(p => p.status === s).length;
+                    const count = programs.filter((p: any) => p.status === s).length;
                     return (
                       <div key={s} className="flex items-center justify-between">
                         <span className="text-sm text-stone-500">{s}</span>

@@ -161,12 +161,15 @@ const authRouter = router({
       await updateStaffLastSignIn(member.staffId);
 
       // Ensure user exists in users table for session compatibility
+      // IMPORTANT: staffId and department must be saved so myProfile can look up the staffMembers row
       await upsertUser({
         openId: `staff-${member.staffId}`,
         name: member.name,
         email: member.email,
         loginMethod: "password",
         role: member.institutionalRole === "founder" || member.institutionalRole === "ceo" ? "admin" : "staff",
+        staffId: member.staffId,
+        department: member.primaryDepartment,
         lastSignedIn: new Date(),
       });
 
@@ -1215,8 +1218,9 @@ const ridiRouter = router({
     }))
     .mutation(async ({ input }) => {
       const { createScholarshipApplication } = await import("./db");
+      const { notifyOwner: notifyOwnerRidi1 } = await import("./_core/notification");
       const applicationRef = await createScholarshipApplication(input);
-      await notifyOwner({
+      await notifyOwnerRidi1({
         title: "New RIDI Scholarship Application",
         content: `${input.name} from ${input.lga}, ${input.state} has applied for a RIDI scholarship. Interest: ${input.areaOfInterest}. Ref: ${applicationRef}`,
       });
@@ -1233,8 +1237,9 @@ const ridiRouter = router({
     }))
     .mutation(async ({ input }) => {
       const { createDonation } = await import("./db");
+      const { notifyOwner: notifyOwnerRidi2 } = await import("./_core/notification");
       const donationRef = await createDonation(input);
-      await notifyOwner({
+      await notifyOwnerRidi2({
         title: "New RIDI Donation",
         content: `${input.name} (${input.email}) has pledged a donation of ₦${input.amount} to RIDI. Ref: ${donationRef}`,
       });

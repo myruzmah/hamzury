@@ -64,6 +64,10 @@ export default function Ridi() {
   const [scholarForm, setScholarForm] = useState({ name: "", state: "", lga: "", age: "", gender: "", interest: "", story: "", phone: "" });
   const [scholarDone, setScholarDone] = useState(false);
 
+  const donateMutation = trpc.ridi.submitDonation.useMutation({
+    onSuccess: () => { setDonateOpen(false); setDonateDone(true); },
+    onError: () => { setDonateOpen(false); setDonateDone(true); },
+  });
   const scholarMutation = trpc.ridi.applyScholarship.useMutation({
     onSuccess: () => setScholarDone(true),
     onError: () => setScholarDone(true), // show success anyway for UX
@@ -220,9 +224,8 @@ export default function Ridi() {
                     <Button size="sm" style={{ background: BRAND, color: "white" }}
                       onClick={() => {
                         if (!donateForm.name || !donateForm.email || !donateForm.amount) return;
-                        trpc.ridi.submitDonation.mutate(
-                          { name: donateForm.name, email: donateForm.email, amount: donateForm.amount, message: donateForm.message || undefined },
-                          { onSuccess: () => { setDonateOpen(false); setDonateDone(true); }, onError: () => { setDonateOpen(false); setDonateDone(true); } }
+                        donateMutation.mutate(
+                          { name: donateForm.name, email: donateForm.email, amount: donateForm.amount, message: donateForm.message || undefined }
                         );
                       }}
                     >Submit Pledge</Button>

@@ -235,7 +235,7 @@ export default function InnovationDashboard() {
               <div className="space-y-2">
                 {programmes.map(p => {
                   const count = enrolments.filter(e => e.programmeType === p && e.status === "Enrolled").length;
-                  const cohorts = [...new Set(enrolments.filter(e => e.programmeType === p && e.cohort).map(e => e.cohort))];
+                  const cohorts = Array.from(new Set(enrolments.filter(e => e.programmeType === p && e.cohort).map(e => e.cohort)));
                   if (count === 0 && cohorts.length === 0) return null;
                   return (
                     <div key={p} className="flex items-center justify-between py-2 border-b border-stone-50 last:border-0">
