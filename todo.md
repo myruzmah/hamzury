@@ -434,3 +434,10 @@
 - [x] /track: add human microcopy
 - [x] RIDI: apply brand copy standard
 - [x] Footer: rewrite to brand standard
+
+## Phase 24 — Paystack DVA (Bank Transfer) Payment Flow
+- [ ] Replace Paystack card checkout with Dedicated Virtual Account (DVA) bank transfer flow
+- [ ] Generate unique virtual account number per invoice via Paystack DVA API
+- [ ] Show bank name, account number, account name, and amount on PayInvoice page
+- [ ] Confirm payment automatically via Paystack webhook on transfer received
+- [ ] Update invoice status to paid in database on webhook confirmation

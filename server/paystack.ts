@@ -1,7 +1,8 @@
 /**
- * HAMZURY Paystack Integration
- * Handles invoice payment initialization and webhook verification.
- * Uses Paystack API v1 — https://paystack.com/docs/api
+ * HAMZURY Paystack Integration — Dedicated Virtual Accounts (DVA)
+ * Generates a unique bank account number per invoice.
+ * Clients transfer directly to the account; webhook confirms payment automatically.
+ * Paystack API v1 — https://paystack.com/docs/api/dedicated-virtual-accounts
  */
 import { Router, Request, Response } from "express";
 import { getDb } from "./db";
@@ -34,46 +35,91 @@ async function paystackGet(path: string) {
 export const paystackRouter = Router();
 
 /**
- * POST /api/paystack/initialize
- * Initialises a Paystack transaction for an invoice.
- * Body: { invoiceRef, email, amountNaira }
+ * POST /api/paystack/dva/create
+ * Creates a Paystack customer and assigns a Dedicated Virtual Account (DVA).
+ * Returns bank name, account number, and account name for the client to transfer to.
+ * Body: { invoiceRef, customerName, email, amountNaira }
  */
-paystackRouter.post("/initialize", async (req: Request, res: Response) => {
+paystackRouter.post("/dva/create", async (req: Request, res: Response) => {
   try {
-    const { invoiceRef, email, amountNaira } = req.body;
-    if (!invoiceRef || !email || !amountNaira) {
-      return res.status(400).json({ error: "invoiceRef, email, and amountNaira are required" });
+    const { invoiceRef, customerName, email, amountNaira } = req.body;
+
+    if (!invoiceRef || !customerName || !email || !amountNaira) {
+      return res.status(400).json({
+        error: "invoiceRef, customerName, email, and amountNaira are required",
+      });
     }
 
-    // Amount in kobo (Paystack uses smallest currency unit)
-    const amountKobo = Math.round(Number(amountNaira) * 100);
-
-    const data = await paystackPost("/transaction/initialize", {
+    // Step 1: Create or retrieve a Paystack customer
+    const customerData = await paystackPost("/customer", {
       email,
-      amount: amountKobo,
-      currency: "NGN",
-      reference: `HZR-${invoiceRef}-${Date.now()}`,
-      metadata: {
-        invoiceRef,
-        custom_fields: [
-          { display_name: "Invoice Reference", variable_name: "invoice_ref", value: invoiceRef },
-        ],
-      },
-      callback_url: `${req.headers.origin || "https://hamzury.com"}/pay/success?ref=${invoiceRef}`,
+      first_name: customerName.split(" ")[0] || customerName,
+      last_name: customerName.split(" ").slice(1).join(" ") || "Client",
+      metadata: { invoiceRef },
     });
 
-    if (!data.status) {
-      return res.status(500).json({ error: data.message || "Paystack initialization failed" });
+    if (!customerData.status && !customerData.data?.customer_code) {
+      // Customer may already exist — try fetching by email
+      const existing = await paystackGet(`/customer/${email}`);
+      if (!existing.status) {
+        return res.status(500).json({ error: "Could not create Paystack customer" });
+      }
+      customerData.data = existing.data;
     }
 
-    // Save the Paystack reference and payment URL to the invoice
+    const customerCode = customerData.data?.customer_code;
+    if (!customerCode) {
+      return res.status(500).json({ error: "Paystack customer code not returned" });
+    }
+
+    // Step 2: Assign a Dedicated Virtual Account to the customer
+    // preferred_bank: "wema-bank" or "titan-paystack" (Paystack supported banks for DVA)
+    const dvaData = await paystackPost("/dedicated_account", {
+      customer: customerCode,
+      preferred_bank: "wema-bank",
+    });
+
+    if (!dvaData.status || !dvaData.data?.account_number) {
+      // If DVA already exists for this customer, fetch it
+      const existingDva = await paystackGet(`/dedicated_account?customer=${customerCode}`);
+      if (existingDva.status && existingDva.data?.length > 0) {
+        const acct = existingDva.data[0];
+        // Save to invoice
+        const db = await getDb();
+        if (db) {
+          await db
+            .update(invoices)
+            .set({
+              paystackRef: acct.account_number,
+              paystackUrl: null,
+              status: "Sent",
+            })
+            .where(eq(invoices.invoiceRef, invoiceRef));
+        }
+        return res.json({
+          success: true,
+          accountNumber: acct.account_number,
+          accountName: acct.account_name,
+          bankName: acct.bank?.name || "Wema Bank",
+          amountNaira: Number(amountNaira),
+          invoiceRef,
+        });
+      }
+      return res.status(500).json({
+        error: dvaData.message || "Could not assign virtual account. Ensure DVA is enabled on your Paystack account.",
+      });
+    }
+
+    const acct = dvaData.data;
+
+    // Step 3: Save the virtual account details to the invoice
     const db = await getDb();
     if (db) {
       await db
         .update(invoices)
         .set({
-          paystackRef: data.data.reference,
-          paystackUrl: data.data.authorization_url,
+          paystackRef: acct.account_number,
+          paystackUrl: null,
           status: "Sent",
         })
         .where(eq(invoices.invoiceRef, invoiceRef));
@@ -81,18 +127,51 @@ paystackRouter.post("/initialize", async (req: Request, res: Response) => {
 
     return res.json({
       success: true,
-      authorizationUrl: data.data.authorization_url,
-      reference: data.data.reference,
+      accountNumber: acct.account_number,
+      accountName: acct.account_name,
+      bankName: acct.bank?.name || "Wema Bank",
+      amountNaira: Number(amountNaira),
+      invoiceRef,
     });
   } catch (err) {
-    console.error("[Paystack] Initialize error:", err);
+    console.error("[Paystack DVA] Create error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 /**
+ * GET /api/paystack/dva/details/:invoiceRef
+ * Returns the existing DVA details for an invoice (for re-displaying the account number).
+ */
+paystackRouter.get("/dva/details/:invoiceRef", async (req: Request, res: Response) => {
+  try {
+    const db = await getDb();
+    if (!db) return res.status(500).json({ error: "Database unavailable" });
+
+    const [invoice] = await db
+      .select()
+      .from(invoices)
+      .where(eq(invoices.invoiceRef, req.params.invoiceRef))
+      .limit(1);
+
+    if (!invoice) return res.status(404).json({ error: "Invoice not found" });
+
+    return res.json({
+      invoiceRef: invoice.invoiceRef,
+      accountNumber: invoice.paystackRef || null,
+      status: invoice.status,
+      amountNaira: invoice.amount,
+      clientName: invoice.clientName,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to fetch invoice details" });
+  }
+});
+
+/**
  * POST /api/paystack/webhook
- * Receives Paystack webhook events and marks invoices as paid.
+ * Receives Paystack webhook events.
+ * Handles: dedicatedaccount.assign.success, charge.success, transfer.success
  */
 paystackRouter.post("/webhook", async (req: Request, res: Response) => {
   try {
@@ -107,25 +186,45 @@ paystackRouter.post("/webhook", async (req: Request, res: Response) => {
     }
 
     const event = req.body;
+    const eventType: string = event.event || "";
 
-    if (event.event === "charge.success") {
-      const { reference, metadata } = event.data;
-      const invoiceRef = metadata?.invoiceRef || metadata?.custom_fields?.[0]?.value;
+    // Handle successful bank transfer payment
+    if (
+      eventType === "charge.success" ||
+      eventType === "transfer.success" ||
+      eventType === "dedicatedaccount.assign.success"
+    ) {
+      const accountNumber =
+        event.data?.dedicated_account?.account_number ||
+        event.data?.account_number ||
+        event.data?.recipient?.details?.account_number;
 
-      if (invoiceRef) {
-        const db = await getDb();
-        if (db) {
+      const customerEmail = event.data?.customer?.email;
+      const reference = event.data?.reference || event.data?.transfer_code;
+
+      // Find invoice by account number (paystackRef) or email
+      const db = await getDb();
+      if (db && accountNumber) {
+        const [matchedInvoice] = await db
+          .select()
+          .from(invoices)
+          .where(eq(invoices.paystackRef, accountNumber))
+          .limit(1);
+
+        if (matchedInvoice) {
           await db
             .update(invoices)
-            .set({ status: "Paid", paidAt: new Date(), paystackRef: reference })
-            .where(eq(invoices.invoiceRef, invoiceRef));
-        }
+            .set({
+              status: "Paid",
+              paidAt: new Date(),
+            })
+            .where(eq(invoices.invoiceRef, matchedInvoice.invoiceRef));
 
-        // Notify owner
-        await notifyOwner({
-          title: `Invoice Paid — ${invoiceRef}`,
-          content: `Invoice ${invoiceRef} has been paid via Paystack. Reference: ${reference}.`,
-        });
+          await notifyOwner({
+            title: `Payment Received — ${matchedInvoice.invoiceRef}`,
+            content: `Invoice ${matchedInvoice.invoiceRef} for ${matchedInvoice.clientName} has been paid via bank transfer. Amount: ₦${matchedInvoice.amount?.toLocaleString()}. Reference: ${reference}.`,
+          });
+        }
       }
     }
 
@@ -138,7 +237,7 @@ paystackRouter.post("/webhook", async (req: Request, res: Response) => {
 
 /**
  * GET /api/paystack/verify/:reference
- * Verifies a transaction by reference.
+ * Verifies a transaction by reference (kept for manual verification).
  */
 paystackRouter.get("/verify/:reference", async (req: Request, res: Response) => {
   try {
