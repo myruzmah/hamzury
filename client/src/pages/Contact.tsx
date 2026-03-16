@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { MapView } from "@/components/Map";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
@@ -84,6 +85,21 @@ export default function Contact() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Google Map — Jos HQ */}
+              <div className="mt-8 rounded-sm overflow-hidden border border-border" style={{ height: 200 }}>
+                <MapView
+                  initialCenter={{ lat: 9.9085, lng: 8.8921 }}
+                  initialZoom={13}
+                  onMapReady={(map) => {
+                    new google.maps.marker.AdvancedMarkerElement({
+                      map,
+                      position: { lat: 9.9085, lng: 8.8921 },
+                      title: "HAMZURY — Jos, Plateau State",
+                    });
+                  }}
+                />
               </div>
 
               <div className="mt-10 pt-8 border-t border-border">

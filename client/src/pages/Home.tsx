@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
+import MobileBottomNav from "@/components/MobileBottomNav";
 import { ArrowRight, Menu, X, CheckCircle2 } from "lucide-react";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
@@ -361,13 +362,15 @@ export default function Home() {
             <p className="text-xs" style={{ color: "var(--muted-text)" }}>
               © 2026 HAMZURY. Built to last.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
-              <span className="text-xs" style={{ color: "var(--muted-text)" }}>For project enquiries: <a href="mailto:info@hamzury.com" className="hover:underline">info@hamzury.com</a></span>
-              <span className="text-xs" style={{ color: "var(--muted-text)" }}>For internal operations: <a href="mailto:innovation@hamzury.com" className="hover:underline">innovation@hamzury.com</a></span>
+            <div className="flex flex-wrap gap-x-5 gap-y-1">
+              {[{href:"/privacy",label:"Privacy"},{href:"/terms",label:"Terms"},{href:"/refunds",label:"Refunds"},{href:"/cookies",label:"Cookies"},{href:"/affiliate-terms",label:"Affiliate Terms"}].map(l=>(
+                <Link key={l.href} href={l.href} className="text-xs hover:underline" style={{ color: "var(--muted-text)" }}>{l.label}</Link>
+              ))}
             </div>
           </div>
         </div>
       </footer>
+      <MobileBottomNav />
     </div>
   );
 }

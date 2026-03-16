@@ -347,3 +347,90 @@
 
 ### 22K — Brand Copy Completions
 - [ ] Footer, /track, RIDI copy, remove exclamation marks
+
+## Phase 23 — Platform Bible v6.0 Complete Build
+
+### 23A — Phase 1: Missing Public Pages
+- [x] /ask — AI Knowledge Search & Chat page (generative AI answers, intent recognition, conversion path)
+- [x] /affiliates — Affiliate landing page (program intro, commission structure, invite-only sign-up)
+- [x] /careers — Careers page (job listings linked to HR)
+- [x] /press — Press page (media kit)
+- [x] /privacy — Privacy Policy page
+- [x] /terms — Terms of Service page
+- [x] /affiliate-terms — Affiliate Terms page
+- [x] /refund — Refund Policy page
+- [x] /cookies — Cookie Policy page
+- [x] Mobile bottom nav bar (Home, Search, Track, Affiliates, Menu)
+- [x] Update desktop nav: add Ask, Track, Affiliates links
+
+### 23B — Phase 2: Chat-First Conversion System
+- [x] /chat — Chat conversion engine with department decision trees
+- [x] Department trees: Bizdoc, Studios, Systems, Innovation Hub
+- [x] AI answering + guided conversion (intent recognition)
+- [x] Payment link generation (Paystack placeholder)
+- [x] Reference number generation: HZR-YYMMDD-XXX
+- [x] PWA tracker prompt after payment
+
+### 23C — Phase 3: Client & Affiliate Platforms
+- [x] /track upgrade — deliverables download, subscription status
+- [x] /affiliate/dashboard — Affiliate dashboard
+- [x] Commission tracking v3.0 (Lead Gen 12.5%, Conversion 12.5%, Execution 40%, Lead 10%, Support 20%, Facilities 5%)
+- [x] 30-day cookie referral tracking
+- [x] Affiliate payout history, marketing resources
+
+### 23D — Phase 4: Agentic AI Dashboard
+- [x] /os/ai — Staff-facing AI agent grid (11 agents)
+- [x] Research Agent
+- [x] Lead Generation Agent (CSV export)
+- [x] Copywriting Agent
+- [x] Creative Director Agent
+- [x] Design Assistant Agent
+- [x] Video Editing Agent
+- [x] QA Agent
+- [x] Publishing Agent
+- [x] Strategist Agent
+- [x] Client Follow-Up Agent
+- [x] Agent conversation history saved per user
+- [x] Output save to task / send to department
+
+### 23E — Phase 5: Dashboard Enhancements
+- [x] Lead Dashboard: Kanban drag-and-drop pipeline
+- [x] Lead Dashboard: Client workspaces view
+- [x] Lead Dashboard: Approvals queue tab
+- [x] Lead Dashboard: Calendar tab
+- [x] Staff Dashboard: Calendar tab
+- [x] Staff Dashboard: Communication log
+- [x] Staff Dashboard: Templates & SOPs tab
+- [x] CSO Dashboard: Affiliate-tagged leads view
+- [x] CSO Dashboard: KPIs (response time, tickets, satisfaction)
+- [x] CEO Dashboard: Cross-department workload, KPI comparisons, blockers
+- [x] HR Dashboard: Staff accounts management (create/deactivate/roles)
+- [x] HR Dashboard: Onboarding status tracker
+- [x] HR Dashboard: Access audit log
+- [x] HR Dashboard: Affiliate application approvals
+- [x] Finance Dashboard: Payment reconciliation, budget vs actual, subscription revenue
+- [x] Facilities Dashboard: NEW — maintenance log, requests from staff
+- [x] All dashboards: in-dashboard notifications
+
+### 23F — Phase 6: AI Agent Network
+- [x] Research repository (knowledge_base table + UI)
+- [x] AI Content Engine pipeline (Studios: Idea → Strategist → Research → Copy → Creative → Design → QA → Publishing)
+- [x] AI Client Communication System (CSO drafts, follow-ups, surveys)
+- [x] Automation workflows (monthly compliance, content calendar triggers)
+- [x] Agent governance logs (90-day retention, audit trail)
+
+### 23G — Phase 7: Integrations
+- [x] Paystack webhook handler (payment → auto task creation)
+- [x] Google Maps on contact page
+- [x] Notification triggers (lead created, task assigned, status changed, deliverable ready, payment received)
+
+### 23H — Phase 8: SEO & Polish
+- [x] Meta tags per page (title, description, og:image)
+- [x] sitemap.xml
+- [x] robots.txt
+- [x] PWA manifest (for /track offline access)
+- [x] Mobile audit (bottom nav, thumb-friendly buttons)
+- [x] Remove remaining exclamation marks sitewide
+- [x] /track: add human microcopy
+- [x] RIDI: apply brand copy standard
+- [x] Footer: rewrite to brand standard

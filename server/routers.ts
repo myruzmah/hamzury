@@ -18,6 +18,11 @@ const forgeAI = createOpenAI({
 });
 const agentModel = forgeAI.chat("gemini-2.5-flash");
 import {
+  createAffiliateApplication,
+  getAllAffiliateApplications,
+  updateAffiliateStatus,
+} from "./db";
+import {
   addAuditEntry,
   createRidiProgram,
   getAllRidiPrograms,
@@ -109,7 +114,7 @@ import {
   updateScholarshipStatus,
   updateDonationStatus,
 } from "./db";
-import { staffMembers } from "../drizzle/schema";
+import { staffMembers, affiliateApplications, tasks, invoices } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import {
   getMockDeliverables,
@@ -632,6 +637,27 @@ const institutionalRouter = router({
       return { success: true };
     }),
 
+  // ── Kanban: move task to any stage ──
+  moveTaskStage: publicProcedure
+    .input(z.object({
+      taskRef: z.string(),
+      stage: z.enum(["intake", "in_progress", "review", "approved", "closed"]),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      const stageMap: Record<string, string> = {
+        intake: "pre",
+        in_progress: "during",
+        review: "review",
+        approved: "approved",
+        closed: "closed",
+      };
+      const dbStage = stageMap[input.stage] || input.stage;
+      await db.update(tasks).set({ lifecycleStage: dbStage as any, updatedAt: new Date() }).where(eq(tasks.taskRef, input.taskRef));
+      return { success: true };
+    }),
+
   // ── HR: reset staff password ──
   resetStaffPassword: publicProcedure
     .input(z.object({ staffId: z.string() }))
@@ -884,17 +910,53 @@ Do not use bullet points. Write in flowing, professional prose. End with a clear
     return getMockReferrals(agentId);
   }),
 
-  commissionSummary: publicProcedure.query(async ({ ctx }) => {
+   commissionSummary: publicProcedure.query(async ({ ctx }) => {
     const agentId = "AGT-DEMO";
     const refs = await getReferralsByAgent(agentId);
     const data = refs.length > 0 ? refs : getMockReferrals(agentId);
-
     const paid = data.filter((r) => r.commissionStatus === "Paid").reduce((s, r) => s + (r.commissionEstimate ?? 0), 0);
     const pending = data.filter((r) => r.commissionStatus === "Pending").reduce((s, r) => s + (r.commissionEstimate ?? 0), 0);
     const approved = data.filter((r) => r.commissionStatus === "Approved").reduce((s, r) => s + (r.commissionEstimate ?? 0), 0);
-
     return { paid, pending, approved, total: paid + pending + approved };
   }),
+
+  // ── Generic multi-agent chat endpoint ─────────────────────────────────────
+  agentChat: protectedProcedure
+    .input(z.object({
+      agentId: z.string(),
+      message: z.string().min(1).max(4000),
+      history: z.array(z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      })).optional().default([]),
+    }))
+    .mutation(async ({ input }) => {
+      const AGENT_PROMPTS: Record<string, string> = {
+        research: `You are the HAMZURY Research Agent. You help staff conduct deep research on any topic relevant to HAMZURY's work — market research, competitor analysis, industry trends, regulatory updates, academic references, and data synthesis. Always structure your output clearly with headings. Cite sources where possible. Be thorough and precise.`,
+        copywriting: `You are the HAMZURY Copywriting Agent. You write high-quality copy for HAMZURY and its clients — website copy, proposals, pitch decks, social media captions, email campaigns, press releases, and brand messaging. HAMZURY's voice is calm, institutional, precise, and warm. No exclamation marks. No hype. Problem → Solution → Outcome structure.`,
+        creative_director: `You are the HAMZURY Creative Director Agent. You provide creative direction for brand and content projects — moodboards in text form, art direction briefs, visual storytelling frameworks, campaign concepts, and creative strategy. You think in concepts and translate them into actionable creative briefs.`,
+        design_brief: `You are the HAMZURY Design Brief Agent. You help the Studios team create structured design briefs for client projects. Given a client's service request, you produce a complete design brief including: project overview, target audience, tone and mood, colour direction, typography direction, deliverables list, and timeline.`,
+        video_brief: `You are the HAMZURY Video Brief Agent. You help the Studios team create structured video production briefs. Given a client's request, you produce: video concept, script outline, shot list, visual style guide, music direction, duration, and distribution plan.`,
+        qa: `You are the HAMZURY Quality Assurance Agent. You review deliverables, copy, designs, and documents for quality, accuracy, brand consistency, and completeness. You check against HAMZURY's quality standards: institutional tone, no errors, clear structure, client-appropriate language. You provide structured feedback with specific improvement suggestions.`,
+        publishing: `You are the HAMZURY Publishing Agent. You help the Studios and Growth teams plan and schedule content publishing. You create content calendars, suggest optimal posting times, write platform-specific captions, and ensure consistent publishing cadence across Instagram, LinkedIn, Twitter/X, and other platforms.`,
+        strategist: `You are the HAMZURY Business Strategist Agent. You help staff and clients think through business strategy — market positioning, growth plans, competitive differentiation, pricing strategy, and go-to-market planning. You ask clarifying questions and provide structured strategic frameworks.`,
+        follow_up: `You are the HAMZURY Follow-Up Agent. You help the CSO team draft professional follow-up messages for leads and clients — WhatsApp messages, emails, and call scripts. Messages must be warm but professional, never pushy. Always include a clear next step. Match the tone to the stage of the client relationship.`,
+        lead_qualification: `You are the HAMZURY Lead Qualification Agent. You help the CSO team assess and qualify incoming leads. Given information about a potential client, you evaluate: fit with HAMZURY's services, budget signals, urgency, decision-making authority, and likelihood of conversion. You produce a qualification score and recommended next action.`,
+        clarity_report: `You are the HAMZURY Clarity Report Agent. You draft Business Health Reports for clients. Given information about a client's business situation, you produce a structured report covering: business overview, key challenges identified, recommended services, expected outcomes, and investment summary. Write in HAMZURY's institutional voice.`,
+      };
+      const systemPrompt = AGENT_PROMPTS[input.agentId] || `You are a HAMZURY AI assistant. Help the team with their request professionally and precisely.`;
+      const messages = [
+        ...input.history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+        { role: "user" as const, content: input.message },
+      ];
+      const result = await generateText({
+        model: agentModel,
+        system: systemPrompt,
+        messages,
+        maxOutputTokens: 2000,
+      });
+      return { reply: result.text };
+    }),
 });
 
 // ─── Diagnosis router ────────────────────────────────────────────────────────
@@ -1459,9 +1521,17 @@ const financeRouter = router({
       await rejectExpense(input.expenseRef, staffId, name, input.reason);
       return { success: true };
     }),
+  // Public — used by the /pay/:invoiceRef page (no auth required)
+  getInvoiceByRef: publicProcedure
+    .input(z.object({ invoiceRef: z.string() }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const rows = await db.select().from(invoices).where(eq(invoices.invoiceRef, input.invoiceRef)).limit(1);
+      return rows[0] ?? null;
+    }),
 });
-
-// ─── CSO Router ───────────────────────────────────────────────────────────────
+// ─── CSO Router ────────────────────────────────────────────────────────────────
 const csoRouter = router({
   createUcc: protectedProcedure
     .input(z.object({
@@ -1645,6 +1715,57 @@ Calm, institutional tone. No hype. Max 200 words.`;
   }),
 });
 
+// ─── Affiliate Router ────────────────────────────────────────────────────────
+const affiliateRouter = router({
+  // Public: check affiliate status by code
+  getMyStats: publicProcedure
+    .input(z.object({ affiliateCode: z.string() }))
+    .query(async ({ input }) => {
+      const app = await db.select().from(affiliateApplications).where(
+        eq(affiliateApplications.affiliateCode, input.affiliateCode)
+      ).limit(1);
+      if (!app[0] || app[0].status !== "approved") throw new TRPCError({ code: "NOT_FOUND", message: "Affiliate code not found" });
+      const myReferrals = await getReferralsByAgent(input.affiliateCode);
+      const totalEarned = myReferrals.filter(r => r.commissionStatus === "Paid").reduce((s, r) => s + (r.commissionEstimate || 0), 0);
+      const pendingEarned = myReferrals.filter(r => r.commissionStatus === "Pending" || r.commissionStatus === "Approved").reduce((s, r) => s + (r.commissionEstimate || 0), 0);
+      return {
+        name: app[0].name,
+        email: app[0].email,
+        affiliateCode: app[0].affiliateCode,
+        referrals: myReferrals,
+        totalEarned,
+        pendingEarned,
+        totalReferrals: myReferrals.length,
+        closedReferrals: myReferrals.filter(r => r.pipelineStage === "Closed Won").length,
+      };
+    }),
+  submitApplication: publicProcedure
+    .input(z.object({
+      name: z.string().min(2).max(256),
+      email: z.string().email(),
+      phone: z.string().optional(),
+      reason: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      await createAffiliateApplication(input);
+      return { success: true };
+    }),
+  list: protectedProcedure
+    .query(async () => {
+      return getAllAffiliateApplications();
+    }),
+  updateStatus: protectedProcedure
+    .input(z.object({
+      id: z.number(),
+      status: z.enum(["approved", "rejected"]),
+      affiliateCode: z.string().optional(),
+    }))
+    .mutation(async ({ input }) => {
+      await updateAffiliateStatus(input.id, input.status, input.affiliateCode);
+      return { success: true };
+    }),
+});
+
 export const appRouter = router({
   system: systemRouter,
   auth: authRouter,
@@ -1664,6 +1785,7 @@ export const appRouter = router({
   cso: csoRouter,
   innovation: innovationRouter,
   ridiExt: ridiExtRouter,
+  affiliate: affiliateRouter,
 });
 
 export type AppRouter = typeof appRouter;

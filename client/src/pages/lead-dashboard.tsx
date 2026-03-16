@@ -5,6 +5,7 @@ import { CSOAgent } from "@/components/CSOAgent";
 import { BizdocAgent } from "@/components/BizdocAgent";
 import { toast } from "sonner";
 import TaskComments from "@/components/TaskComments";
+import KanbanBoard from "@/components/KanbanBoard";
 
 // ─── Notification Bell ────────────────────────────────────────────────────────
 function NotificationBell() {
@@ -668,6 +669,10 @@ export default function LeadDashboard() {
   const allTasksForGateQuery = trpc.institutional.allTasks.useQuery(undefined, { enabled: false });
   const utils = trpc.useUtils();
   const gateApprove = trpc.institutional.advanceStage.useMutation({ onSuccess: () => { utils.institutional.allTasks.invalidate(); utils.institutional.departmentTasks.invalidate(); } });
+  const moveStage = trpc.institutional.moveTaskStage.useMutation({
+    onSuccess: () => { utils.institutional.departmentTasks.invalidate(); toast.success("Task moved."); },
+    onError: (e) => toast.error(e.message),
+  });
 
   const deptTasks = deptTasksQuery.data ?? [];
   const reviewQueue = reviewQueueQuery.data ?? [];
@@ -814,9 +819,19 @@ export default function LeadDashboard() {
           </div>
         )}
 
-        {/* Tasks tab */}
+        {/* Tasks tab — Kanban */}
         {activeTab === "tasks" && (
-          <div className="space-y-3">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-sm font-semibold text-stone-900">Department Tasks</h3>
+                <p className="text-xs text-stone-400 mt-0.5">Drag cards between columns to update status.</p>
+              </div>
+              <button onClick={() => setShowAssign(true)}
+                className="bg-[#1B4D3E] text-white text-xs px-4 py-2 rounded-xl hover:bg-[#163d30] transition-colors">
+                + Assign Task
+              </button>
+            </div>
             {deptTasks.length === 0 ? (
               <div className="bg-white rounded-2xl border border-stone-100 p-12 text-center">
                 <p className="text-stone-400 text-sm">No tasks in your department yet.</p>
@@ -825,35 +840,12 @@ export default function LeadDashboard() {
                 </button>
               </div>
             ) : (
-              deptTasks.map((task) => (
-                <div key={task.id} className="bg-white rounded-xl border border-stone-100 p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${task.priority === "urgent" ? "bg-red-500" : "bg-stone-300"}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-semibold text-stone-900">{task.title}</span>
-                        {task.priority === "urgent" && (
-                          <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">Urgent</span>
-                        )}
-                      </div>
-                      <div className="text-xs text-stone-400 mt-1">
-                        {task.taskRef} · {task.serviceType}
-                        {task.clientName && ` · ${task.clientName}`}
-                      </div>
-                      <div className="text-xs text-stone-400 mt-0.5">
-                        Assigned to: {task.assignedToStaffId}
-                        {task.deadline && ` · Due: ${new Date(task.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
-                      </div>
-                    </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium flex-shrink-0 ${STAGE_COLOR[task.lifecycleStage as TaskStage]}`}>
-                      {STAGE_LABEL[task.lifecycleStage as TaskStage]}
-                    </span>
-                  </div>
-                  {task.notes && (
-                    <div className="mt-2 ml-5 text-xs text-stone-500 bg-stone-50 rounded-lg px-3 py-2">{task.notes}</div>
-                  )}
-                </div>
-              ))
+              <KanbanBoard
+                tasks={deptTasks.map((t) => ({ ...t, lifecycleStage: t.lifecycleStage === "pre" ? "intake" : t.lifecycleStage === "during" ? "in_progress" : t.lifecycleStage }))}
+                onStageChange={(taskRef, newStage) => {
+                  moveStage.mutate({ taskRef, stage: newStage });
+                }}
+              />
             )}
           </div>
         )}

@@ -473,6 +473,8 @@ export const invoices = mysqlTable("invoices", {
   paidAt: timestamp("paidAt"),
   createdByStaffId: varchar("createdByStaffId", { length: 32 }).notNull(),
   notes: text("notes"),
+  paystackRef: varchar("paystackRef", { length: 128 }), // Paystack payment reference
+  paystackUrl: text("paystackUrl"), // Paystack payment link URL
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -557,3 +559,16 @@ export const innovationEnrolments = mysqlTable("innovationEnrolments", {
 });
 export type InnovationEnrolment = typeof innovationEnrolments.$inferSelect;
 export type InsertInnovationEnrolment = typeof innovationEnrolments.$inferInsert;
+
+// ─── Affiliate Applications ───────────────────────────────────────────────────
+export const affiliateApplications = mysqlTable("affiliateApplications", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 256 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  phone: varchar("phone", { length: 32 }),
+  reason: text("reason"),
+  status: mysqlEnum("status", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  affiliateCode: varchar("affiliateCode", { length: 32 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AffiliateApplication = typeof affiliateApplications.$inferSelect;

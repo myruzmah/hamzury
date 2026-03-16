@@ -8,6 +8,17 @@ import HamzuryChat from "./components/HamzuryChat";
 
 // Public pages
 import Home from "./pages/Home";
+import Ask from "@/pages/Ask";
+import PayInvoice from "@/pages/PayInvoice";
+import Chat from "./pages/Chat";
+import AffiliateDashboard from "./pages/AffiliateDashboard";
+import AIDashboard from "./pages/AIDashboard";
+import FacilitiesDashboard from "./pages/FacilitiesDashboard";
+import AINetwork from "./pages/AINetwork";
+import Affiliates from "./pages/Affiliates";
+import Careers from "./pages/Careers";
+import Press from "./pages/Press";
+import { PrivacyPolicy, TermsOfService, RefundPolicy, CookiePolicy, AffiliateTerms } from "./pages/LegalPage";
 import Ridi from "./pages/Ridi";
 import Portal from "./pages/Portal";
 import Services from "./pages/Services";
@@ -102,6 +113,22 @@ function Router() {
       {/* Public institutional pages */}
       <Route path="/policies" component={Policies} />
       <Route path="/team" component={Team} />
+      {/* Phase 1 new public pages */}
+      <Route path="/ask" component={Ask} />
+      <Route path="/pay/:invoiceRef" component={PayInvoice} />
+      <Route path="/chat" component={Chat} />
+      <Route path="/affiliate/dashboard" component={AffiliateDashboard} />
+      <Route path="/os/ai" component={AIDashboard} />
+      <Route path="/os/facilities" component={FacilitiesDashboard} />
+      <Route path="/os/ai-network" component={AINetwork} />
+      <Route path="/affiliates" component={Affiliates} />
+      <Route path="/careers" component={Careers} />
+      <Route path="/press" component={Press} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
+      <Route path="/refunds" component={RefundPolicy} />
+      <Route path="/cookies" component={CookiePolicy} />
+      <Route path="/affiliate-terms" component={AffiliateTerms} />
 
       {/* Fallback */}
       <Route path="/404" component={NotFound} />

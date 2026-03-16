@@ -221,6 +221,25 @@ export default function TrackProject() {
                   </div>
                 </div>
 
+                {/* Deliverables / contact section when completed */}
+                {(data.status === "completed" || data.status === "closed") && (
+                  <div className="px-6 py-5 border-t" style={{ borderColor: "#e5e7eb" }}>
+                    <p className="text-xs font-medium uppercase tracking-wider mb-3 text-muted-foreground">Next Steps</p>
+                    <div className="p-4 rounded-lg" style={{ background: BRAND + "08" }}>
+                      <p className="text-sm leading-relaxed" style={{ color: BRAND }}>Your project has been completed. Contact your project lead to receive your deliverables and final files.</p>
+                      <a
+                        href={`https://wa.me/2348000000000?text=Hi%20HAMZURY%2C%20my%20reference%20is%20${data.referenceCode}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 mt-3 text-xs font-medium px-3 py-2 rounded-lg text-white"
+                        style={{ background: "#25D366" }}
+                      >
+                        Contact on WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                )}
+
                 <div className="px-6 pb-5 flex gap-3">
                   <Button
                     variant="outline"

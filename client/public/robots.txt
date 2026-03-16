@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /os/
+Disallow: /staff
+Disallow: /founder-dashboard
+Disallow: /ceo-dashboard
+Disallow: /lead-dashboard
+Disallow: /finance-dashboard
+Disallow: /ridi-dashboard
+Disallow: /innovation-dashboard
+Disallow: /cso-dashboard
+Disallow: /affiliate/dashboard
+Disallow: /api/
+
+Sitemap: https://hamzury.com/sitemap.xml
