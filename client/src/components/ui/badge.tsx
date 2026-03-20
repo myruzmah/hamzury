@@ -4,19 +4,51 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * HAMZURY-branded shadcn Badge
+ * Radius: 4px
+ * Variants aligned with HAMZURY brand palette
+ */
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  [
+    "inline-flex items-center justify-center gap-1.5",
+    "px-2.5 py-1",
+    "text-[11px] font-semibold",
+    "rounded-[4px]",
+    "whitespace-nowrap shrink-0 w-fit",
+    "border border-transparent",
+    "[&>svg]:size-3 [&>svg]:pointer-events-none",
+    "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+    "aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
+    "transition-colors overflow-hidden",
+  ].join(" "),
   {
     variants: {
       variant: {
+        // Primary — Luxury Dark Green
         default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
+          "bg-[#0A1F1C] text-white",
+        // Soft green — success / active
+        success:
+          "bg-emerald-50 text-emerald-700",
+        // Gold — premium / founder
+        gold:
+          "bg-amber-50 text-amber-700",
+        // Red — error / cancelled
         destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "bg-red-50 text-red-600",
+        // Amber — warning / on-hold
+        warning:
+          "bg-orange-50 text-orange-700",
+        // Blue — info / in-progress
+        info:
+          "bg-blue-50 text-blue-700",
+        // Neutral — default / not-started
+        secondary:
+          "bg-gray-100 text-gray-600",
+        // Outline — ghost badge
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "border-[#EBEBEB] text-[#2C2C2C] bg-transparent",
       },
     },
     defaultVariants: {

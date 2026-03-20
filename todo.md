@@ -507,3 +507,35 @@
 - [x] KPIs & Analytics section: bar/line/pie charts
 - [x] Quick Access section: shortcut cards
 - [x] Add /cso/login and /cso/dashboard routes to App.tsx
+
+## Phase 27 — Global Brand System (March 2026)
+
+- [x] Update index.css with exact HAMZURY brand tokens (primary: #0A1F1C, gold: #C9A97E, milk: #F8F5F0, charcoal: #2C2C2C)
+- [x] Fix primary color from #1B4D3E to correct #0A1F1C (Luxury Dark Green)
+- [x] Set correct radius: 4px buttons, 8px cards (was 2px)
+- [x] Update dark theme to brand-consistent (dark green tones, gold accent — not default blue)
+- [x] Add full typography scale: display, H1-H6, body, label, caption
+- [x] Add spacing utilities: section-padding, section-gap, card-padding
+- [x] Add brand-rule and gold-rule decorative lines
+- [x] Add luxury-card and milk-card component classes
+- [x] Add btn-primary, btn-gold, btn-ghost, btn-sm, btn-icon utility classes
+- [x] Add h-input, h-textarea, h-label form utility classes
+- [x] Add status badge classes: status-not-started, status-in-progress, status-completed, status-on-hold, status-cancelled
+- [x] Add skeleton loader and fade-in animation utilities
+- [x] Create /components/ui/hamzury.tsx brand component library:
+  - HButton (primary/gold/ghost/danger/link variants, 44px touch target)
+  - HCard (default/milk/brand/gold variants, 8px radius)
+  - HCardHeader, HCardTitle, HCardDescription, HCardContent, HCardFooter
+  - HInput (with label, error, hint, left/right icon)
+  - HTextarea (with label, error, hint)
+  - HBadge (green/gold/red/amber/blue/neutral/active/paused/error/new/pending/completed)
+  - HModal (sm/md/lg/xl sizes, Escape-to-close, body scroll lock)
+  - HLabel, HDivider, HSkeleton
+  - HKPICard (pre-built KPI card for dashboards)
+  - HEmptyState (icon + title + description + action)
+  - HPageHeader (title + description + breadcrumb + back link + actions)
+  - HSelect (with label, error, hint, options)
+- [x] Update shadcn Button: correct primary (#0A1F1C), add gold variant, 44px height, 4px radius
+- [x] Update shadcn Card: 8px radius, hairline border, subtle 2-layer shadow
+- [x] Update shadcn Badge: 4px radius, brand-consistent color variants (success/gold/destructive/warning/info/secondary/outline)
+- [x] 20 Vitest tests passing, TypeScript 0 errors
