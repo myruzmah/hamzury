@@ -793,7 +793,12 @@ export async function markAllNotificationsRead(staffId: string) {
 export async function changeStaffPassword(staffId: string, newPasswordHash: string) {
   const db = await getDb();
   if (!db) return;
-  await db.update(staffMembers).set({ passwordHash: newPasswordHash }).where(eq(staffMembers.staffId, staffId));
+  await db.update(staffMembers).set({
+    passwordHash: newPasswordHash,
+    mustChangePassword: false,
+    lastPasswordChange: new Date(),
+    updatedAt: new Date(),
+  }).where(eq(staffMembers.staffId, staffId));
 }
 
 // ─── RIDI Scholarship Applications ───────────────────────────────────────────

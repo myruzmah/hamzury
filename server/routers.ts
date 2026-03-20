@@ -163,8 +163,7 @@ const authRouter = router({
         throw new TRPCError({ code: "FORBIDDEN", message: "This account has been deactivated." });
       }
 
-      await updateStaffLastSignIn(member.staffId);
-
+       await updateStaffLastSignIn(member.staffId);
       // Ensure user exists in users table for session compatibility
       // IMPORTANT: staffId and department must be saved so myProfile can look up the staffMembers row
       await upsertUser({
@@ -177,6 +176,17 @@ const authRouter = router({
         department: member.primaryDepartment,
         lastSignedIn: new Date(),
       });
+      // If first login (mustChangePassword), return flag so frontend can redirect to change password
+      if (member.mustChangePassword) {
+        return {
+          success: true,
+          mustChangePassword: true,
+          institutionalRole: member.institutionalRole,
+          dashboardRole: member.dashboardRole ?? member.institutionalRole,
+          name: member.name,
+          staffId: member.staffId,
+        } as const;
+      }
 
       const token = await signJWT({
         sub: `staff-${member.staffId}`,
@@ -190,19 +200,19 @@ const authRouter = router({
         department: member.primaryDepartment,
       });
 
-      const cookieOptions = getSessionCookieOptions(ctx.req);
+       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 });
-
       return {
         success: true,
+        mustChangePassword: false,
         institutionalRole: member.institutionalRole,
+        dashboardRole: member.dashboardRole ?? member.institutionalRole,
         name: member.name,
         staffId: member.staffId,
         department: member.primaryDepartment,
       };
     }),
-
-  // Agent login
+  // Agent loginn
   agentLogin: publicProcedure
     .input(z.object({ email: z.string().email(), password: z.string().min(1) }))
     .mutation(async ({ input, ctx }) => {

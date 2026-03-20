@@ -78,6 +78,13 @@
       "when": 1773638903676,
       "tag": "0010_curved_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1774005761658,
+      "tag": "0011_supreme_sleeper",
+      "breakpoints": true
     }
   ]
 }

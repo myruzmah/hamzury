@@ -59,6 +59,21 @@ export const staffMembers = mysqlTable("staffMembers", {
   // Secondary departments (cross-functional capability)
   secondaryDepartments: text("secondaryDepartments"), // JSON array of dept names
   isActive: boolean("isActive").default(true).notNull(),
+  // Auth: first-login password change enforcement
+  mustChangePassword: boolean("mustChangePassword").default(true).notNull(),
+  lastPasswordChange: timestamp("lastPasswordChange"),
+  // Auth: dashboard role for login routing
+  dashboardRole: mysqlEnum("dashboardRole", [
+    "founder",
+    "ceo",
+    "cso",
+    "bizdev",
+    "finance",
+    "hr",
+    "staff",
+    "helper",
+    "affiliate",
+  ]),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn"),

@@ -558,3 +558,16 @@
 - [x] Create /skills redirect page (to skills.hamzury.com)
 - [x] Wire all new routes in App.tsx
 - [x] Ensure all nav is responsive and thumb-friendly (44px touch targets)
+
+## Phase 29 — Institutional Authentication System (March 2026)
+
+- [x] Add mustChangePassword + lastPasswordChange fields to staffMembers table in drizzle/schema.ts
+- [x] Run pnpm db:push to apply schema migration
+- [x] Update staffLogin procedure to return mustChangePassword flag and dashboardRole
+- [x] Update changeStaffPassword to clear mustChangePassword flag and set lastPasswordChange
+- [x] Set dashboardRole for all 14 existing staff members in database
+- [x] Create seed script (seed-dashboard-users.mjs) for 7 default dashboard users
+- [x] Run seed script — all 7 default accounts created (cso/ceo/founder/finance/hr/bizdev/staff1)
+- [x] Update DashboardLoginPage to call real tRPC auth.staffLogin instead of localStorage mock
+- [x] Build ForcePasswordChange inline form (shown on first login, calls auth.changePassword)
+- [x] TypeScript 0 errors, 20 Vitest tests passing

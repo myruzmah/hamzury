@@ -1,0 +1,122 @@
+{
+  "query": "SELECT staffId, name, email, institutionalRole, dashboardRole, mustChangePassword FROM staffMembers LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3J9k2MXu4QeFXf3.d7e2c34337b4 --database i9aHLqTuJkXG4gxXzw9582 --execute SELECT staffId, name, email, institutionalRole, dashboardRole, mustChangePassword FROM staffMembers LIMIT 20;",
+  "rows": [
+    {
+      "staffId": "STF-001",
+      "name": "Haruna Muhammad",
+      "email": "haruna@hamzury.com",
+      "institutionalRole": "founder",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-002",
+      "name": "Idris Ibrahim",
+      "email": "idris@hamzury.com",
+      "institutionalRole": "ceo",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-003",
+      "name": "Maryam Ashir Lalo",
+      "email": "maryam@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-004",
+      "name": "Abdullahi Musa",
+      "email": "abdullahi@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-005",
+      "name": "Muhammad Ismail Adam",
+      "email": "muhammad@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-006",
+      "name": "Khadija Umar Saad",
+      "email": "khadija@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-007",
+      "name": "Habiba Shuaibu Dajot",
+      "email": "habiba@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-008",
+      "name": "Abdulmalik Abdullahi Muhammad",
+      "email": "abdulmalik@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-009",
+      "name": "Abdulrahim Murtala Hussain",
+      "email": "abdulrahim@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-010",
+      "name": "Suleiman Ahmad Bashir",
+      "email": "suleiman@hamzury.com",
+      "institutionalRole": "staff",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-011",
+      "name": "Abubakar Bashir",
+      "email": "abubakar@hamzury.com",
+      "institutionalRole": "staff",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-012",
+      "name": "Salis Umar",
+      "email": "salis@hamzury.com",
+      "institutionalRole": "staff",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-013",
+      "name": "Farida Muneer",
+      "email": "farida@hamzury.com",
+      "institutionalRole": "staff",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    },
+    {
+      "staffId": "STF-014",
+      "name": "Amina Ahmad Musa",
+      "email": "amina@hamzury.com",
+      "institutionalRole": "lead",
+      "dashboardRole": "NULL",
+      "mustChangePassword": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "staffId\tname\temail\tinstitutionalRole\tdashboardRole\tmustChangePassword\nSTF-001\tHaruna Muhammad\tharuna@hamzury.com\tfounder\tNULL\t1\nSTF-002\tIdris Ibrahim\tidris@hamzury.com\tceo\tNULL\t1\nSTF-003\tMaryam Ashir Lalo\tmaryam@hamzury.com\tlead\tNULL\t1\nSTF-004\tAbdullahi Musa\tabdullahi@hamzury.com\tlead\tNULL\t1\nSTF-005\tMuhammad Ismail Adam\tmuhammad@hamzury.com\tlead\tNULL\t1\nSTF-006\tKhadija Umar Saad\tkhadija@hamzury.com\tlead\tNULL\t1\nSTF-007\tHabiba Shuaibu Dajot\thabiba@hamzury.com\tlead\tNULL\t1\nSTF-008\tAbdulmalik Abdullahi Muhammad\tabdulmalik@hamzury.com\tlead\tNULL\t1\nSTF-009\tAbdulrahim Murtala Hussain\tabdulrahim@hamzury.com\tlead\tNULL\t1\nSTF-010\tSuleiman Ahmad Bashir\tsuleiman@hamzury.com\tstaff\tNULL\t1\nSTF-011\tAbubakar Bashir\tabubakar@hamzury.com\tstaff\tNULL\t1\nSTF-012\tSalis Umar\tsalis@hamzury.com\tstaff\tNULL\t1\nSTF-013\tFarida Muneer\tfarida@hamzury.com\tstaff\tNULL\t1\nSTF-014\tAmina Ahmad Musa\tamina@hamzury.com\tlead\tNULL\t1\n",
+  "stderr": "",
+  "execution_time_ms": 328
+}
