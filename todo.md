@@ -539,3 +539,22 @@
 - [x] Update shadcn Card: 8px radius, hairline border, subtle 2-layer shadow
 - [x] Update shadcn Badge: 4px radius, brand-consistent color variants (success/gold/destructive/warning/info/secondary/outline)
 - [x] 20 Vitest tests passing, TypeScript 0 errors
+
+## Phase 28 — Master Navigation Structure (March 2026)
+
+- [x] Create PublicNav component (desktop top nav + mobile hamburger)
+- [x] Gold active state (#C9A97E) on current page in PublicNav
+- [x] Create DashboardShell component (desktop sidebar + mobile bottom nav)
+- [x] Role-aware nav: users only see pages their role permits
+- [x] Create ProtectedRoute wrapper (role-based route protection)
+- [x] Create /cso/login page
+- [x] Create /ceo/login page
+- [x] Create /founder/login page
+- [x] Create /finance/login page
+- [x] Create /hr/login page
+- [x] Create /bizdev/login page
+- [x] Create /bizdoc redirect page (to bizdoc.hamzury.com)
+- [x] Create /systemise redirect page (to systemise.hamzury.com)
+- [x] Create /skills redirect page (to skills.hamzury.com)
+- [x] Wire all new routes in App.tsx
+- [x] Ensure all nav is responsive and thumb-friendly (44px touch targets)
