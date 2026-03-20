@@ -96,6 +96,21 @@ const DEPT_WORKLOAD = [
 
 const PIE_COLORS = ["#0A1F1C", "#C9A97E", "#6B7280", "#D1FAE5"];
 
+const MOCK_COMMISSIONS = {
+  earned: 87500,
+  pending: 42000,
+  paid: 45500,
+  target: 150000,
+  withdrawable: 42000,
+  minWithdrawal: 20000,
+  history: [
+    { ref: "COM-001", desc: "BizDoc: Tilz Spa", amount: 12500, status: "Paid", date: "2026-03-15" },
+    { ref: "COM-002", desc: "Systems: Abuja Tech Hub", amount: 18000, status: "Paid", date: "2026-03-10" },
+    { ref: "COM-003", desc: "Studios: Nour Boutique", amount: 15000, status: "Pending", date: "2026-03-18" },
+    { ref: "COM-004", desc: "Innovation: Bright Minds", amount: 27000, status: "Pending", date: "2026-03-20" },
+  ]
+};
+
 const QUICK_ACCESS = [
   { icon: FileText, title: "Bizdoc SOP", desc: "Standard operating procedures", action: "#" },
   { icon: Database, title: "Leads Sheet", desc: "Google Sheet: lead tracker", action: "#" },
@@ -112,6 +127,7 @@ const NAV = [
   { id: "attendance", label: "Attendance", icon: Clock },
   { id: "kpis", label: "KPIs", icon: TrendingUp },
   { id: "quick", label: "Quick Access", icon: Zap },
+  { id: "commissions", label: "Commissions", icon: Calculator },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -223,6 +239,131 @@ export default function CSODashboard() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [leadFilter, setLeadFilter] = useState({ source: "", service: "", status: "" });
   const [checkedIn, setCheckedIn] = useState(false);
+  const [showNewLeadModal, setShowNewLeadModal] = useState(false);
+  const [showConvertModal, setShowConvertModal] = useState<string | null>(null);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+
+  // ─── New Lead Modal ───────────────────────────────────────────────────────
+  const NewLeadModal = () => {
+    const [form, setForm] = useState({ name: "", phone: "", email: "", business: "", source: "", service: "" });
+    const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="bg-white rounded-2xl w-full max-w-md shadow-xl" style={{ maxHeight: "90vh", overflowY: "auto" }}>
+          <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: B.border }}>
+            <h3 className="text-sm font-semibold" style={{ color: B.charcoal }}>Add New Lead</h3>
+            <button onClick={() => setShowNewLeadModal(false)} className="p-1 rounded-lg hover:bg-gray-100"><X size={16} /></button>
+          </div>
+          <div className="p-5 space-y-3">
+            {[
+              { label: "Full Name", key: "name", placeholder: "e.g. Amina Yusuf" },
+              { label: "Phone Number", key: "phone", placeholder: "e.g. 08012345678" },
+              { label: "Email (optional)", key: "email", placeholder: "e.g. amina@example.com" },
+              { label: "Business Name (optional)", key: "business", placeholder: "e.g. Tilz Spa" },
+            ].map(f => (
+              <div key={f.key}>
+                <label className="block text-xs font-medium mb-1" style={{ color: B.green }}>{f.label}</label>
+                <input type="text" value={(form as any)[f.key]} onChange={e => set(f.key, e.target.value)} placeholder={f.placeholder}
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style={{ borderColor: B.border, color: B.charcoal }} />
+              </div>
+            ))}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: B.green }}>Source</label>
+                <select value={form.source} onChange={e => set("source", e.target.value)} className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style={{ borderColor: B.border, color: B.charcoal }}>
+                  <option value="">Select</option>
+                  {["Social", "Physical", "Referral", "Website"].map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: B.green }}>Service Interest</label>
+                <select value={form.service} onChange={e => set("service", e.target.value)} className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style={{ borderColor: B.border, color: B.charcoal }}>
+                  <option value="">Select</option>
+                  {["BizDoc", "Systemise", "Studios", "Innovation"].map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3 p-5 pt-0">
+            <button onClick={() => setShowNewLeadModal(false)} className="flex-1 py-2.5 rounded-lg border text-sm font-medium" style={{ borderColor: B.border, color: B.charcoal }}>Cancel</button>
+            <button onClick={() => { alert("Lead created (mock)."); setShowNewLeadModal(false); }} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: B.green }}>Add Lead</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Convert Lead Modal ────────────────────────────────────────────────────
+  const ConvertLeadModal = ({ leadId }: { leadId: string }) => {
+    const lead = MOCK_LEADS.find(l => l.id === leadId);
+    const [dept, setDept] = useState("");
+    const [brief, setBrief] = useState("");
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+          <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: B.border }}>
+            <h3 className="text-sm font-semibold" style={{ color: B.charcoal }}>Convert & Assign — {lead?.name}</h3>
+            <button onClick={() => setShowConvertModal(null)} className="p-1 rounded-lg hover:bg-gray-100"><X size={16} /></button>
+          </div>
+          <div className="p-5 space-y-3">
+            <p className="text-xs px-3 py-2 rounded-lg" style={{ background: "#F0FDF4", color: "#059669" }}>
+              This lead will be marked as <strong>Converted</strong> and an assignment will be created for the selected department.
+            </p>
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: B.green }}>Assign to Department</label>
+              <select value={dept} onChange={e => setDept(e.target.value)} className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style={{ borderColor: B.border, color: B.charcoal }}>
+                <option value="">Select department</option>
+                {["Bizdoc", "Systems", "Studios", "Innovation Hub"].map(d => <option key={d}>{d}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1" style={{ color: B.green }}>Assignment Brief</label>
+              <textarea value={brief} onChange={e => setBrief(e.target.value)} rows={3}
+                placeholder="Describe the scope of work, client expectations, and any key context."
+                className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none resize-none" style={{ borderColor: B.border, color: B.charcoal }} />
+            </div>
+          </div>
+          <div className="flex gap-3 p-5 pt-0">
+            <button onClick={() => setShowConvertModal(null)} className="flex-1 py-2.5 rounded-lg border text-sm font-medium" style={{ borderColor: B.border, color: B.charcoal }}>Cancel</button>
+            <button onClick={() => { alert("Lead converted and assigned (mock)."); setShowConvertModal(null); }} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: B.green }}>Convert & Assign</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ─── Withdraw Modal ────────────────────────────────────────────────────────
+  const WithdrawModal = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.4)" }}>
+      <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl">
+        <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: B.border }}>
+          <h3 className="text-sm font-semibold" style={{ color: B.charcoal }}>Request Withdrawal</h3>
+          <button onClick={() => setShowWithdrawModal(false)} className="p-1 rounded-lg hover:bg-gray-100"><X size={16} /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="p-3 rounded-xl" style={{ background: `${B.green}08`, border: `1px solid ${B.green}20` }}>
+            <p className="text-xs" style={{ color: B.muted }}>Available to withdraw</p>
+            <p className="text-2xl font-bold mt-0.5" style={{ color: B.green }}>₦{MOCK_COMMISSIONS.withdrawable.toLocaleString()}</p>
+          </div>
+          <div className="space-y-2 text-xs" style={{ color: B.muted }}>
+            <p>• Minimum withdrawal: ₦20,000</p>
+            <p>• Processing time: 24 hours</p>
+            <p>• Mon–Fri, 9am–5pm WAT only</p>
+            <p>• Paid to your KYC-verified account only</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1" style={{ color: B.green }}>Amount (₦)</label>
+            <input type="number" min={20000} max={MOCK_COMMISSIONS.withdrawable} placeholder="Enter amount"
+              className="w-full px-3 py-2.5 rounded-lg border text-sm outline-none" style={{ borderColor: B.border, color: B.charcoal }} />
+          </div>
+        </div>
+        <div className="flex gap-3 p-5 pt-0">
+          <button onClick={() => setShowWithdrawModal(false)} className="flex-1 py-2.5 rounded-lg border text-sm font-medium" style={{ borderColor: B.border, color: B.charcoal }}>Cancel</button>
+          <button onClick={() => { alert("Withdrawal request submitted (mock)."); setShowWithdrawModal(false); }} className="flex-1 py-2.5 rounded-lg text-sm font-semibold text-white" style={{ background: B.green }}>Submit Request</button>
+        </div>
+      </div>
+    </div>
+  );
 
   // Auth guard
   useEffect(() => {
@@ -415,7 +556,7 @@ export default function CSODashboard() {
                 <button
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white"
                   style={{ background: B.green }}
-                  onClick={() => alert("New lead form (mock)")}
+                  onClick={() => setShowNewLeadModal(true)}
                 >
                   <Plus size={13} /> New Lead
                 </button>
@@ -472,9 +613,10 @@ export default function CSODashboard() {
                           <td className="px-4 py-3" style={{ color: B.muted }}>{l.date}</td>
                           <td className="px-4 py-3">
                             <div className="flex gap-1.5">
-                              <button className="px-2 py-1 rounded text-xs border" style={{ borderColor: B.border, color: B.charcoal }}>View</button>
-                              <button className="px-2 py-1 rounded text-xs border" style={{ borderColor: B.green, color: B.green }}>Convert</button>
-                              <button className="px-2 py-1 rounded text-xs text-white" style={{ background: B.gold }}>Assign</button>
+                              <button className="text-xs px-2 py-1 rounded border" style={{ borderColor: B.border, color: B.charcoal }}>View</button>
+                              {l.status !== "Converted" && l.status !== "Completed" && (
+                                <button onClick={() => setShowConvertModal(l.id)} className="text-xs px-2 py-1 rounded text-white" style={{ background: B.green }}>Convert</button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -721,6 +863,89 @@ export default function CSODashboard() {
             </div>
           )}
 
+          {/* ── COMMISSIONS ── */}
+          {section === "commissions" && (
+            <div className="space-y-4">
+              <h2 className="text-base font-semibold" style={{ color: B.charcoal }}>My Commissions</h2>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { label: "Total Earned", value: `₦${MOCK_COMMISSIONS.earned.toLocaleString()}`, color: B.green },
+                  { label: "Pending", value: `₦${MOCK_COMMISSIONS.pending.toLocaleString()}`, color: "#D97706" },
+                  { label: "Paid Out", value: `₦${MOCK_COMMISSIONS.paid.toLocaleString()}`, color: "#059669" },
+                  { label: "Target (March)", value: `₦${MOCK_COMMISSIONS.target.toLocaleString()}`, color: B.muted },
+                ].map(k => (
+                  <div key={k.label} className="bg-white rounded-xl border p-4" style={{ borderColor: B.border }}>
+                    <div className="text-xl font-bold mb-1" style={{ color: k.color }}>{k.value}</div>
+                    <div className="text-xs" style={{ color: B.muted }}>{k.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Progress Bar */}
+              <div className="bg-white rounded-xl border p-4" style={{ borderColor: B.border }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold" style={{ color: B.charcoal }}>March Target Progress</span>
+                  <span className="text-sm font-bold" style={{ color: B.green }}>{Math.round((MOCK_COMMISSIONS.earned / MOCK_COMMISSIONS.target) * 100)}%</span>
+                </div>
+                <div className="w-full rounded-full h-2.5" style={{ background: "#E5E5E5" }}>
+                  <div className="h-2.5 rounded-full transition-all" style={{ width: `${Math.min(100, (MOCK_COMMISSIONS.earned / MOCK_COMMISSIONS.target) * 100)}%`, background: B.gold }} />
+                </div>
+                <div className="flex justify-between text-xs mt-1.5" style={{ color: B.muted }}>
+                  <span>₦{MOCK_COMMISSIONS.earned.toLocaleString()} earned</span>
+                  <span>₦{MOCK_COMMISSIONS.target.toLocaleString()} target</span>
+                </div>
+              </div>
+
+              {/* Withdrawal Card */}
+              <div className="bg-white rounded-xl border p-4" style={{ borderColor: B.border }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: B.charcoal }}>Available to Withdraw</p>
+                    <p className="text-2xl font-bold mt-0.5" style={{ color: B.green }}>₦{MOCK_COMMISSIONS.withdrawable.toLocaleString()}</p>
+                    <p className="text-xs mt-1" style={{ color: B.muted }}>Min. ₦20,000 · 24h processing · Mon–Fri 9am–5pm</p>
+                  </div>
+                  <button onClick={() => setShowWithdrawModal(true)}
+                    disabled={MOCK_COMMISSIONS.withdrawable < MOCK_COMMISSIONS.minWithdrawal}
+                    className="px-4 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
+                    style={{ background: B.green }}>
+                    Request Withdrawal
+                  </button>
+                </div>
+              </div>
+
+              {/* Commission History */}
+              <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: B.border }}>
+                <div className="px-4 py-3 border-b" style={{ borderColor: B.border }}>
+                  <span className="text-sm font-semibold" style={{ color: B.charcoal }}>Commission History</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr style={{ background: "#FAFAFA", borderBottom: `1px solid ${B.border}` }}>
+                        {["Ref", "Description", "Amount", "Status", "Date"].map(h => (
+                          <th key={h} className="text-left px-4 py-3 font-medium" style={{ color: B.muted }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {MOCK_COMMISSIONS.history.map((c, i) => (
+                        <tr key={c.ref} style={{ borderBottom: i < MOCK_COMMISSIONS.history.length - 1 ? `1px solid ${B.border}` : "none" }}>
+                          <td className="px-4 py-3 font-medium" style={{ color: B.charcoal }}>{c.ref}</td>
+                          <td className="px-4 py-3" style={{ color: B.charcoal }}>{c.desc}</td>
+                          <td className="px-4 py-3 font-semibold" style={{ color: B.green }}>₦{c.amount.toLocaleString()}</td>
+                          <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                          <td className="px-4 py-3" style={{ color: B.muted }}>{c.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ── QUICK ACCESS ── */}
           {section === "quick" && (
             <div className="space-y-4">
@@ -776,8 +1001,10 @@ export default function CSODashboard() {
         </div>
       </nav>
 
-      {/* Assignment Modal */}
       {showAssignModal && <AssignmentModal onClose={() => setShowAssignModal(false)} />}
+      {showNewLeadModal && <NewLeadModal />}
+      {showConvertModal && <ConvertLeadModal leadId={showConvertModal} />}
+      {showWithdrawModal && <WithdrawModal />}
     </div>
   );
 }

@@ -571,3 +571,21 @@
 - [x] Update DashboardLoginPage to call real tRPC auth.staffLogin instead of localStorage mock
 - [x] Build ForcePasswordChange inline form (shown on first login, calls auth.changePassword)
 - [x] TypeScript 0 errors, 20 Vitest tests passing
+
+## Phase 30 — Complete CSO Dashboard (March 2026)
+
+- [x] Create csoMockData.ts with Nigerian context data for all 7 sections
+- [x] Build CSO Dashboard shell (sidebar desktop + bottom nav mobile)
+- [x] Section 1: Command Overview (stats cards, quick actions, activity feed)
+- [x] Section 2: Lead Pipeline (stages, lead cards, filters, convert/assign)
+- [x] Section 3: Assignments (table, create modal, no-question rule)
+- [x] Section 4: Department Updates (structured log, filters)
+- [x] Section 5: Attendance (today's log, check-in/out, helper management)
+- [x] Section 6: KPIs & Analytics (charts, conversion rate, dept workload)
+- [x] Section 7: Quick Access (shortcut cards)
+- [x] Commission tracking section (earned/pending/paid, progress bar, withdrawal request)
+- [x] New Lead modal with form fields
+- [x] Convert Lead modal with assignment form
+- [x] All amounts formatted in Naira (₦) with thousand separators
+- [x] Navigation links working between all CSO sub-pages
+- [x] TypeScript 0 errors, tests passing
