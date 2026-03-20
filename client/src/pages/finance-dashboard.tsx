@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { generateInvoicePDF, generateDossierPDF } from "@/lib/generatePDF";
 
 function fmt(d: Date | string | null | undefined) {
   if (!d) return "—";
@@ -222,6 +223,18 @@ export default function FinanceDashboard() {
                     <p className="text-sm font-semibold text-stone-900">{inv.clientName}</p>
                     <p className="text-xs text-stone-400 mt-0.5 line-clamp-1">{inv.description}</p>
                     <p className="text-xs text-stone-400">Created {fmt(inv.createdAt)}{inv.paidAt ? ` · Paid ${fmt(inv.paidAt)}` : ""}</p>
+                    <div className="flex gap-2 mt-2 flex-wrap">
+                      <button
+                        onClick={() => generateInvoicePDF({ invoiceRef: inv.invoiceRef, clientName: inv.clientName, description: inv.description, amountNaira: inv.amountNaira, status: inv.status, issuedAt: inv.createdAt, paidAt: inv.paidAt })}
+                        className="text-xs px-2.5 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors">
+                        ↓ Invoice PDF
+                      </button>
+                      <button
+                        onClick={() => generateDossierPDF({ clientName: inv.clientName, projectRef: inv.invoiceRef, service: inv.description, department: "HAMZURY", deliverables: [{ title: inv.description, description: "As agreed in the project brief." }], completedDate: inv.paidAt ?? inv.createdAt, leadName: "Department Lead", founderNote: "Thank you for choosing HAMZURY. We are committed to building institutions that last." })}
+                        className="text-xs px-2.5 py-1 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors">
+                        📄 Delivery Dossier
+                      </button>
+                    </div>
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-base font-bold text-stone-900">{naira(inv.amountNaira)}</p>

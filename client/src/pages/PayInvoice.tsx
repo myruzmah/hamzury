@@ -1,73 +1,85 @@
 /**
- * HAMZURY Invoice Payment Page — Bank Transfer (DVA)
- * Generates a dedicated virtual account number for the client to transfer to.
+ * HAMZURY Invoice Payment Page
+ * Nigerian clients: manual bank transfer + receipt upload
+ * International clients: external payment link
  * Route: /pay/:invoiceRef
  */
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle, Loader2, AlertCircle, Copy, Building2, MessageCircle } from "lucide-react";
+import {
+  CheckCircle, Loader2, AlertCircle, Copy, Upload,
+  ExternalLink, ArrowLeft, FileText, Globe, Building2
+} from "lucide-react";
 import { toast } from "sonner";
 
 const BRAND = "#1B4D3E";
+
+// HAMZURY Bank details for manual transfer
+const BANK_DETAILS = {
+  bankName: "Zenith Bank",
+  accountNumber: "1234567890",
+  accountName: "HAMZURY INSTITUTIONAL SERVICES LTD",
+  sortCode: "057",
+};
 
 function copyText(text: string, label: string) {
   navigator.clipboard.writeText(text).then(() => toast.success(`${label} copied`));
 }
 
+type PaymentType = "nigerian" | "international" | null;
+
 export default function PayInvoice() {
   const { invoiceRef } = useParams<{ invoiceRef: string }>();
-  const [customerName, setCustomerName] = useState("");
-  const [email, setEmail] = useState("");
-  const [step, setStep] = useState<"form" | "account">("form");
-  const [acct, setAcct] = useState<{
-    accountNumber: string;
-    accountName: string;
-    bankName: string;
-    amountNaira: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [paymentType, setPaymentType] = useState<PaymentType>(null);
+
+  // Nigerian: receipt upload
+  const [senderName, setSenderName] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [senderPhone, setSenderPhone] = useState("");
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadDone, setUploadDone] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: invoice, isLoading, error } = trpc.finance.getInvoiceByRef.useQuery(
     { invoiceRef: invoiceRef || "" },
     { enabled: !!invoiceRef }
   );
 
-  async function handleGenerate() {
-    if (!customerName.trim()) { setFormError("Please enter your full name."); return; }
-    if (!email.trim() || !email.includes("@")) { setFormError("Please enter a valid email address."); return; }
-    setFormError("");
-    setLoading(true);
-    try {
-      const res = await fetch("/api/paystack/dva/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          invoiceRef,
-          customerName: customerName.trim(),
-          email: email.trim(),
-          amountNaira: invoice?.amount || 0,
-        }),
+  const uploadMutation = trpc.finance.uploadReceipt.useMutation({
+    onSuccess: () => {
+      setUploadDone(true);
+      toast.success("Receipt submitted. HAMZURY will confirm your payment within 2 hours.");
+    },
+    onError: (e) => {
+      toast.error(e.message || "Upload failed. Please try again.");
+      setUploading(false);
+    },
+  });
+
+  async function handleReceiptUpload(e: React.FormEvent) {
+    e.preventDefault();
+    if (!receiptFile) { toast.error("Please select a receipt file."); return; }
+    if (!senderName.trim()) { toast.error("Please enter your full name."); return; }
+    if (!senderEmail.trim() || !senderEmail.includes("@")) { toast.error("Please enter a valid email."); return; }
+    if (!senderPhone.trim()) { toast.error("Please enter your phone number."); return; }
+
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = (reader.result as string).split(",")[1];
+      await uploadMutation.mutateAsync({
+        invoiceRef: invoiceRef || "",
+        fileName: receiptFile.name,
+        fileBase64: base64,
+        mimeType: receiptFile.type,
+        senderName: senderName.trim(),
+        senderEmail: senderEmail.trim(),
+        senderPhone: senderPhone.trim(),
       });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        setFormError(data.error || "Could not generate account. Please contact HAMZURY.");
-        setLoading(false);
-        return;
-      }
-      setAcct({
-        accountNumber: data.accountNumber,
-        accountName: data.accountName,
-        bankName: data.bankName,
-        amountNaira: data.amountNaira,
-      });
-      setStep("account");
-    } catch {
-      setFormError("Network error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    };
+    reader.readAsDataURL(receiptFile);
   }
 
   if (isLoading) {
@@ -116,7 +128,7 @@ export default function PayInvoice() {
     style: "currency",
     currency: "NGN",
     minimumFractionDigits: 0,
-  }).format(Number(invoice.amount || 0));
+  }).format(Number(invoice.amountNaira || 0));
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col" style={{ fontFamily: "var(--font-sans)" }}>
@@ -128,158 +140,211 @@ export default function PayInvoice() {
         <span className="text-xs text-muted-foreground">Secure Payment</span>
       </header>
 
-      {/* Content */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+        <div className="w-full max-w-md">
           {/* Invoice summary banner */}
-          <div className="px-6 py-5 text-white" style={{ background: BRAND }}>
-            <p className="text-xs uppercase tracking-widest opacity-70 mb-1">Invoice</p>
-            <p className="text-lg font-bold">{invoice.invoiceRef}</p>
-            {invoice.clientName && (
-              <p className="text-sm opacity-80 mt-0.5">For {invoice.clientName}</p>
-            )}
-            <div className="mt-3 flex items-baseline gap-1">
-              <span className="text-3xl font-bold">{formattedAmount}</span>
+          <div className="rounded-xl overflow-hidden border border-border shadow-sm mb-4">
+            <div className="px-6 py-5 text-white" style={{ background: BRAND }}>
+              <p className="text-xs uppercase tracking-widest opacity-70 mb-1">Invoice</p>
+              <p className="text-lg font-bold">{invoice.invoiceRef}</p>
+              {invoice.clientName && (
+                <p className="text-sm opacity-80 mt-0.5">For {invoice.clientName}</p>
+              )}
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="text-3xl font-bold">{formattedAmount}</span>
+              </div>
+              {invoice.description && (
+                <p className="text-xs opacity-70 mt-2 leading-relaxed">{invoice.description}</p>
+              )}
             </div>
           </div>
 
-          <div className="px-6 py-6">
-            {step === "form" && (
-              <>
-                <div className="flex items-center gap-2 mb-4">
-                  <Building2 size={18} style={{ color: BRAND }} />
-                  <h3 className="text-sm font-semibold" style={{ color: BRAND }}>Pay by Bank Transfer</h3>
-                </div>
-                <p className="text-xs text-muted-foreground mb-5 leading-relaxed">
-                  Enter your details below. We will generate a dedicated bank account number for you to transfer the exact amount to. Payment is confirmed automatically.
-                </p>
-
-                <div className="space-y-4">
+          {/* Payment type selector */}
+          {!paymentType && (
+            <div className="bg-white rounded-xl border border-border shadow-sm p-6">
+              <h3 className="text-sm font-semibold text-foreground mb-1">How would you like to pay?</h3>
+              <p className="text-xs text-muted-foreground mb-5">Select the option that applies to you.</p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => setPaymentType("nigerian")}
+                  className="w-full flex items-start gap-4 p-4 rounded-lg border border-border hover:border-foreground/30 hover:bg-muted/30 transition-all text-left"
+                >
+                  <Building2 size={20} style={{ color: BRAND }} className="mt-0.5 flex-shrink-0" />
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5 text-gray-700">Full Name</label>
-                    <input
-                      type="text"
-                      value={customerName}
-                      onChange={e => setCustomerName(e.target.value)}
-                      placeholder="e.g. Amina Ibrahim"
-                      className="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-green-800 bg-gray-50"
-                    />
+                    <p className="text-sm font-semibold text-foreground">Nigerian bank transfer</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Transfer to our Zenith Bank account and upload your receipt. Confirmation within 2 hours.</p>
                   </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5 text-gray-700">Email Address</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      placeholder="e.g. amina@example.com"
-                      className="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-green-800 bg-gray-50"
-                    />
-                  </div>
-
-                  {formError && (
-                    <p className="text-red-600 text-xs">{formError}</p>
-                  )}
-
+                </button>
+                {invoice.internationalPaymentLink && (
                   <button
-                    onClick={handleGenerate}
-                    disabled={loading}
-                    className="w-full py-3.5 text-sm font-semibold rounded-lg text-white disabled:opacity-50 transition-opacity"
-                    style={{ background: BRAND }}
+                    onClick={() => setPaymentType("international")}
+                    className="w-full flex items-start gap-4 p-4 rounded-lg border border-border hover:border-foreground/30 hover:bg-muted/30 transition-all text-left"
                   >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Loader2 size={16} className="animate-spin" /> Generating account...
-                      </span>
-                    ) : (
-                      "Get Bank Account Number"
-                    )}
+                    <Globe size={20} style={{ color: BRAND }} className="mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">International payment</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Pay securely via our international payment link. Accepts cards and global payment methods.</p>
+                    </div>
                   </button>
-                </div>
+                )}
+              </div>
+            </div>
+          )}
 
-                <p className="text-xs text-muted-foreground text-center mt-5">
-                  Powered by Paystack · Secured by HMAC-SHA512
-                </p>
-              </>
-            )}
-
-            {step === "account" && acct && (
-              <>
-                <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                  Transfer the <strong>exact amount</strong> to the account below. Your payment will be confirmed automatically within minutes.
-                </p>
-
-                {/* Account details */}
-                <div className="rounded-xl border border-green-100 bg-green-50 p-5 space-y-4 mb-5">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs uppercase tracking-wider text-gray-500">Bank</span>
-                    <span className="text-sm font-semibold" style={{ color: BRAND }}>{acct.bankName}</span>
+          {/* Nigerian: Bank Transfer + Receipt Upload */}
+          {paymentType === "nigerian" && (
+            <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-border flex items-center gap-2">
+                <button onClick={() => setPaymentType(null)} className="text-muted-foreground hover:text-foreground">
+                  <ArrowLeft size={15} />
+                </button>
+                <h3 className="text-sm font-semibold text-foreground">Nigerian bank transfer</h3>
+              </div>
+              <div className="px-6 py-5">
+                {uploadDone ? (
+                  <div className="text-center py-6">
+                    <CheckCircle size={40} className="mx-auto mb-4" style={{ color: BRAND }} />
+                    <p className="font-semibold text-foreground mb-2">Receipt submitted.</p>
+                    <p className="text-sm text-muted-foreground">Your payment is being reviewed. HAMZURY will confirm within 2 hours and update your project status.</p>
+                    <Link href="/track" className="mt-4 inline-block text-sm underline" style={{ color: BRAND }}>
+                      Track your project
+                    </Link>
                   </div>
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs uppercase tracking-wider text-gray-500">Account Number</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold tracking-widest" style={{ color: BRAND }}>
-                        {acct.accountNumber}
-                      </span>
-                      <button
-                        onClick={() => copyText(acct.accountNumber, "Account number")}
-                        className="text-gray-400 hover:text-green-800 transition-colors"
-                        title="Copy"
-                      >
-                        <Copy size={14} />
-                      </button>
+                ) : (
+                  <>
+                    {/* Bank details */}
+                    <div className="rounded-lg border border-green-100 bg-green-50 p-4 space-y-3 mb-5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Transfer to</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">Bank</span>
+                        <span className="text-sm font-semibold" style={{ color: BRAND }}>{BANK_DETAILS.bankName}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">Account number</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold tracking-widest" style={{ color: BRAND }}>{BANK_DETAILS.accountNumber}</span>
+                          <button onClick={() => copyText(BANK_DETAILS.accountNumber, "Account number")} className="text-muted-foreground hover:text-foreground">
+                            <Copy size={13} />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-muted-foreground">Account name</span>
+                        <span className="text-xs font-medium text-foreground">{BANK_DETAILS.accountName}</span>
+                      </div>
+                      <div className="flex justify-between items-center border-t border-green-100 pt-3">
+                        <span className="text-xs text-muted-foreground">Exact amount</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold" style={{ color: BRAND }}>{formattedAmount}</span>
+                          <button onClick={() => copyText(String(invoice.amountNaira), "Amount")} className="text-muted-foreground hover:text-foreground">
+                            <Copy size={13} />
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs uppercase tracking-wider text-gray-500">Account Name</span>
-                    <span className="text-sm font-medium text-gray-800">{acct.accountName}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center border-t border-green-100 pt-4">
-                    <span className="text-xs uppercase tracking-wider text-gray-500">Exact Amount</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl font-bold" style={{ color: BRAND }}>
-                        {new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN", minimumFractionDigits: 0 }).format(acct.amountNaira)}
-                      </span>
-                      <button
-                        onClick={() => copyText(String(acct.amountNaira), "Amount")}
-                        className="text-gray-400 hover:text-green-800 transition-colors"
-                        title="Copy"
-                      >
-                        <Copy size={14} />
-                      </button>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5">
+                      <p className="text-amber-800 text-xs font-semibold mb-1">Before you transfer</p>
+                      <ul className="text-amber-700 text-xs space-y-1 list-disc list-inside">
+                        <li>Transfer the <strong>exact amount</strong> shown above.</li>
+                        <li>Use your name as the transfer narration.</li>
+                        <li>Take a screenshot of your transfer confirmation.</li>
+                      </ul>
                     </div>
-                  </div>
-                </div>
 
-                {/* Warning */}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5">
-                  <p className="text-amber-800 text-xs font-semibold mb-1">Important</p>
-                  <ul className="text-amber-700 text-xs space-y-1 list-disc list-inside">
-                    <li>Transfer the <strong>exact amount</strong> shown above.</li>
-                    <li>Use your name as the transfer narration.</li>
-                    <li>Payment is confirmed automatically — no need to notify us.</li>
-                  </ul>
-                </div>
+                    {/* Receipt upload form */}
+                    <form onSubmit={handleReceiptUpload} className="space-y-4">
+                      <p className="text-xs font-semibold text-foreground">After transferring, upload your receipt:</p>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1.5">Full name</label>
+                        <input required value={senderName} onChange={(e) => setSenderName(e.target.value)}
+                          className="w-full text-sm border border-border rounded-lg px-3 py-2.5 outline-none focus:border-foreground/30 transition-colors" placeholder="As used in the transfer" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1.5">Email address</label>
+                        <input required type="email" value={senderEmail} onChange={(e) => setSenderEmail(e.target.value)}
+                          className="w-full text-sm border border-border rounded-lg px-3 py-2.5 outline-none focus:border-foreground/30 transition-colors" placeholder="you@example.com" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1.5">Phone number</label>
+                        <input required value={senderPhone} onChange={(e) => setSenderPhone(e.target.value)}
+                          className="w-full text-sm border border-border rounded-lg px-3 py-2.5 outline-none focus:border-foreground/30 transition-colors" placeholder="+234 800 000 0000" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-foreground mb-1.5">Transfer receipt</label>
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full border-2 border-dashed border-border rounded-lg px-4 py-6 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-foreground/30 hover:bg-muted/20 transition-all"
+                        >
+                          {receiptFile ? (
+                            <>
+                              <FileText size={20} style={{ color: BRAND }} />
+                              <p className="text-xs font-medium text-foreground">{receiptFile.name}</p>
+                              <p className="text-xs text-muted-foreground">{(receiptFile.size / 1024).toFixed(0)} KB · Click to change</p>
+                            </>
+                          ) : (
+                            <>
+                              <Upload size={20} className="text-muted-foreground" />
+                              <p className="text-xs text-muted-foreground">Click to upload screenshot or PDF</p>
+                              <p className="text-xs text-muted-foreground">JPG, PNG, or PDF · Max 5 MB</p>
+                            </>
+                          )}
+                        </div>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f && f.size > 5 * 1024 * 1024) { toast.error("File must be under 5 MB."); return; }
+                            if (f) setReceiptFile(f);
+                          }}
+                        />
+                      </div>
+                      <button type="submit" disabled={uploading || !receiptFile}
+                        className="w-full py-3 rounded-lg text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-50"
+                        style={{ background: BRAND }}>
+                        {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+                        {uploading ? "Uploading receipt…" : "Submit receipt"}
+                      </button>
+                    </form>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
-                {/* WhatsApp fallback */}
+          {/* International: Payment Link */}
+          {paymentType === "international" && invoice.internationalPaymentLink && (
+            <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-border flex items-center gap-2">
+                <button onClick={() => setPaymentType(null)} className="text-muted-foreground hover:text-foreground">
+                  <ArrowLeft size={15} />
+                </button>
+                <h3 className="text-sm font-semibold text-foreground">International payment</h3>
+              </div>
+              <div className="px-6 py-6 text-center">
+                <Globe size={40} className="mx-auto mb-4" style={{ color: BRAND }} />
+                <p className="text-sm font-semibold text-foreground mb-2">You will be redirected to a secure payment page.</p>
+                <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
+                  Complete your payment of <strong>{formattedAmount}</strong> using your preferred international payment method. The page opens in a new tab.
+                </p>
                 <a
-                  href={`https://wa.me/2349130700056?text=Hi%20HAMZURY%2C%20I%20have%20just%20transferred%20for%20invoice%20${invoiceRef}.%20Please%20confirm.`}
+                  href={invoice.internationalPaymentLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 rounded-lg py-3 text-sm font-medium hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold text-white"
+                  style={{ background: BRAND }}
                 >
-                  <MessageCircle size={16} className="text-green-600" />
-                  Confirm via WhatsApp
+                  <ExternalLink size={15} /> Pay now
                 </a>
-
-                <p className="text-xs text-muted-foreground text-center mt-4">
-                  Powered by Paystack · Secured by HMAC-SHA512
+                <p className="text-xs text-muted-foreground mt-4">
+                  After payment, your project status will update automatically within 24 hours.
                 </p>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -84,10 +84,10 @@ export default function Ridi() {
             <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: BRAND }}>HAMZURY</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/services" className="nav-link">Services</Link>
+            <Link href="/services" className="nav-link">Our Services</Link>
             <Link href="/ridi" className="nav-link" style={{ color: BRAND, fontWeight: 600 }}>RIDI</Link>
-            <Link href="/services/bizdoc" className="nav-link">Bizdoc</Link>
-            <Link href="/portal" className="nav-link">Portal</Link>
+            <Link href="/about" className="nav-link">About Us</Link>
+            <Link href="/portal" className="nav-link" style={{ border: "1.5px solid #1B4D3E", borderRadius: "4px", padding: "4px 12px", color: "#1B4D3E", fontWeight: 600 }}>Portal</Link>
           </nav>
           <button className="md:hidden p-2 rounded-sm text-muted-foreground" onClick={() => setMobileOpen(o => !o)}>
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}

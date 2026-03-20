@@ -6,11 +6,11 @@ import { toast } from "sonner";
 
 const HAMZURY_LOGO = "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663394820206/UGIofUkgHcsfIMTK.jpeg?Expires=1804459560&Signature=sJWFbdQfR0PJyz8Q34s7l5Gh460aa5HNntGM1jyEMDWRKgZcovB5uHJDf1wjbDMfaB9icn797Hgg23PB4SFu4YIDtMs~vMFisP4uswkStBEow1~0qVmoFC7jAwlUk-h-DtvZjj6kRhVdq~YQM3uziYatUpOOub7jU2gz5CHObDxikiF7rXgYbIphCC9wcYL4w2mzxBlUCzgzVgYZ4lF9m~BmqQAuE5m1UKfxspWuoNDl2HrRLhW6WnLvC7IR1mKcYKFVo~WXQrnhVLnCe6rVkGK8ckluILIBCC0MD2T0Ii1YwksrSxNxy1HFza8ausArBaOYF5OZA0TbAHdetulPdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
-const NAV_LINKS = [
-  { href: "/services", label: "Services" },
+const NAV_LINKS: { href: string; label: string; portal?: boolean }[] = [
+  { href: "/services", label: "Our Services" },
   { href: "/ridi", label: "RIDI" },
-  { href: "/affiliates", label: "Affiliates" },
-  { href: "/portal", label: "Portal" },
+  { href: "/about", label: "About Us" },
+  { href: "/portal", label: "Portal", portal: true },
 ];
 
 const COMMISSION_STAGES = [
@@ -60,7 +60,14 @@ export default function Affiliates() {
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="nav-link">{l.label}</Link>
+              l.portal ? (
+                <Link key={l.href} href={l.href} className="nav-link"
+                  style={{ border: "1.5px solid #1B4D3E", borderRadius: "4px", padding: "4px 12px", color: "#1B4D3E", fontWeight: 600 }}>
+                  {l.label}
+                </Link>
+              ) : (
+                <Link key={l.href} href={l.href} className="nav-link">{l.label}</Link>
+              )
             ))}
           </nav>
           <button className="md:hidden p-2 rounded-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setMobileOpen((o) => !o)}>

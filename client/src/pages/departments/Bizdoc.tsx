@@ -275,10 +275,10 @@ export default function Bizdoc() {
             <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: BRAND }}>HAMZURY</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/services" className="nav-link">Services</Link>
+            <Link href="/services" className="nav-link">Our Services</Link>
             <Link href="/ridi" className="nav-link">RIDI</Link>
             <Link href="/services/bizdoc" className="nav-link" style={{ color: BRAND, fontWeight: 600 }}>Bizdoc</Link>
-            <Link href="/portal" className="nav-link">Portal</Link>
+            <Link href="/portal" className="nav-link" style={{ border: "1.5px solid #1B4D3E", borderRadius: "4px", padding: "4px 12px", color: "#1B4D3E", fontWeight: 600 }}>Portal</Link>
           </nav>
         </div>
       </header>
@@ -430,7 +430,7 @@ export default function Bizdoc() {
           </div>
           <div className="flex items-center gap-8 text-xs text-muted-foreground">
             <Link href="/services" className="hover:text-foreground transition-colors">Services</Link>
-            <Link href="/ridi" className="hover:text-foreground transition-colors">RIDI</Link>
+            <Link href="/about" className="hover:text-foreground transition-colors">About Us</Link>
             <Link href="/team" className="hover:text-foreground transition-colors">Team</Link>
             <Link href="/policies" className="hover:text-foreground transition-colors">Policies</Link>
             <Link href="/track" className="hover:text-foreground transition-colors">Track Request</Link>

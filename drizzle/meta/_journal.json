@@ -71,6 +71,13 @@
       "when": 1773633190502,
       "tag": "0009_rare_thunderbird",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1773638903676,
+      "tag": "0010_curved_mad_thinker",
+      "breakpoints": true
     }
   ]
 }

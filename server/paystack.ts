@@ -160,7 +160,7 @@ paystackRouter.get("/dva/details/:invoiceRef", async (req: Request, res: Respons
       invoiceRef: invoice.invoiceRef,
       accountNumber: invoice.paystackRef || null,
       status: invoice.status,
-      amountNaira: invoice.amount,
+      amountNaira: invoice.amountNaira,
       clientName: invoice.clientName,
     });
   } catch (err) {
@@ -222,7 +222,7 @@ paystackRouter.post("/webhook", async (req: Request, res: Response) => {
 
           await notifyOwner({
             title: `Payment Received — ${matchedInvoice.invoiceRef}`,
-            content: `Invoice ${matchedInvoice.invoiceRef} for ${matchedInvoice.clientName} has been paid via bank transfer. Amount: ₦${matchedInvoice.amount?.toLocaleString()}. Reference: ${reference}.`,
+            content: `Invoice ${matchedInvoice.invoiceRef} for ${matchedInvoice.clientName} has been paid via bank transfer. Amount: ₦${matchedInvoice.amountNaira?.toLocaleString()}. Reference: ${reference}.`,
           });
         }
       }

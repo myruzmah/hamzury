@@ -117,8 +117,8 @@ export default function Services() {
           <nav className="hidden md:flex items-center gap-8">
             <Link href="/services" className="nav-link" style={{ color: BRAND, fontWeight: 600 }}>Services</Link>
             <Link href="/ridi" className="nav-link">RIDI</Link>
-            <Link href="/services/bizdoc" className="nav-link">Bizdoc</Link>
-            <Link href="/portal" className="nav-link">Portal</Link>
+            <Link href="/about" className="nav-link">About Us</Link>
+            <Link href="/portal" className="nav-link" style={{ border: "1.5px solid #1B4D3E", borderRadius: "4px", padding: "4px 12px", color: "#1B4D3E", fontWeight: 600 }}>Portal</Link>
           </nav>
           <button className="md:hidden p-2 rounded-sm text-muted-foreground" onClick={() => setMobileOpen(o => !o)}>
             {mobileOpen ? <X size={18} /> : <Menu size={18} />}
@@ -129,7 +129,7 @@ export default function Services() {
             <nav className="container py-4 flex flex-col gap-1">
               <Link href="/services" className="py-2.5 text-sm font-medium" style={{ color: BRAND }} onClick={() => setMobileOpen(false)}>Services</Link>
               <Link href="/ridi" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>RIDI</Link>
-              <Link href="/services/bizdoc" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Bizdoc</Link>
+              <Link href="/about" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>About Us</Link>
               <Link href="/portal" className="py-2.5 text-sm font-medium text-muted-foreground" onClick={() => setMobileOpen(false)}>Portal</Link>
               <Link href="/start" className="mt-3 inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold rounded-lg text-white" style={{ background: BRAND }} onClick={() => setMobileOpen(false)}>Start a Project</Link>
             </nav>
@@ -140,6 +140,9 @@ export default function Services() {
       {/* Hero — dark brand background matching department pages */}
       <section className="pt-32 pb-20 grain-overlay" style={{ background: BRAND }}>
         <div className="container">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white transition-colors mb-6">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Back to Home
+          </Link>
           <p className="text-xs tracking-[0.2em] uppercase mb-4 text-white/50">Services</p>
           <h1 className="text-5xl md:text-6xl font-light text-white mb-6 leading-tight">
             Four departments.<br />One institution.

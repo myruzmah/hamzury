@@ -277,10 +277,10 @@ export default function Systems() {
             <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: BRAND }}>HAMZURY</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/services" className="nav-link">Services</Link>
+            <Link href="/services" className="nav-link">Our Services</Link>
             <Link href="/ridi" className="nav-link">RIDI</Link>
-            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="nav-link">Bizdoc</a>
-            <Link href="/portal" className="nav-link">Portal</Link>
+            <Link href="/about" className="nav-link">About Us</Link>
+            <Link href="/portal" className="nav-link" style={{ border: "1.5px solid #1B4D3E", borderRadius: "4px", padding: "4px 12px", color: "#1B4D3E", fontWeight: 600 }}>Portal</Link>
           </nav>
         </div>
       </header>

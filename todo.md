@@ -441,3 +441,69 @@
 - [ ] Show bank name, account number, account name, and amount on PayInvoice page
 - [ ] Confirm payment automatically via Paystack webhook on transfer received
 - [ ] Update invoice status to paid in database on webhook confirmation
+
+## Phase 24 — Final Enhancements Before Launch
+
+### 24A — Navigation Updates
+- [x] Remove Bizdoc from top navigation; replace with About Us
+- [x] Rename "Services" to "Our Services" in nav
+- [x] Add green border around Portal nav link
+- [x] Simplify footer: keep only Privacy, Terms, Affiliate Terms, Careers, Press, Contact
+- [x] Add /about page
+
+### 24B — Homepage Updates
+- [x] Remove standalone About Us section from homepage
+- [x] Update How It Works steps to reflect actual pipeline (chat → ticket → execute → track → deliver)
+
+### 24C — Chat System Overhaul (Faiza Abiola)
+- [x] Generate Faiza Abiola avatar image (realistic African lady with hijab)
+- [x] Replace "HAMZURY Advisor" header with Faiza Abiola name, avatar, and blue verification badge
+- [x] Add full-screen mobile chat mode (back button to return)
+- [x] Add free-text input always visible (not just for open-ended questions)
+- [x] Add context retention across session (all messages persist)
+- [x] Add upsell message at end of conversation
+- [x] Add appointment booking option ("Book a call" button)
+- [x] Add language switcher (English active, Hausa/Pidgin coming soon)
+- [x] Any service CTA click opens chat with contextual prompt
+
+### 24D — Payment Overhaul
+- [x] Remove Paystack DVA integration from PayInvoice.tsx
+- [x] Replace with manual bank transfer display (HAMZURY bank details)
+- [x] Add receipt upload field (client uploads proof of transfer)
+- [x] Add international payment link field (finance team sets per invoice)
+- [x] Update Finance dashboard to set payment link per invoice
+- [x] Update webhook/confirmation to manual (finance marks as paid)
+
+### 24E — Branded Invoice & Delivery Dossier
+- [x] Add invoice PDF generation endpoint (HAMZURY-branded with logo, Paid stamp)
+- [x] Add delivery dossier PDF generation (client name, deliverables, founder note)
+- [x] Finance dashboard: download branded invoice PDF button
+- [x] Finance dashboard: generate delivery dossier button
+
+### 24F — Dashboard Enhancements
+- [x] HR dashboard: assign staff to departments, manage roles, view all staff
+- [x] CSO dashboard: assign tasks to team leads only (not directly to staff)
+- [x] Lead dashboard: assign tasks to their team members
+- [x] CEO dashboard: super admin powers (assign anyone, edit tasks, change passwords, override)
+- [x] Add calendar widget to all dashboards
+- [x] AI agent network: display as table with stats (name, role, tasks, success rate, workload, status)
+- [x] AI agent network: add performance graph (tasks per week)
+
+### 24G — Back Buttons & Page Cleanup
+- [x] Add back button to all non-homepage pages
+- [x] Remove unnecessary/duplicate pages
+- [x] Services page: redesign as collapsible cards (mobile-friendly)
+- [x] Remove Quick Reference section from Services page
+
+## Phase 25 — CSO Dashboard (Full Rebuild)
+
+- [x] CSO Login page (/cso/login) with mock auth (localStorage)
+- [x] CSO Dashboard layout with sidebar (desktop) + bottom nav (mobile)
+- [x] Overview section: 4 KPI cards, quick actions, activity feed
+- [x] Lead Pipeline section: table with filters (source, service, status)
+- [x] Assignments section: table + create assignment modal
+- [x] Department Updates section: structured log
+- [x] Attendance section: today's attendance + check-in/out
+- [x] KPIs & Analytics section: bar/line/pie charts
+- [x] Quick Access section: shortcut cards
+- [x] Add /cso/login and /cso/dashboard routes to App.tsx

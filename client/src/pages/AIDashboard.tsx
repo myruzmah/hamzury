@@ -9,6 +9,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { ArrowLeft, Send, Loader2, Bot, ChevronRight, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const BRAND = "#1B4D3E";
 
@@ -307,6 +308,84 @@ export default function AIDashboard() {
               <p className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: BRAND }}>HAMZURY OS</p>
               <h1 className="text-2xl font-light text-foreground mb-1">AI Agent Network</h1>
               <p className="text-sm text-muted-foreground">11 specialised agents to assist every department. Select an agent to begin.</p>
+            </div>
+
+            {/* Agent Stats Table */}
+            <div className="mb-8">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Agent Performance This Week</p>
+              <div className="bg-white rounded-xl border overflow-hidden" style={{ borderColor: "#e5e7eb" }}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr style={{ background: "#F9FAFB", borderBottom: "1px solid #e5e7eb" }}>
+                        {["Agent", "Role", "Tasks", "Success Rate", "Workload"].map(h => (
+                          <th key={h} className="text-left px-4 py-3 font-medium text-gray-500">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        { name: "Lead Qualification", role: "CSO", tasks: 24, rate: 94, workload: 72 },
+                        { name: "Follow-Up Writer", role: "CSO", tasks: 31, rate: 97, workload: 85 },
+                        { name: "Clarity Report", role: "CSO", tasks: 12, rate: 91, workload: 45 },
+                        { name: "Research Agent", role: "All Depts", tasks: 18, rate: 89, workload: 60 },
+                        { name: "Business Strategist", role: "All Depts", tasks: 9, rate: 96, workload: 38 },
+                        { name: "Copywriting Agent", role: "Studios", tasks: 27, rate: 93, workload: 78 },
+                        { name: "Creative Director", role: "Studios", tasks: 15, rate: 88, workload: 52 },
+                        { name: "Design Brief", role: "Studios", tasks: 11, rate: 95, workload: 40 },
+                        { name: "Video Brief", role: "Studios", tasks: 8, rate: 92, workload: 30 },
+                        { name: "Quality Assurance", role: "All Depts", tasks: 22, rate: 99, workload: 65 },
+                        { name: "Publishing Agent", role: "Studios", tasks: 19, rate: 90, workload: 58 },
+                      ].map((a, i) => (
+                        <tr key={i} style={{ borderBottom: i < 10 ? "1px solid #f3f4f6" : "none" }}>
+                          <td className="px-4 py-3 font-medium text-gray-800">{a.name}</td>
+                          <td className="px-4 py-3 text-gray-500">{a.role}</td>
+                          <td className="px-4 py-3 text-gray-800">{a.tasks}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 rounded-full bg-gray-100" style={{ maxWidth: 60 }}>
+                                <div className="h-1.5 rounded-full" style={{ width: `${a.rate}%`, background: a.rate >= 95 ? "#059669" : a.rate >= 90 ? "#1B4D3E" : "#D97706" }} />
+                              </div>
+                              <span>{a.rate}%</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 rounded-full bg-gray-100" style={{ maxWidth: 60 }}>
+                                <div className="h-1.5 rounded-full" style={{ width: `${a.workload}%`, background: a.workload >= 80 ? "#DC2626" : a.workload >= 60 ? "#D97706" : "#059669" }} />
+                              </div>
+                              <span>{a.workload}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              {/* Weekly tasks chart */}
+              <div className="bg-white rounded-xl border mt-3 p-4" style={{ borderColor: "#e5e7eb" }}>
+                <p className="text-xs font-semibold text-gray-700 mb-3">Total Tasks Completed per Week</p>
+                <ResponsiveContainer width="100%" height={150}>
+                  <BarChart data={[
+                    { week: "W1 Feb", tasks: 58 },
+                    { week: "W2 Feb", tasks: 72 },
+                    { week: "W3 Feb", tasks: 65 },
+                    { week: "W4 Feb", tasks: 81 },
+                    { week: "W1 Mar", tasks: 90 },
+                    { week: "W2 Mar", tasks: 104 },
+                    { week: "W3 Mar", tasks: 196 },
+                  ]} barSize={26}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                    <XAxis dataKey="week" tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #e5e7eb" }} />
+                    <Bar dataKey="tasks" radius={[4, 4, 0, 0]}>
+                      {[false,false,false,false,true,true,true].map((gold, i) => <Cell key={i} fill={gold ? "#C9A97E" : "#1B4D3E"} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
             {/* Group by department */}

@@ -96,10 +96,10 @@ export default function Team() {
             <span className="font-semibold text-xs tracking-[0.18em] uppercase hidden sm:block" style={{ color: BRAND }}>HAMZURY</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
-            <Link href="/services" className="nav-link">Services</Link>
+            <Link href="/services" className="nav-link">Our Services</Link>
             <Link href="/ridi" className="nav-link">RIDI</Link>
-            <a href="https://bizdoc.hamzury.com" target="_blank" rel="noopener noreferrer" className="nav-link">Bizdoc</a>
-            <Link href="/portal" className="nav-link">Portal</Link>
+            <Link href="/about" className="nav-link">About Us</Link>
+            <Link href="/portal" className="nav-link" style={{ border: "1.5px solid #1B4D3E", borderRadius: "4px", padding: "4px 12px", color: "#1B4D3E", fontWeight: 600 }}>Portal</Link>
           </nav>
         </div>
       </header>
@@ -107,6 +107,9 @@ export default function Team() {
       {/* Hero */}
       <section className="pt-32 pb-16 border-b border-border">
         <div className="container">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-6">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> Back to Home
+          </Link>
           <p className="text-xs tracking-[0.2em] uppercase mb-4" style={{ color: BRAND }}>Our People</p>
           <h1 className="text-4xl font-light mb-4" style={{ color: "#1a1a1a" }}>The team.</h1>
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">

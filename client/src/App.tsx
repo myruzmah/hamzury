@@ -8,6 +8,7 @@ import HamzuryChat from "./components/HamzuryChat";
 
 // Public pages
 import Home from "./pages/Home";
+import About from "./pages/About";
 import Ask from "@/pages/Ask";
 import PayInvoice from "@/pages/PayInvoice";
 import Chat from "./pages/Chat";
@@ -54,6 +55,8 @@ import FounderDashboard from "./pages/founder-dashboard";
 import LeadDashboard from "./pages/lead-dashboard";
 import MyTasksDashboard from "./pages/staff/my-tasks";
 import CSODashboard from "./pages/cso-dashboard";
+import CSOLogin from "./pages/cso/CSOLogin";
+import CSODashboardNew from "./pages/cso/CSODashboard";
 import FinanceDashboard from "./pages/finance-dashboard";
 import RidiDashboard from "./pages/ridi-dashboard";
 import InnovationDashboard from "./pages/innovation-dashboard";
@@ -64,6 +67,7 @@ function Router() {
       {/* Public */}
       <Route path="/" component={Home} />
       <Route path="/ridi" component={Ridi} />
+      <Route path="/about" component={About} />
       <Route path="/portal" component={Portal} />
       <Route path="/services" component={Services} />
       <Route path="/contact" component={Contact} />
@@ -95,6 +99,8 @@ function Router() {
       <Route path="/lead-dashboard" component={LeadDashboard} />
       <Route path="/my-tasks" component={MyTasksDashboard} />
       <Route path="/cso-dashboard" component={CSODashboard} />
+      <Route path="/cso/login" component={CSOLogin} />
+      <Route path="/cso/dashboard" component={CSODashboardNew} />
       <Route path="/finance-dashboard" component={FinanceDashboard} />
       <Route path="/ridi-dashboard" component={RidiDashboard} />
       <Route path="/innovation-dashboard" component={InnovationDashboard} />

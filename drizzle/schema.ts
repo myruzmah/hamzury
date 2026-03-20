@@ -475,6 +475,12 @@ export const invoices = mysqlTable("invoices", {
   notes: text("notes"),
   paystackRef: varchar("paystackRef", { length: 128 }), // Paystack payment reference
   paystackUrl: text("paystackUrl"), // Paystack payment link URL
+  // Payment method fields
+  receiptUrl: text("receiptUrl"), // S3 URL of uploaded bank transfer receipt
+  receiptFileName: varchar("receiptFileName", { length: 256 }), // Original file name
+  receiptUploadedAt: timestamp("receiptUploadedAt"), // When receipt was uploaded
+  internationalPaymentLink: text("internationalPaymentLink"), // External payment link for international clients
+  paymentMethod: mysqlEnum("paymentMethod", ["bank_transfer", "international_link", "paystack"]),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

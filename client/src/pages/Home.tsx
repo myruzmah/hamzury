@@ -43,37 +43,37 @@ const SERVICES = [
 const JOURNEY_STEPS = [
   {
     step: "01",
-    title: "Enquire",
-    desc: "Tell us what you're building.",
+    title: "Chat",
+    desc: "Tell us what you need — in the chat or via the intake form.",
   },
   {
     step: "02",
-    title: "Brief",
-    desc: "We structure your project and confirm scope.",
+    title: "Ticket",
+    desc: "We create a project ticket, assign a lead, and confirm scope.",
   },
   {
     step: "03",
-    title: "Match",
-    desc: "Your project is assigned to the right lead.",
+    title: "Execute",
+    desc: "Work begins. Your lead manages the process end to end.",
   },
   {
     step: "04",
-    title: "Build",
-    desc: "Work begins. Track progress with your reference code.",
+    title: "Track",
+    desc: "Follow progress in real time with your reference code.",
   },
   {
     step: "05",
     title: "Deliver",
-    desc: "Reviewed, approved, and handed over with documentation.",
+    desc: "Reviewed, approved, and handed over with full documentation.",
   },
 ];
 
-// Nav links: Services, RIDI, Bizdoc, Portal
-const NAV_LINKS: { href: string; label: string }[] = [
-  { href: "/services", label: "Services" },
+// Nav links: Our Services, RIDI, About Us, Portal
+const NAV_LINKS: { href: string; label: string; portal?: boolean }[] = [
+  { href: "/services", label: "Our Services" },
   { href: "/ridi", label: "RIDI" },
-  { href: "/services/bizdoc", label: "Bizdoc" },
-  { href: "/portal", label: "Portal" },
+  { href: "/about", label: "About Us" },
+  { href: "/portal", label: "Portal", portal: true },
 ];
 
 export default function Home() {
@@ -103,9 +103,16 @@ export default function Home() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="nav-link">
-                {l.label}
-              </Link>
+              l.portal ? (
+                <Link key={l.href} href={l.href} className="nav-link"
+                  style={{ border: "1.5px solid #1B4D3E", borderRadius: "4px", padding: "4px 12px", color: "#1B4D3E", fontWeight: 600 }}>
+                  {l.label}
+                </Link>
+              ) : (
+                <Link key={l.href} href={l.href} className="nav-link">
+                  {l.label}
+                </Link>
+              )
             ))}
           </nav>
 
@@ -290,35 +297,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── About HAMZURY ──────────────────────────────────────────────────── */}
-      <section className="section-padding" style={{ background: "white" }}>
-        <div className="container">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-4xl">
-            <div>
-              <span className="brand-rule" />
-              <h2 className="mb-6" style={{ color: "var(--charcoal)" }}>
-                About HAMZURY.
-              </h2>
-            </div>
-            <div className="space-y-4">
-              <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                Most organisations outgrow their structure before they realise it. The systems that got them here are the same ones slowing them down.
-              </p>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                HAMZURY works with founders, executives, and institutional leaders who are building for the long term. We design the systems, brands, and legal foundations that allow organisations to operate with structure and deliver with consistency.
-              </p>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--body-text)" }}>
-                Every project is documented, assigned a lead, and reviewed before delivery. Every engagement is built to outlast the project.
-              </p>
-              <div className="pt-4">
-                <Link href="/services" className="btn-ghost text-xs">
-                  Explore our services <ArrowRight size={12} />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* ── Footer ─────────────────────────────────────────────────────────── */}
       <footer className="border-t border-border py-12" style={{ background: "white" }}>
@@ -340,11 +319,10 @@ export default function Home() {
             {/* Links */}
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
               {[
-                { href: "/services", label: "Services" },
+                { href: "/services", label: "Our Services" },
                 { href: "/ridi", label: "RIDI" },
-                { href: "/services/bizdoc", label: "Bizdoc" },
+                { href: "/about", label: "About Us" },
                 { href: "/team", label: "Team" },
-                { href: "/policies", label: "Policies" },
                 { href: "/contact", label: "Contact" },
                 { href: "/start", label: "Start your project" },
                 { href: "/track", label: "Track Project" },
@@ -363,7 +341,7 @@ export default function Home() {
               © 2026 HAMZURY. Built to last.
             </p>
             <div className="flex flex-wrap gap-x-5 gap-y-1">
-              {[{href:"/privacy",label:"Privacy"},{href:"/terms",label:"Terms"},{href:"/refunds",label:"Refunds"},{href:"/cookies",label:"Cookies"},{href:"/affiliate-terms",label:"Affiliate Terms"}].map(l=>(
+              {[{href:"/privacy",label:"Privacy"},{href:"/terms",label:"Terms"},{href:"/affiliate-terms",label:"Affiliate Terms"},{href:"/careers",label:"Careers"},{href:"/press",label:"Press"},{href:"/contact",label:"Contact"}].map(l=>(
                 <Link key={l.href} href={l.href} className="text-xs hover:underline" style={{ color: "var(--muted-text)" }}>{l.label}</Link>
               ))}
             </div>

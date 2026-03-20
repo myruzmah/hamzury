@@ -114,7 +114,7 @@ import {
   updateScholarshipStatus,
   updateDonationStatus,
 } from "./db";
-import { staffMembers, affiliateApplications, tasks, invoices } from "../drizzle/schema";
+import { staffMembers, affiliateApplications, tasks, taskLifecycle, invoices } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import {
   getMockDeliverables,
@@ -654,7 +654,7 @@ const institutionalRouter = router({
         closed: "closed",
       };
       const dbStage = stageMap[input.stage] || input.stage;
-      await db.update(tasks).set({ lifecycleStage: dbStage as any, updatedAt: new Date() }).where(eq(tasks.taskRef, input.taskRef));
+      await db.update(taskLifecycle).set({ lifecycleStage: dbStage as any, updatedAt: new Date() }).where(eq(taskLifecycle.taskRef, input.taskRef));
       return { success: true };
     }),
 
@@ -955,10 +955,83 @@ Do not use bullet points. Write in flowing, professional prose. End with a clear
         messages,
         maxOutputTokens: 2000,
       });
-      return { reply: result.text };
+       return { reply: result.text };
+    }),
+  // ── Faiza Abiola: public-facing AI chat agent ──────────────────────────────
+  faizaChat: publicProcedure
+    .input(z.object({
+      message: z.string().min(1).max(3000),
+      history: z.array(z.object({
+        role: z.enum(["user", "assistant"]),
+        content: z.string(),
+      })).optional().default([]),
+    }))
+    .mutation(async ({ input }) => {
+      const systemPrompt = `You are Faiza Abiola — HAMZURY's Client Engagement Lead. You are a verified HAMZURY team member who speaks on behalf of the institution.
+
+HAMZURY is a multi-unit institution based in Jos, Nigeria. It operates across five service units:
+- Systems: websites, web apps, automation, AI workflows, dashboards
+- Studios: brand identity, social media management, content strategy, podcast production, event media
+- Bizdoc: CAC registration, annual returns, tax registration, PENCOM compliance, industry licensing
+- Innovation Hub: executive classes, kids robotics & STEM, digital skills bootcamps, corporate training
+- RIDI: rural digital inclusion — scholarships, community training, digital access
+
+Client journey: Enquiry → Qualification → Clarity Report → Payment → Production → Quality Gate → Delivery → Nurture.
+Reference numbers follow the format HZR-YYMMDD-XXX. Clients track projects at /track.
+
+Your role:
+1. Understand what the client needs — ask one clear question at a time if more context is needed.
+2. Recommend the right HAMZURY service with confidence and specificity.
+3. When the client is ready to proceed, guide them to /start to submit a formal request.
+4. When they want to track a project, send them to /track.
+5. When relevant, mention the Clarity Report — a paid diagnostic that maps their business challenges to HAMZURY solutions.
+6. When a client seems like a strong fit for multiple services, gently upsell: "Given what you have described, you may also benefit from our [service] — many clients in your position combine these."
+7. Offer to book a consultation call: "If you would prefer to speak with someone directly, I can arrange a 20-minute consultation. Just let me know your availability."
+
+Tone: calm, warm, institutional. No exclamation marks. No hype. No filler phrases like "Great question!" or "Absolutely!". Speak like a senior professional — precise, helpful, and unhurried.
+
+Verification: You are a verified HAMZURY team member. If asked, confirm: "I am Faiza Abiola, HAMZURY's Client Engagement Lead. I am here to help you find the right service and get started."
+
+Context retention: Remember everything the user has told you in this conversation. Reference earlier details naturally — do not ask for information already provided.
+
+Always end with a clear, single next step.`;
+      const messages = [
+        ...input.history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
+        { role: "user" as const, content: input.message },
+      ];
+      try {
+        const result = await generateText({
+          model: agentModel,
+          system: systemPrompt,
+          messages,
+          maxOutputTokens: 800,
+        });
+        return { reply: result.text };
+      } catch {
+        return { reply: "I apologise — I am having a brief technical issue. Please try again in a moment, or reach out directly at cso@hamzury.com." };
+      }
+    }),
+  // ── Book consultation: create an appointment request ──────────────────────
+  bookConsultation: publicProcedure
+    .input(z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      phone: z.string().min(7),
+      preferredDate: z.string(),
+      preferredTime: z.string(),
+      topic: z.string().min(5),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        await notifyOwner({
+          title: `Consultation request: ${input.name}`,
+          content: `Name: ${input.name}\nEmail: ${input.email}\nPhone: ${input.phone}\nDate: ${input.preferredDate}\nTime: ${input.preferredTime}\nTopic: ${input.topic}`,
+        });
+      } catch (_) { /* non-blocking */ }
+      return { success: true };
     }),
 });
-
 // ─── Diagnosis router ────────────────────────────────────────────────────────
 const diagnosisRouter = router({
   submit: publicProcedure
@@ -1530,6 +1603,91 @@ const financeRouter = router({
       const rows = await db.select().from(invoices).where(eq(invoices.invoiceRef, input.invoiceRef)).limit(1);
       return rows[0] ?? null;
     }),
+  // Public — upload receipt file to S3 and record payment (Nigerian clients)
+  uploadReceipt: publicProcedure
+    .input(z.object({
+      invoiceRef: z.string(),
+      fileName: z.string().min(1),
+      fileBase64: z.string().min(1),
+      mimeType: z.string().optional(),
+      senderName: z.string().min(2),
+      senderEmail: z.string().email(),
+      senderPhone: z.string().min(7),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      const { storagePut } = await import("./storage");
+      const suffix = nanoid(8);
+      const ext = input.fileName.split(".").pop() ?? "pdf";
+      const fileKey = `payment-receipts/${input.invoiceRef}/${suffix}.${ext}`;
+      const buffer = Buffer.from(input.fileBase64, "base64");
+      const { url } = await storagePut(fileKey, buffer, input.mimeType ?? "application/octet-stream");
+      await db.update(invoices)
+        .set({
+          receiptUrl: url,
+          receiptFileName: input.fileName,
+          receiptUploadedAt: new Date(),
+          paymentMethod: "bank_transfer",
+          status: "Paid",
+          paidAt: new Date(),
+        })
+        .where(eq(invoices.invoiceRef, input.invoiceRef));
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        await notifyOwner({
+          title: `Payment receipt received: ${input.invoiceRef}`,
+          content: `Invoice: ${input.invoiceRef}\nFrom: ${input.senderName} (${input.senderEmail})\nPhone: ${input.senderPhone}\nReceipt: ${url}`,
+        });
+      } catch (_) { /* non-blocking */ }
+      return { success: true, receiptUrl: url };
+    }),
+  // Public — submit receipt URL (for cases where URL is already known)
+  submitReceipt: publicProcedure
+    .input(z.object({
+      invoiceRef: z.string(),
+      receiptUrl: z.string().url(),
+      receiptFileName: z.string(),
+      senderName: z.string().min(2),
+      senderEmail: z.string().email(),
+      senderPhone: z.string().min(7),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      await db.update(invoices)
+        .set({
+          receiptUrl: input.receiptUrl,
+          receiptFileName: input.receiptFileName,
+          receiptUploadedAt: new Date(),
+          paymentMethod: "bank_transfer",
+          status: "Paid",
+          paidAt: new Date(),
+        })
+        .where(eq(invoices.invoiceRef, input.invoiceRef));
+      try {
+        const { notifyOwner } = await import("./_core/notification");
+        await notifyOwner({
+          title: `Payment receipt received: ${input.invoiceRef}`,
+          content: `Invoice: ${input.invoiceRef}\nFrom: ${input.senderName} (${input.senderEmail})\nPhone: ${input.senderPhone}\nReceipt: ${input.receiptUrl}`,
+        });
+      } catch (_) { /* non-blocking */ }
+      return { success: true };
+    }),
+  // Protected — set international payment link on an invoice
+  setPaymentLink: protectedProcedure
+    .input(z.object({
+      invoiceRef: z.string(),
+      paymentLink: z.string().url(),
+    }))
+    .mutation(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      await db.update(invoices)
+        .set({ internationalPaymentLink: input.paymentLink, paymentMethod: "international_link" })
+        .where(eq(invoices.invoiceRef, input.invoiceRef));
+      return { success: true };
+    }),
 });
 // ─── CSO Router ────────────────────────────────────────────────────────────────
 const csoRouter = router({
@@ -1721,6 +1879,8 @@ const affiliateRouter = router({
   getMyStats: publicProcedure
     .input(z.object({ affiliateCode: z.string() }))
     .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
       const app = await db.select().from(affiliateApplications).where(
         eq(affiliateApplications.affiliateCode, input.affiliateCode)
       ).limit(1);

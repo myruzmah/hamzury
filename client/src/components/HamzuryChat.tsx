@@ -267,7 +267,7 @@ export default function HamzuryChat() {
   };
 
   const disableOptions = (id: number) => {
-    setOptionsDisabled((prev) => new Set([...prev, id]));
+    setOptionsDisabled((prev) => new Set(Array.from(prev).concat(id)));
   };
 
   const reset = () => {

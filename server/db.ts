@@ -1008,20 +1008,21 @@ export async function updateDonationStatus(donationRef: string, status: "Pending
   await db.update(ridiDonations).set({ status }).where(eq(ridiDonations.donationRef, donationRef));
 }
 
-// ─── Affiliate Helpers ────────────────────────────────────────────────────────
+// --- Affiliate Helpers ---
 export async function createAffiliateApplication(data: {
   name: string; email: string; phone?: string; reason?: string;
 }) {
   const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
   await db.insert(affiliateApplications).values({ ...data, status: "pending" });
 }
-
 export async function getAllAffiliateApplications() {
   const db = await getDb();
+  if (!db) return [];
   return db.select().from(affiliateApplications).orderBy(desc(affiliateApplications.createdAt));
 }
-
 export async function updateAffiliateStatus(id: number, status: "approved" | "rejected", affiliateCode?: string) {
   const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
   await db.update(affiliateApplications).set({ status, affiliateCode }).where(eq(affiliateApplications.id, id));
 }
